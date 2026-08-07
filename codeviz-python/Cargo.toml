@@ -1,0 +1,9 @@
+[package]
+name = "codeviz-python"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+codeviz-core = { path = "../codeviz-core" }
+tree-sitter = "0.22" # Need to check the exact version from core or just use latest stable
+tree-sitter-python = "0.21"

@@ -3,6 +3,7 @@ members = [
     "codeviz-core",
     "codeviz-cli",
     "codeviz-wasm",
-    "codeviz-mcp"
+    "codeviz-mcp",
+    "codeviz-python"
 ]
 resolver = "2"
