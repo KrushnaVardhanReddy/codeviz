@@ -18,6 +18,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: Use a fast hashing algorithm (like `blake3` or `sha2`) to hash file contents. Store the cache in a local `.codeviz/` directory.
 - Write comprehensive unit tests:
 - Write a cache entry, read it back, assert equality
 - Modify mtime → assert cache miss

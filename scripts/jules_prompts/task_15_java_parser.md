@@ -15,6 +15,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: Use `tree-sitter-java`. Capture class inheritance (`extends`) and interfaces (`implements`) properly.
 - Write comprehensive unit tests:
 Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/java.md`
 and assert the exact node/edge counts specified.

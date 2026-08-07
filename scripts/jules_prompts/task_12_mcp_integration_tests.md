@@ -18,6 +18,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: Mock the `CodeGraph` state in memory so you don't need real file I/O for these tests.
 - Write comprehensive unit tests:
 
 - No unwraps or panics in core parsing logic. Return Result.

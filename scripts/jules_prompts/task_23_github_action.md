@@ -17,6 +17,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: The `action.yml` should define inputs for the path to scan. The action will execute the pre-compiled codeviz binary.
 - Write comprehensive unit tests:
 
 - No unwraps or panics in core parsing logic. Return Result.

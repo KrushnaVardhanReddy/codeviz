@@ -18,6 +18,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: The CLI should accept `--output mermaid` or `--output json`. Ensure the output routing is cleanly abstracted.
 - Write comprehensive unit tests:
 - Config with 3 `[[outputs]]` entries parses into a `Vec<OutputTarget>`
 - `run` with 2 targets updates both files

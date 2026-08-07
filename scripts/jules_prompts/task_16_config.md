@@ -15,6 +15,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: Use `serde` with `toml` crate. If `codeviz.toml` is missing, gracefully fallback to default configuration values without erroring.
 - Write comprehensive unit tests:
 - Parse a complete `codeviz.toml` and assert all fields match expected values
 - Parse a partial config and assert missing fields use defaults

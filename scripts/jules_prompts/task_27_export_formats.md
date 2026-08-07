@@ -18,6 +18,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: The JSON export must serialize the exact `CodeGraph` structure. DOT export should map nodes to `digraph` syntax cleanly.
 - Write comprehensive unit tests:
 - JSON export round-trips through `serde_json::from_str` without error
 - DOT export contains `digraph codeviz {` header

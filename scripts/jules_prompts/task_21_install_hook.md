@@ -15,6 +15,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: The install hook should write a standard git `pre-commit` bash script to `.git/hooks/pre-commit`.
 - Write comprehensive unit tests:
 - Test with no existing `.pre-commit-config.yaml` → file is created
 - Test with existing file without codeviz entry → entry is appended

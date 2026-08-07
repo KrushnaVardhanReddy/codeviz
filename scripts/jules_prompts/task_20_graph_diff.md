@@ -17,6 +17,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: The graph diff should clearly highlight added (`+`) and removed (`-`) nodes and edges between two commits.
 - Write comprehensive unit tests:
 - Diff two identical `CodeGraph`s → all delta fields empty
 - Diff graph with one extra node → `added_nodes` has 1 entry

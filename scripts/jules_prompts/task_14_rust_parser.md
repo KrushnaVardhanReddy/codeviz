@@ -16,6 +16,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: Use `tree-sitter-rust`. Pay special attention to `mod` vs `use` for module resolution.
 - Write comprehensive unit tests:
 Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/rust_lang.md`
 and assert the exact node/edge counts specified.

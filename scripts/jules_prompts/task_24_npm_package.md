@@ -18,6 +18,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: Write a small Node.js wrapper that invokes the WASM blob generated in Task 10. Expose a clean TypeScript API for it.
 - Write comprehensive unit tests:
 
 - No unwraps or panics in core parsing logic. Return Result.

@@ -15,6 +15,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: Use `tree-sitter-go`. Ensure you correctly capture Go's package-level imports and structs. Do not run `cargo clippy --fix` if it injects unstable features.
 - Write comprehensive unit tests:
 Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/go.md`
 and assert the exact node/edge counts specified.

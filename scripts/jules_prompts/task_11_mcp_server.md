@@ -22,6 +22,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: We use JSON-RPC 2.0 over stdio. Use stable Rust 2021. Avoid `let_chains` or any nightly features.
 - Write comprehensive unit tests:
 - Test each tool handler with a known mock `CodeGraph`
 - Test unknown tool name returns error code `-32601`

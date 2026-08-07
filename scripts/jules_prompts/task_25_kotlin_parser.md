@@ -16,6 +16,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: Use `tree-sitter-kotlin`. Be mindful of Kotlin's primary constructors and companion objects.
 - Write comprehensive unit tests:
 Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/kotlin.md`
 and assert the exact node/edge counts specified.

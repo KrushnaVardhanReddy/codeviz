@@ -19,6 +19,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: Use the `notify` crate for cross-platform file watching. Crucially, you MUST debounce the filesystem events to prevent the parser from thrashing on save.
 - Write comprehensive unit tests:
 - Test debounce logic: rapid file events produce single callback
 - Test error in parse does not stop the watcher (mock error injection)

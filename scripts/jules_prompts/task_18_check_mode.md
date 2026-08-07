@@ -15,6 +15,7 @@ Spec (READ ONLY — implement from it, never edit):
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
+- CONTEXT: `codeviz check` should exit with code 1 if there are architectural violations. This is designed for CI pipelines.
 - Write comprehensive unit tests:
 - `check` on matching diagrams returns `Ok(true)`
 - `check` on stale diagrams returns `Ok(false)` with a diff
