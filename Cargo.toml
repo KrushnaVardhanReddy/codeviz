@@ -1,0 +1,3 @@
+[workspace]
+members = ["codeviz-core"]
+resolver = "2"
