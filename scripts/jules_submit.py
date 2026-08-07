@@ -115,8 +115,6 @@ TASKS = {
     # Phase 10: Distribution
     23: {"name": "23 — GitHub Actions Marketplace",  "phase": "Phase 10: Distribution",       "slug": "task_23_github_action"},
     24: {"name": "24 — npm WASM Package",            "phase": "Phase 10: Distribution",       "slug": "task_24_npm_package"},
-    # Phase 11: VS Code Extension
-    17: {"name": "17 — VS Code Extension",           "phase": "Phase 11: VS Code",            "slug": "task_17_vscode_extension"},
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -133,7 +131,7 @@ BATCHES = {
     7:  {"desc": "Phase 7: Config + Multi-Output",         "tasks": [16, 26]},
     8:  {"desc": "Phase 8: Critical Features",             "tasks": [18, 19, 21]},
     9:  {"desc": "Phase 9: Developer UX",                  "tasks": [22, 20, 27]},
-    10: {"desc": "Phase 10 & 11: Distribution + VS Code",  "tasks": [23, 24, 17]},
+    10: {"desc": "Phase 10: Distribution (GitHub Action + npm WASM)",  "tasks": [23, 24]},
 }
 
 # ─────────────────────────────────────────────────────────────
