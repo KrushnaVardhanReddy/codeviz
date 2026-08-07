@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "codeviz-core",
+    "codeviz-cli",
+    "codeviz-wasm",
+    "codeviz-mcp"
+]
+resolver = "2"
