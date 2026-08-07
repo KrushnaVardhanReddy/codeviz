@@ -4,6 +4,7 @@ pub use inject::{inject_mermaid, InjectError};
 pub mod graph;
 pub mod ir;
 pub mod parser;
+pub mod render;
 
 pub use ir::*;
 pub use parser::*;

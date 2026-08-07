@@ -1,0 +1,11 @@
+--- codeviz-core/src/render/mermaid.rs
++++ codeviz-core/src/render/mermaid.rs
+@@ -23,7 +23,7 @@
+ impl MermaidRenderer {
+     /// Creates a new `MermaidRenderer`.
+     pub fn new() -> Self {
+-        Self::default()
++        Self
+     }
+
+     /// Renders the given `CodeGraph` into a Mermaid diagram string of the specified `DiagramKind`.
