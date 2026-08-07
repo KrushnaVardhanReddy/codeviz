@@ -14,7 +14,10 @@ impl fmt::Display for InjectError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             InjectError::MissingTags => write!(f, "Missing CODEVIZ sentinel tags in markdown"),
-            InjectError::MalformedTags => write!(f, "Malformed CODEVIZ sentinel tags (missing one or wrong order)"),
+            InjectError::MalformedTags => write!(
+                f,
+                "Malformed CODEVIZ sentinel tags (missing one or wrong order)"
+            ),
         }
     }
 }

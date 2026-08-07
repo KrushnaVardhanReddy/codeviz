@@ -1,5 +1,5 @@
 pub mod inject;
-pub use inject::{inject_mermaid, InjectError};
+pub use inject::{InjectError, inject_mermaid};
 
 pub mod graph;
 pub mod ir;

@@ -111,7 +111,8 @@ mod tests {
         };
 
         let serialized = serde_json::to_string(&graph).expect("failed to serialize");
-        let deserialized: CodeGraph = serde_json::from_str(&serialized).expect("failed to deserialize");
+        let deserialized: CodeGraph =
+            serde_json::from_str(&serialized).expect("failed to deserialize");
 
         assert_eq!(graph, deserialized);
     }
@@ -152,7 +153,8 @@ mod tests {
         };
 
         let serialized = serde_json::to_string(&graph).expect("failed to serialize");
-        let deserialized: CodeGraph = serde_json::from_str(&serialized).expect("failed to deserialize");
+        let deserialized: CodeGraph =
+            serde_json::from_str(&serialized).expect("failed to deserialize");
 
         assert_eq!(graph, deserialized);
 
