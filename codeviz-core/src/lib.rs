@@ -1,6 +1,12 @@
 pub mod inject;
-
 pub use inject::{inject_mermaid, InjectError};
+
+pub mod graph;
+pub mod ir;
+pub mod parser;
+
+pub use ir::*;
+pub use parser::*;
 
 /// A core struct for CodeViz representing a dummy node to pass initial tests.
 pub struct DummyNode {
@@ -36,4 +42,3 @@ mod tests {
         assert!(node.is_err());
     }
 }
-pub mod graph;
