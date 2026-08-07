@@ -22,3 +22,10 @@ Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/rust
 and assert the exact node/edge counts specified.
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use `tree-sitter-rust` crate.
+- Rust module resolution is tricky. For `mod my_module;`, create an `Imports` edge. For `use std::collections::HashMap;`, also create an `Imports` edge but try to extract the base module.
+- Treat Rust `trait` as `NodeKind::Interface` and `struct`/`enum` as `NodeKind::Class`.

@@ -22,3 +22,10 @@ CONSTRAINTS & RULES
 - Simulate CLI flag override and assert it takes precedence over config value
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use `serde` and the `toml` crate to parse `codeviz.toml`.
+- Define a `Config` struct with `Default` implemented. Use `#[serde(default)]` extensively so that missing fields automatically fall back to their defaults.
+- Place the config parsing logic in `codeviz-core` so that both the CLI and WASM adapters can use it.

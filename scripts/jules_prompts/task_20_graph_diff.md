@@ -24,3 +24,10 @@ CONSTRAINTS & RULES
 - Diff graph with removed edge → `removed_edges` has 1 entry
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Create a `diff(old_graph, new_graph)` function in `codeviz-core`.
+- It should return a `GraphDiff` struct containing added/removed nodes and edges.
+- When rendering a diff to Mermaid, use Mermaid's `classDef` to color added nodes green and removed nodes red.

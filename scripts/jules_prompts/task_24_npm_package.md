@@ -23,3 +23,10 @@ CONSTRAINTS & RULES
 
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use `wasm-pack` to generate a Node.js compatible bundle.
+- Write a small `index.js` or `index.ts` wrapper in a new `npm` directory that loads the WASM and provides a clean JavaScript API (e.g., `parseCode(source, lang)`).
+- Add a `package.json` that sets up the entry points and exports.

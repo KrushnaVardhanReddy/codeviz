@@ -22,3 +22,10 @@ CONSTRAINTS & RULES
 - Assert the output file is never written to
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- `codeviz check` is meant for CI pipelines.
+- It should read the `CodeGraph` and evaluate it against architectural rules defined in `codeviz.toml` (e.g., "module A cannot import module B").
+- If a violation is found, use `std::process::exit(1)` so the CI step fails.

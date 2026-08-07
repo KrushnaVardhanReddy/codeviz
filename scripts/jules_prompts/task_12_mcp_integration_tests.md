@@ -23,3 +23,10 @@ CONSTRAINTS & RULES
 
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Mock the `CodeGraph` state in memory so you don't need real file I/O.
+- You can simulate JSON-RPC requests by passing raw JSON strings directly to the server's message handler function and verifying the returned JSON response.
+- Do not spawn a real TCP server; MCP uses stdio by default.

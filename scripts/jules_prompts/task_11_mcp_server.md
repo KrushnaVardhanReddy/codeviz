@@ -29,3 +29,10 @@ CONSTRAINTS & RULES
 - Test invalid params returns error code `-32602`
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use the `serde_json` crate heavily for RPC message parsing.
+- You do NOT need to wait for all language parsers to be finished. Just use the `LanguageParser` registry trait.
+- If testing locally, remember that `stdout` is used for the MCP protocol, so use `eprintln!` for any debugging logs to avoid breaking the JSON-RPC stream.

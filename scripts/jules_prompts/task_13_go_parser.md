@@ -21,3 +21,10 @@ Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/go.m
 and assert the exact node/edge counts specified.
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use `tree-sitter-go` crate.
+- Go's `import` statements are often grouped in `import ( ... )` blocks. Make sure your AST traversal iterates over all children of the import declaration.
+- Structs and Interfaces in Go are defined using `type X struct/interface`. Ensure you map these to `NodeKind::Class` and `NodeKind::Interface` respectively.

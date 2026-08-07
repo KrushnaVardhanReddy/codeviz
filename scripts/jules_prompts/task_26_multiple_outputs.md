@@ -25,3 +25,10 @@ CONSTRAINTS & RULES
 - One target with missing sentinel tags → error logged, second target still updated
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Refactor the rendering logic to use an `OutputFormat` enum (`Mermaid`, `Json`, `Dot`).
+- The CLI should accept `--output <format>` (defaulting to Mermaid).
+- For JSON, just use `serde_json::to_string_pretty` on the `CodeGraph`. For DOT, you'll need to manually string-format the nodes and edges into `digraph G { ... }` syntax.

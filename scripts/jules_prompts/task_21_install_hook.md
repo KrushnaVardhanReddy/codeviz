@@ -23,3 +23,10 @@ CONSTRAINTS & RULES
 - Test that sentinel tags are only added if absent
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- The install hook command (`codeviz install-hook`) should create or append to `.git/hooks/pre-commit`.
+- The bash script should simply execute `codeviz check`.
+- Make sure to set the executable permission (`chmod +x`) on the hook file after writing it.

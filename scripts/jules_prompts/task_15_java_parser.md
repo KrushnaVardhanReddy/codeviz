@@ -21,3 +21,10 @@ Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/java
 and assert the exact node/edge counts specified.
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use `tree-sitter-java` crate.
+- Java `package` declarations should ideally scope the node names, but for V1, just use the file path + class name as the unique ID.
+- Properly capture `extends` as `EdgeKind::Inherits` and `implements` as `EdgeKind::Implements`.

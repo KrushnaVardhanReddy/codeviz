@@ -22,3 +22,10 @@ Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/kotl
 and assert the exact node/edge counts specified.
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use `tree-sitter-kotlin` crate.
+- Kotlin has primary constructors inline with the class definition. Make sure you don't accidentally parse the constructor arguments as separate classes.
+- Map Kotlin `object` declarations (singletons) and `companion object` to `NodeKind::Class` with a specific label or just `Class`.

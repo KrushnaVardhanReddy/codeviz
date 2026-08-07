@@ -22,3 +22,10 @@ CONSTRAINTS & RULES
 
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Define an `action.yml` file in the root of the repository.
+- Use a `runs: using: 'composite'` action that downloads the latest pre-compiled CodeViz binary from GitHub Releases and executes `codeviz run` on the user's workspace.
+- Allow inputs like `config-path` and `fail-on-violation`.

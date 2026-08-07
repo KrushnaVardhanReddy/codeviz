@@ -25,3 +25,10 @@ CONSTRAINTS & RULES
 - Test error in parse does not stop the watcher (mock error injection)
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use the `notify` crate to watch the source directory for file modifications.
+- **CRITICAL:** You MUST debounce the filesystem events (e.g., using a 300ms delay). Editors often fire multiple write events when a user saves a file. If you don't debounce, CodeViz will thrash the CPU parsing the same file 5 times.
+- Integrate this with the incremental cache so only the changed files are re-parsed.

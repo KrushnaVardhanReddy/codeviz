@@ -25,3 +25,11 @@ CONSTRAINTS & RULES
 - Assert `--no-cache` bypasses cache entirely
 - No unwraps or panics in core parsing logic. Return Result.
 - Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use a fast hashing algorithm like `blake3` or `sha2` (sha256).
+- Hash the *contents* of each file. 
+- Store the cache state (file paths + hashes + node IDs) in a `.codeviz/cache.json` file in the workspace root.
+- When parsing, if the file hash hasn't changed, skip parsing and reuse the sub-graph from the cache.
