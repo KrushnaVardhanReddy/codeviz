@@ -1,18 +1,22 @@
-# Jules Task 13 — Go Parser
+TASK: T13 — Go Parser
 
-## Spec
-Read `docs/specs/parsers/go.md` before writing any code.
-
-## Files to Create
-- `codeviz-go/Cargo.toml`
-- `codeviz-go/src/lib.rs`
-- `codeviz-go/src/parser.rs`
-- Update workspace `Cargo.toml` to include this crate
-
-## Requirements
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
 Implement `LanguageParser` for `GoParser` per `docs/specs/parsers/go.md`.
 Use `tree-sitter-go`.
 
-## Unit Tests
+Files to Modify/Create:
+
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/parsers/go.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Write comprehensive unit tests:
 Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/go.md`
 and assert the exact node/edge counts specified.
+- No unwraps or panics in core parsing logic. Return Result.
+- Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.

@@ -1,15 +1,8 @@
-# Jules Task 11 — MCP Server: Core & Tool Definitions
+TASK: T11 — MCP Server: Core & Tool Definitions
 
-## Spec
-Read `docs/specs/07_mcp_protocol.md` before writing any code.
-
-## Files to Modify/Create
-- `codeviz-mcp/src/lib.rs`
-- `codeviz-mcp/src/server.rs`
-- `codeviz-mcp/src/tools.rs`
-- `codeviz-mcp/Cargo.toml`
-
-## Requirements
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
 Implement the MCP server per `docs/specs/07_mcp_protocol.md`:
 - All 6 tools with their JSON Schema definitions and Rust handlers
 - stdio JSON-RPC 2.0 transport
@@ -17,7 +10,21 @@ Implement the MCP server per `docs/specs/07_mcp_protocol.md`:
 - All errors returned as JSON-RPC error objects (never panic)
 - Wire into CLI: `codeviz serve --mcp [--port N]`
 
-## Unit Tests
+Files to Modify/Create:
+- `codeviz-mcp/src/lib.rs`
+- `codeviz-mcp/src/server.rs`
+- `codeviz-mcp/src/tools.rs`
+- `codeviz-mcp/Cargo.toml`
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/07_mcp_protocol.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Write comprehensive unit tests:
 - Test each tool handler with a known mock `CodeGraph`
 - Test unknown tool name returns error code `-32601`
 - Test invalid params returns error code `-32602`
+- No unwraps or panics in core parsing logic. Return Result.
+- Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.

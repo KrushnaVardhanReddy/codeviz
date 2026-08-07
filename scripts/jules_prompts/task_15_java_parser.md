@@ -1,18 +1,22 @@
-# Jules Task 15 — Java Parser
+TASK: T15 — Java Parser
 
-## Spec
-Read `docs/specs/parsers/java.md` before writing any code.
-
-## Files to Create
-- `codeviz-java/Cargo.toml`
-- `codeviz-java/src/lib.rs`
-- `codeviz-java/src/parser.rs`
-- Update workspace `Cargo.toml` to include this crate
-
-## Requirements
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
 Implement `LanguageParser` for `JavaParser` per `docs/specs/parsers/java.md`.
 Use `tree-sitter-java`.
 
-## Unit Tests
+Files to Modify/Create:
+
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/parsers/java.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Write comprehensive unit tests:
 Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/java.md`
 and assert the exact node/edge counts specified.
+- No unwraps or panics in core parsing logic. Return Result.
+- Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.

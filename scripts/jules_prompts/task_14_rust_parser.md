@@ -1,19 +1,23 @@
-# Jules Task 14 — Rust Parser
+TASK: T14 — Rust Parser
 
-## Spec
-Read `docs/specs/parsers/rust_lang.md` before writing any code.
-
-## Files to Create
-- `codeviz-rust-lang/Cargo.toml`
-- `codeviz-rust-lang/src/lib.rs`
-- `codeviz-rust-lang/src/parser.rs`
-- Update workspace `Cargo.toml` to include this crate
-
-## Requirements
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
 Implement `LanguageParser` for `RustLangParser` per `docs/specs/parsers/rust_lang.md`.
 Use `tree-sitter-rust`.
 Handle workspace multi-crate support as specified.
 
-## Unit Tests
+Files to Modify/Create:
+
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/parsers/rust_lang.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Write comprehensive unit tests:
 Parse the snippet in the Acceptance Criteria section of `docs/specs/parsers/rust_lang.md`
 and assert the exact node/edge counts specified.
+- No unwraps or panics in core parsing logic. Return Result.
+- Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.

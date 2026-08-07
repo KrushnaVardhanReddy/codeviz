@@ -1,14 +1,8 @@
-# Jules Task 22 — Watch Mode (`codeviz watch`)
+TASK: T22 — Watch Mode (`codeviz watch`)
 
-## Spec
-Read `docs/specs/features/watch_mode.md` before writing any code.
-Read `docs/specs/05_cli_interface.md` for the CLI interface.
-
-## Files to Create/Modify
-- `codeviz-cli/src/main.rs` (add `watch` subcommand)
-- `codeviz-cli/Cargo.toml` (add `notify` crate dependency)
-
-## Requirements
+═══════════════════════════════════════════════════════════════
+OBJECTIVE
+═══════════════════════════════════════════════════════════════
 Implement `codeviz watch` per the spec:
 - Use `notify` crate for cross-platform file watching
 - 300ms debounce
@@ -16,6 +10,17 @@ Implement `codeviz watch` per the spec:
 - Continue watching after parse errors (never exit on error)
 - Clean exit on Ctrl+C
 
-## Unit Tests
+Files to Modify/Create:
+
+
+Spec (READ ONLY — implement from it, never edit):
+  docs/specs/features/watch_mode.md
+
+═══════════════════════════════════════════════════════════════
+CONSTRAINTS & RULES
+═══════════════════════════════════════════════════════════════
+- Write comprehensive unit tests:
 - Test debounce logic: rapid file events produce single callback
 - Test error in parse does not stop the watcher (mock error injection)
+- No unwraps or panics in core parsing logic. Return Result.
+- Ensure 'cargo clippy --all -- -D warnings' and 'cargo test --all' pass cleanly.
