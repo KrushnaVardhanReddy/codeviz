@@ -190,6 +190,14 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
         return Ok(());
     }
 
+    if args.len() > 1 && args[1] == "serve" {
+        if args.len() > 2 && args[2] == "--mcp" {
+            return codeviz_mcp::start_mcp_server();
+        } else {
+            return Err("Unknown options for serve. Did you mean --mcp?".to_string());
+        }
+    }
+
     if args.len() > 1 && args[1] == "run" {
         let run_args = parse_run_args(&args[2..])?;
 
