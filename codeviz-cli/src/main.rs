@@ -97,7 +97,7 @@ pub fn print_help() {
     println!("  --help  Print this help message");
 }
 
-/// Main entry point for the CLI.
+
 
 use std::path::{Path, PathBuf};
 use codeviz_core::{CodeGraph, GraphMeta, LanguageRegistry, inject_mermaid};
@@ -145,8 +145,8 @@ pub fn prune_graph(graph: &mut CodeGraph, max_depth: Option<usize>) {
     }
 
     while let Some((node_id, current_depth)) = queue.pop_front() {
-        if current_depth < depth {
-            if let Some(neighbors) = adj.get(&node_id) {
+        if current_depth < depth
+            && let Some(neighbors) = adj.get(&node_id) {
                 for neighbor in neighbors {
                     if !visited.contains(neighbor) {
                         visited.insert(neighbor.clone());
@@ -154,7 +154,6 @@ pub fn prune_graph(graph: &mut CodeGraph, max_depth: Option<usize>) {
                     }
                 }
             }
-        }
     }
 
     graph.nodes.retain(|n| visited.contains(&n.id));
@@ -183,7 +182,7 @@ fn walk_dir(dir: &Path) -> Result<Vec<PathBuf>, String> {
     Ok(files)
 }
 
-/// Main entry point for the CLI.
+
 pub fn run_cli(args: Vec<String>) -> Result<(), String> {
     if args.iter().any(|arg| arg == "--help") {
         print_help();
@@ -210,17 +209,14 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
 
         for file in files {
             // Check if file extension is supported before reading source
-            if let Some(ext) = file.extension().and_then(|e| e.to_str()) {
-                if registry.find_parser(ext).is_some() {
-                    if let Ok(source) = std::fs::read_to_string(&file) {
-                        if let Ok(graph) = registry.parse_file(&file.to_string_lossy(), &source) {
+            if let Some(ext) = file.extension().and_then(|e| e.to_str())
+                && registry.find_parser(ext).is_some()
+                    && let Ok(source) = std::fs::read_to_string(&file)
+                        && let Ok(graph) = registry.parse_file(&file.to_string_lossy(), &source) {
                             merged_graph.nodes.extend(graph.nodes);
                             merged_graph.edges.extend(graph.edges);
                             parsed_count += 1;
                         }
-                    }
-                }
-            }
         }
 
         merged_graph.meta.node_count = merged_graph.nodes.len();

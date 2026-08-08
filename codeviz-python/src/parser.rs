@@ -21,7 +21,7 @@ impl PythonParser {
                     self.extract_class(node, source_bytes, file_path, graph)?;
                 }
                 "function_definition" => {
-                    let is_async = node.child(0).map_or(false, |c| c.kind() == "async");
+                    let is_async = node.child(0).is_some_and(|c| c.kind() == "async");
                     self.extract_function(node, source_bytes, file_path, graph, is_async)?;
                 }
                 "import_statement" => {
@@ -72,12 +72,11 @@ impl PythonParser {
                     // Extract decorator name
                     let mut id_cursor = child.walk();
                     for id_child in child.children(&mut id_cursor) {
-                         if id_child.kind() == "identifier" || id_child.kind() == "call" || id_child.kind() == "dotted_name" {
-                             if let Ok(text) = id_child.utf8_text(source_bytes) {
+                         if (id_child.kind() == "identifier" || id_child.kind() == "call" || id_child.kind() == "dotted_name")
+                             && let Ok(text) = id_child.utf8_text(source_bytes) {
                                  let text = text.split('(').next().unwrap_or(text);
                                  decorators.push(text.to_string());
                              }
-                         }
                     }
                 }
                 "class_definition" => {
@@ -85,7 +84,7 @@ impl PythonParser {
                 }
                 "function_definition" => {
                     target_node = Some(child);
-                    is_async = child.child(0).map_or(false, |c| c.kind() == "async");
+                    is_async = child.child(0).is_some_and(|c| c.kind() == "async");
                 }
                 _ => {}
             }
@@ -109,20 +108,19 @@ impl PythonParser {
 
     fn extract_class(&self, node: TsNode, source_bytes: &[u8], file_path: &str, graph: &mut CodeGraph) -> Result<(), ParseError> {
          // Check if parent is a decorated_definition. If so, skip because it's handled by extract_decorated
-         if let Some(parent) = node.parent() {
-             if parent.kind() == "decorated_definition" {
+         if let Some(parent) = node.parent()
+             && parent.kind() == "decorated_definition" {
                  return Ok(());
              }
-         }
          self.extract_class_with_decorators(node, source_bytes, file_path, graph, &[])
     }
 
     fn extract_class_with_decorators(&self, node: TsNode, source_bytes: &[u8], file_path: &str, graph: &mut CodeGraph, decorators: &[String]) -> Result<(), ParseError> {
-        if let Some(name_node) = node.child_by_field_name("name") {
-            if let Ok(name) = name_node.utf8_text(source_bytes) {
+        if let Some(name_node) = node.child_by_field_name("name")
+            && let Ok(name) = name_node.utf8_text(source_bytes) {
                 let mut label = name.to_string();
                 if !decorators.is_empty() {
-                    label.push_str("@");
+                    label.push('@');
                     label.push_str(&decorators.join(","));
                 }
 
@@ -139,8 +137,8 @@ impl PythonParser {
                 if let Some(superclasses) = node.child_by_field_name("superclasses") {
                     let mut cursor = superclasses.walk();
                     for child in superclasses.children(&mut cursor) {
-                        if child.kind() == "identifier" || child.kind() == "attribute" {
-                            if let Ok(base_name) = child.utf8_text(source_bytes) {
+                        if (child.kind() == "identifier" || child.kind() == "attribute")
+                            && let Ok(base_name) = child.utf8_text(source_bytes) {
                                 let to_id = format!("{}::{}", file_path, base_name); // Assuming intra-file or external
                                 graph.edges.push(Edge {
                                     from_id: id.clone(),
@@ -148,29 +146,26 @@ impl PythonParser {
                                     kind: EdgeKind::Inherits,
                                 });
                             }
-                        }
                     }
                 }
             }
-        }
         Ok(())
     }
 
     fn extract_function(&self, node: TsNode, source_bytes: &[u8], file_path: &str, graph: &mut CodeGraph, is_async: bool) -> Result<(), ParseError> {
-         if let Some(parent) = node.parent() {
-             if parent.kind() == "decorated_definition" {
+         if let Some(parent) = node.parent()
+             && parent.kind() == "decorated_definition" {
                  return Ok(());
              }
-         }
          self.extract_function_with_decorators(node, source_bytes, file_path, graph, is_async, &[])
     }
 
     fn extract_function_with_decorators(&self, node: TsNode, source_bytes: &[u8], file_path: &str, graph: &mut CodeGraph, is_async: bool, decorators: &[String]) -> Result<(), ParseError> {
-        if let Some(name_node) = node.child_by_field_name("name") {
-            if let Ok(name) = name_node.utf8_text(source_bytes) {
+        if let Some(name_node) = node.child_by_field_name("name")
+            && let Ok(name) = name_node.utf8_text(source_bytes) {
                  let mut label = name.to_string();
                 if !decorators.is_empty() {
-                    label.push_str("@");
+                    label.push('@');
                     label.push_str(&decorators.join(","));
                 }
 
@@ -184,7 +179,6 @@ impl PythonParser {
                     is_public: true, // simplified
                 });
             }
-        }
         Ok(())
     }
 
@@ -199,17 +193,15 @@ impl PythonParser {
                         kind: EdgeKind::Imports,
                     });
                 }
-            } else if child.kind() == "aliased_import" {
-                 if let Some(name_node) = child.child_by_field_name("name") {
-                      if let Ok(module_name) = name_node.utf8_text(source_bytes) {
+            } else if child.kind() == "aliased_import"
+                 && let Some(name_node) = child.child_by_field_name("name")
+                      && let Ok(module_name) = name_node.utf8_text(source_bytes) {
                             graph.edges.push(Edge {
                                 from_id: file_path.to_string(),
                                 to_id: module_name.to_string(),
                                 kind: EdgeKind::Imports,
                             });
                       }
-                 }
-            }
         }
         Ok(())
     }
@@ -232,8 +224,8 @@ impl PythonParser {
 
         for child in node.children(&mut cursor) {
             if child.kind() == "dotted_name" {
-                if Some(child.id()) != module_name_id {
-                    if let Ok(name) = child.utf8_text(source_bytes) {
+                if Some(child.id()) != module_name_id
+                    && let Ok(name) = child.utf8_text(source_bytes) {
                         let to_id = if module_name.is_empty() { name.to_string() } else { format!("{}.{}", module_name, name) };
                         graph.edges.push(Edge {
                             from_id: file_path.to_string(),
@@ -242,10 +234,9 @@ impl PythonParser {
                         });
                         found_imports = true;
                     }
-                }
-            } else if child.kind() == "aliased_import" {
-                if let Some(name_node) = child.child_by_field_name("name") {
-                    if let Ok(name) = name_node.utf8_text(source_bytes) {
+            } else if child.kind() == "aliased_import"
+                && let Some(name_node) = child.child_by_field_name("name")
+                    && let Ok(name) = name_node.utf8_text(source_bytes) {
                         let to_id = if module_name.is_empty() { name.to_string() } else { format!("{}.{}", module_name, name) };
                         graph.edges.push(Edge {
                                 from_id: file_path.to_string(),
@@ -254,8 +245,6 @@ impl PythonParser {
                             });
                         found_imports = true;
                     }
-                }
-            }
         }
 
         if !found_imports {
@@ -264,9 +253,9 @@ impl PythonParser {
                     continue;
                 }
 
-                if child.kind() == "dotted_name" || child.kind() == "identifier" {
-                    if let Ok(name) = child.utf8_text(source_bytes) {
-                        if name != module_name && name != "." { // Avoid matching dot as import name when it is a relative import marker
+                if (child.kind() == "dotted_name" || child.kind() == "identifier")
+                    && let Ok(name) = child.utf8_text(source_bytes)
+                        && name != module_name && name != "." { // Avoid matching dot as import name when it is a relative import marker
                                 let to_id = if module_name.is_empty() { name.to_string() } else { format!("{}.{}", module_name, name) };
                                 graph.edges.push(Edge {
                                     from_id: file_path.to_string(),
@@ -274,8 +263,6 @@ impl PythonParser {
                                     kind: EdgeKind::Imports,
                                 });
                         }
-                    }
-                }
             }
         }
 
@@ -330,7 +317,7 @@ impl LanguageParser for PythonParser {
         // Add the file node itself as the "module" node for this file
         graph.nodes.push(Node {
              id: file_path.to_string(),
-             label: file_path.split('/').last().unwrap_or(file_path).to_string(),
+             label: file_path.split('/').next_back().unwrap_or(file_path).to_string(),
              kind: NodeKind::File,
              file_path: file_path.to_string(),
              line: None,
