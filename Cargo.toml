@@ -5,5 +5,5 @@ members = [
     "codeviz-wasm",
     "codeviz-mcp",
     "codeviz-python"
-]
+, "codeviz-typescript"]
 resolver = "2"

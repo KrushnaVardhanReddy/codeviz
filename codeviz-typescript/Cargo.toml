@@ -1,0 +1,9 @@
+[package]
+name = "codeviz-typescript"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+codeviz-core = { version = "0.1.0", path = "../codeviz-core" }
+tree-sitter = "0.22"
+tree-sitter-typescript = "0.21"

@@ -102,6 +102,7 @@ pub fn print_help() {
 use std::path::{Path, PathBuf};
 use codeviz_core::{CodeGraph, GraphMeta, LanguageRegistry, inject_mermaid};
 use codeviz_python::PythonParser;
+use codeviz_typescript::TypeScriptParser;
 
 /// Prunes a CodeGraph up to the specified max depth using BFS.
 pub fn prune_graph(graph: &mut CodeGraph, max_depth: Option<usize>) {
@@ -194,6 +195,7 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
 
         let mut registry = LanguageRegistry::new();
         registry.register(Box::new(PythonParser::new()));
+        registry.register(Box::new(TypeScriptParser::new()));
 
         let files = walk_dir(Path::new(&run_args.path))?;
 
