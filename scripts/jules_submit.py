@@ -128,6 +128,11 @@ TASKS = {
     34: {"name": "34 — Team Workspaces & Repo Groups","phase": "Phase 14: Teams",            "slug": "task_34_teams"},
     # Phase 15: Enterprise
     35: {"name": "35 — Enterprise SSO & Audit Logs", "phase": "Phase 15: Enterprise",        "slug": "task_35_enterprise_sso"},
+    # Phase 16: Enterprise Insights
+    36: {"name": "36 — Git History Integration",     "phase": "Phase 16: Insights",          "slug": "task_36_git_history"},
+    37: {"name": "37 — Blast Radius Analysis",       "phase": "Phase 16: Insights",          "slug": "task_37_blast_radius"},
+    38: {"name": "38 — Heatmap UI Layer",            "phase": "Phase 16: Insights",          "slug": "task_38_heatmap_ui"},
+    39: {"name": "39 — Architectural Linting",       "phase": "Phase 16: Insights",          "slug": "task_39_arch_linting"},
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -150,6 +155,7 @@ BATCHES = {
     13: {"desc": "Phase 13: Auth (GitHub + Google OAuth)",             "tasks": [33]},
     14: {"desc": "Phase 14: Teams & Workspaces",                       "tasks": [34]},
     15: {"desc": "Phase 15: Enterprise SSO & Audit Logs",              "tasks": [35]},
+    16: {"desc": "Phase 16: Enterprise Insights",                      "tasks": [36, 37, 38, 39]},
 }
 
 # ─────────────────────────────────────────────────────────────
