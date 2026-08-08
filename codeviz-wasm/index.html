@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeViz WASM Demo</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        import init, { render_graph } from './pkg/codeviz_wasm.js';
+
+        mermaid.initialize({ startOnLoad: false });
+
+        async function main() {
+            await init();
+
+            document.getElementById("generate").addEventListener("click", async () => {
+                const source = document.getElementById("source").value;
+                const kind = document.getElementById("diagram_kind").value;
+
+                try {
+                    const diagramStr = render_graph(source, kind);
+                    const outputDiv = document.getElementById("mermaid-output");
+
+                    // Clear previous
+                    outputDiv.innerHTML = '';
+                    outputDiv.removeAttribute('data-processed');
+
+                    // Add mermaid class and text
+                    outputDiv.className = 'mermaid';
+                    outputDiv.textContent = diagramStr;
+
+                    // Render
+                    await mermaid.run({ nodes: [outputDiv] });
+                } catch (e) {
+                    alert("Error: " + e);
+                }
+            });
+        }
+
+        main();
+    </script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        textarea { width: 100%; height: 200px; font-family: monospace; }
+        .mermaid { margin-top: 20px; border: 1px solid #ccc; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>CodeViz WASM Demo</h1>
+
+    <div>
+        <label for="diagram_kind">Diagram Kind:</label>
+        <select id="diagram_kind">
+            <option value="module">Module</option>
+            <option value="call">Call</option>
+            <option value="class">Class</option>
+        </select>
+
+        <button id="generate">Generate</button>
+    </div>
+
+    <div style="margin-top: 10px;">
+        <textarea id="source">{
+    "nodes": [
+        {
+            "id": "file.py",
+            "label": "file.py",
+            "kind": "File",
+            "file_path": "file.py",
+            "line": null,
+            "is_public": true
+        }
+    ],
+    "edges": [],
+    "meta": {
+        "language": "python",
+        "source_root": "",
+        "generated_at": "",
+        "node_count": 1,
+        "edge_count": 0
+    }
+}</textarea>
+    </div>
+
+    <h2>Output</h2>
+    <div id="mermaid-output"></div>
+</body>
+</html>
