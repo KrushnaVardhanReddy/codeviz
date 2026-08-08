@@ -93,6 +93,7 @@ pub fn print_help() {
     println!("Usage: codeviz <COMMAND> [OPTIONS]");
     println!("Commands:");
     println!("  run     Parses source code and injects an updated diagram into a markdown file.");
+    println!("  serve   Starts the MCP tool server.");
     println!("Options:");
     println!("  --help  Print this help message");
 }
@@ -188,6 +189,15 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
     if args.iter().any(|arg| arg == "--help") {
         print_help();
         return Ok(());
+    }
+
+    if args.len() > 1 && args[1] == "serve" {
+        let is_mcp = args.iter().any(|arg| arg == "--mcp");
+        if is_mcp {
+            return codeviz_mcp::start_mcp_server();
+        } else {
+            return Err("serve requires --mcp flag".to_string());
+        }
     }
 
     if args.len() > 1 && args[1] == "run" {

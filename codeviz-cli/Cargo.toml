@@ -5,5 +5,6 @@ edition = "2024"
 
 [dependencies]
 codeviz-core = { path = "../codeviz-core" }
+codeviz-mcp = { version = "0.1.0", path = "../codeviz-mcp" }
 codeviz-python = { path = "../codeviz-python" }
 codeviz-typescript = { version = "0.1.0", path = "../codeviz-typescript" }
