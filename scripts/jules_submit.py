@@ -115,6 +115,19 @@ TASKS = {
     # Phase 10: Distribution
     23: {"name": "23 — GitHub Actions Marketplace",  "phase": "Phase 10: Distribution",       "slug": "task_23_github_action"},
     24: {"name": "24 — npm WASM Package",            "phase": "Phase 10: Distribution",       "slug": "task_24_npm_package"},
+    # Phase 11: Web UI
+    28: {"name": "28 — Web UI Setup (Next.js + React Flow)", "phase": "Phase 11: Web UI",    "slug": "task_28_webui_setup"},
+    29: {"name": "29 — DependencyGraph Viewer",      "phase": "Phase 11: Web UI",             "slug": "task_29_dependency_graph_viewer"},
+    # Phase 12: Control Flow Graph
+    30: {"name": "30 — CFG IR Extension",            "phase": "Phase 12: CFG",               "slug": "task_30_cfg_ir"},
+    31: {"name": "31 — CFG Parser Emitters",         "phase": "Phase 12: CFG",               "slug": "task_31_cfg_parsers"},
+    32: {"name": "32 — CFG Web UI Renderer",         "phase": "Phase 12: CFG",               "slug": "task_32_cfg_webui"},
+    # Phase 13: Auth
+    33: {"name": "33 — Auth: GitHub & Google OAuth", "phase": "Phase 13: Auth",              "slug": "task_33_auth"},
+    # Phase 14: Teams
+    34: {"name": "34 — Team Workspaces & Repo Groups","phase": "Phase 14: Teams",            "slug": "task_34_teams"},
+    # Phase 15: Enterprise
+    35: {"name": "35 — Enterprise SSO & Audit Logs", "phase": "Phase 15: Enterprise",        "slug": "task_35_enterprise_sso"},
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -132,6 +145,11 @@ BATCHES = {
     8:  {"desc": "Phase 8: Critical Features",             "tasks": [18, 19, 21]},
     9:  {"desc": "Phase 9: Developer UX",                  "tasks": [22, 20, 27]},
     10: {"desc": "Phase 10: Distribution (GitHub Action + npm WASM)",  "tasks": [23, 24]},
+    11: {"desc": "Phase 11: Web UI (Next.js + React Flow)",            "tasks": [28, 29]},
+    12: {"desc": "Phase 12: Control Flow Graph",                       "tasks": [30, 31, 32]},
+    13: {"desc": "Phase 13: Auth (GitHub + Google OAuth)",             "tasks": [33]},
+    14: {"desc": "Phase 14: Teams & Workspaces",                       "tasks": [34]},
+    15: {"desc": "Phase 15: Enterprise SSO & Audit Logs",              "tasks": [35]},
 }
 
 # ─────────────────────────────────────────────────────────────
