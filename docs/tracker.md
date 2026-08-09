@@ -42,3 +42,29 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[ ]` **Batch 19 (Phase 19)**: `[TEAM]` Semantic Code Search with LanceDB (Task 46)
   - Natural-language search over the CodeGraph using LanceDB + OpenAI embeddings.
   - Requires: Task 33 (Auth) + Task 34 (Teams) + Phase 18 complete.
+
+---
+
+## 🗺️ Product Roadmap — MVP Versions
+
+### MVP v1 — "Make It Viral" (Core OSS — Adoption Flywheel)
+> Goal: Get developers to install CodeViz and tell their friends.
+
+- `[ ]` **T47** `[OSS]` VS Code Extension — sidebar graph panel, status bar, auto-refresh on save
+- `[ ]` **T48** `[OSS]` `summarize_architecture` MCP Tool — instant codebase overview for AI agents
+- `[ ]` **T55** `[OSS]` MCP Debugging Tools — `trace_call_path`, `get_callers_recursive`, `get_blast_radius`
+- `[ ]` **T53** `[OSS]` Interactive Call Path Explorer — animated BFS graph traversal in Web UI
+
+### MVP v2 — "Make It Sticky" (Team Features — Retention & Collaboration)
+> Goal: Make teams embed CodeViz in their daily workflow.
+
+- `[ ]` **T49** `[TEAM]` Architecture Drift Alerts — PR comments + Slack when arch regresses
+- `[ ]` **T52** `[TEAM]` "Onboard Me" — auto-generated architecture walkthrough doc + MCP tool
+
+### MVP v3 — "Make It Pay" (Enterprise Features — Revenue)
+> Goal: Close enterprise contracts.
+
+- `[ ]` **T54** `[BIZ]`  OpenTelemetry Trace Overlay — import OTEL trace, see live execution path on graph
+- `[ ]` **T50** `[ENT]`  Multi-Repo Cross-Service Graph — visualize microservice dependencies
+- `[ ]` **T51** `[ENT]`  SBOM Export (CycloneDX / SPDX) — compliance requirement for regulated industries
+

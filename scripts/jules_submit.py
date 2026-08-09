@@ -143,6 +143,20 @@ TASKS = {
     43: {"name": "43 — PageRank & Centrality",         "phase": "Phase 18: Advanced",          "slug": "task_43_pagerank"},
     44: {"name": "44 — Code Health Score",             "phase": "Phase 18: Advanced",          "slug": "task_44_code_health"},
     45: {"name": "45 — Code Coverage Overlay",         "phase": "Phase 18: Advanced",          "slug": "task_45_code_coverage"},
+    # Phase 19: Semantic Search
+    46: {"name": "46 — Semantic Code Search (LanceDB)",  "phase": "Phase 19: Semantic",          "slug": "task_46_semantic_search"},
+    # MVP v1: Viral OSS Features
+    47: {"name": "47 — VS Code Extension",               "phase": "MVP v1: Viral",               "slug": "task_47_vscode_extension"},
+    48: {"name": "48 — summarize_architecture MCP Tool", "phase": "MVP v1: Viral",               "slug": "task_48_mcp_summarize"},
+    53: {"name": "53 — Interactive Call Path Explorer",  "phase": "MVP v1: Viral",               "slug": "task_53_call_path_explorer"},
+    55: {"name": "55 — MCP Debugging Tools",             "phase": "MVP v1: Viral",               "slug": "task_55_mcp_debug_tools"},
+    # MVP v2: Sticky Team Features
+    49: {"name": "49 — Architecture Drift Alerts",       "phase": "MVP v2: Sticky",              "slug": "task_49_arch_drift_alerts"},
+    52: {"name": "52 — Onboard Me Walkthrough",          "phase": "MVP v2: Sticky",              "slug": "task_52_onboard_me"},
+    # MVP v3: Enterprise Revenue Features
+    54: {"name": "54 — OpenTelemetry Trace Overlay",     "phase": "MVP v3: Enterprise",          "slug": "task_54_otel_trace_overlay"},
+    50: {"name": "50 — Multi-Repo Cross-Service Graph",  "phase": "MVP v3: Enterprise",          "slug": "task_50_multi_repo"},
+    51: {"name": "51 — SBOM Export (CycloneDX/SPDX)",   "phase": "MVP v3: Enterprise",          "slug": "task_51_sbom_export"},
 }
 
 # ─────────────────────────────────────────────────────────────
