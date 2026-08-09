@@ -126,16 +126,15 @@ CodeViz adds languages incrementally, prioritizing depth of support over breadth
 
 | Phase | Milestone | Status | Notes |
 |-------|-----------|--------|-------|
-| **V0.1** | Python 🐍 | 🔨 In Progress | Imports, classes, best-effort calls |
-| **V0.2** | TypeScript / JavaScript 🟦 | 📋 Planned | ESM + CJS, interfaces, decorators + WASM build |
-| **V0.3** | MCP Server 🤖 | 📋 Planned | 6 graph query tools over stdio JSON-RPC |
-| **V0.4** | Go 🐹 | 📋 Planned | Static imports, struct embedding |
-| **V0.5** | Rust 🦀 | 📋 Planned | Traits, crate graph, workspace support |
-| **V0.6** | Java / Kotlin ☕ | 📋 Planned | Enterprise codebases, annotations |
-| **V1.0** | Config, Filters & VS Code | 📋 Planned | `codeviz.toml`, depth control, sidebar extension |
+| **V0.1** | Python 🐍 | ✅ Done | Imports, classes, async functions |
+| **V0.2** | TypeScript / JavaScript 🟦 | ✅ Done | ESM + CJS, interfaces, arrow functions + WASM build |
+| **V0.3** | MCP Server 🤖 | ✅ Done | 6 graph query tools over stdio JSON-RPC |
+| **V0.4** | Go 🐹 & Rust 🦀 | 📋 Planned | Imports, struct embedding, traits, crate graph |
+| **V0.5** | Java / Kotlin ☕ | 📋 Planned | Enterprise codebases, annotations |
+| **V1.0** | Universal Parser 🌐 | 📋 Planned | Query-Based parsing via TOML files for 40+ languages |
+| **V2.0** | Advanced Code Analysis 🧠 | 📋 Planned | Circular Deps, Unused Modules, PageRank, Health Scores |
 
 Each language phase ships with: a test suite against real-world repos, documented edge cases, and a changelog entry.
-The MCP adapter ships at V0.3, once the graph model is battle-tested across 2 languages — more languages = richer AI context.
 
 ---
 
@@ -178,19 +177,19 @@ enabled = ["python", "typescript"]
 ## Development Roadmap
 
 - [x] Project definition & architecture design
-- [ ] Initialize Rust workspace (`codeviz-core`, `codeviz-cli`, `codeviz-wasm`, `codeviz-mcp`)
-- [ ] Define `CodeGraph` IR structs (Nodes, Edges, Metadata)
-- [ ] Define `LanguageParser` trait (interface all language adapters implement)
-- [ ] Build Mermaid renderer from `CodeGraph`
-- [ ] Implement safe Markdown injection (sentinel-tag based)
-- [ ] **V0.1:** Python parser (Tree-sitter) — imports + classes
-- [ ] Set up GitHub Actions CI + binary releases
-- [ ] **V0.2:** TypeScript/JavaScript parser + `wasm-pack` WASM build pipeline
-- [ ] **V0.3:** MCP server adapter — 6 core graph query tools (stdio JSON-RPC)
-- [ ] **V0.4:** Go parser
-- [ ] **V0.5:** Rust parser
-- [ ] **V0.6:** Java/Kotlin parser
-- [ ] **V1.0:** `codeviz.toml` config, depth filters, VS Code extension, GitHub Actions marketplace action
+- [x] Initialize Rust workspace (`codeviz-core`, `codeviz-cli`, `codeviz-wasm`, `codeviz-mcp`)
+- [x] Define `CodeGraph` IR structs (Nodes, Edges, Metadata)
+- [x] Define `LanguageParser` trait (interface all language adapters implement)
+- [x] Build Mermaid renderer from `CodeGraph`
+- [x] Implement safe Markdown injection (sentinel-tag based)
+- [x] **V0.1:** Python parser (Tree-sitter) — imports + classes
+- [x] Set up GitHub Actions CI + binary releases
+- [x] **V0.2:** TypeScript/JavaScript parser + `wasm-pack` WASM build pipeline
+- [x] **V0.3:** MCP server adapter — 6 core graph query tools (stdio JSON-RPC)
+- [ ] **V0.4:** Go and Rust parsers
+- [ ] **V0.5:** Java and Kotlin parsers
+- [ ] **V1.0:** Universal TOML-based parser (Ruby, PHP, Swift, C#, Dart, Lua)
+- [ ] **V2.0:** Advanced Analysis (Circular Dependencies, Unused Modules, PageRank, Code Health Score)
 
 ---
 
