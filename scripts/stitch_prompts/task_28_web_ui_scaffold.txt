@@ -1,0 +1,8 @@
+Create a modern, dark-mode Next.js UI scaffold for CodeViz.
+It should feature a premium aesthetic with glassmorphism, dynamic gradients, and a sidebar for codebase navigation. The main view area should have a placeholder for a React Flow diagram.
+
+Key requirements:
+1. Very sleek dark mode UI.
+2. Sidebar on the left for file explorer.
+3. Top header with project title and settings.
+4. Main central area labeled "CodeViz Architecture Graph (React Flow)".
