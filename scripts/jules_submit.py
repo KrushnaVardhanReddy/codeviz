@@ -133,6 +133,8 @@ TASKS = {
     37: {"name": "37 — Blast Radius Analysis",       "phase": "Phase 16: Insights",          "slug": "task_37_blast_radius"},
     38: {"name": "38 — Heatmap UI Layer",            "phase": "Phase 16: Insights",          "slug": "task_38_heatmap_ui"},
     39: {"name": "39 — Architectural Linting",       "phase": "Phase 16: Insights",          "slug": "task_39_arch_linting"},
+    # Phase 17: Universal Parser
+    40: {"name": "40 — Query-Based Universal Parser",  "phase": "Phase 17: Universal",         "slug": "task_40_universal_parser"},
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -153,6 +155,7 @@ BATCHES = {
     11: {"desc": "Phase 11: Web UI (Next.js + React Flow)",            "tasks": [28, 29]},
     12: {"desc": "Phase 12: Control Flow Graph",                       "tasks": [30, 31, 32]},
     13: {"desc": "Phase 13: Auth (GitHub + Google OAuth)",             "tasks": [33]},
+    17: {"desc": "Phase 17: Universal Parser (Query-Based, 6 Languages)","tasks": [40]},
     14: {"desc": "Phase 14: Teams & Workspaces",                       "tasks": [34]},
     15: {"desc": "Phase 15: Enterprise SSO & Audit Logs",              "tasks": [35]},
     16: {"desc": "Phase 16: Enterprise Insights",                      "tasks": [36, 37, 38, 39]},
