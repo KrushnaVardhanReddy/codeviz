@@ -53,6 +53,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[ ]` **T47** `[OSS]` VS Code Extension — sidebar graph panel, status bar, auto-refresh on save
 - `[ ]` **T48** `[OSS]` `summarize_architecture` MCP Tool — instant codebase overview for AI agents
 - `[ ]` **T55** `[OSS]` MCP Debugging Tools — `trace_call_path`, `get_callers_recursive`, `get_blast_radius`
+- `[ ]` **T56** `[OSS]` Interactive Code Playground — live WASM parser sandbox on the web UI
 - `[ ]` **T53** `[OSS]` Interactive Call Path Explorer — animated BFS graph traversal in Web UI
 
 ### MVP v2 — "Make It Sticky" (Team Features — Retention & Collaboration)

@@ -150,6 +150,7 @@ TASKS = {
     48: {"name": "48 — summarize_architecture MCP Tool", "phase": "MVP v1: Viral",               "slug": "task_48_mcp_summarize"},
     53: {"name": "53 — Interactive Call Path Explorer",  "phase": "MVP v1: Viral",               "slug": "task_53_call_path_explorer"},
     55: {"name": "55 — MCP Debugging Tools",             "phase": "MVP v1: Viral",               "slug": "task_55_mcp_debug_tools"},
+    56: {"name": "56 — Interactive Code Playground",     "phase": "MVP v1: Viral",               "slug": "task_56_playground"},
     # MVP v2: Sticky Team Features
     49: {"name": "49 — Architecture Drift Alerts",       "phase": "MVP v2: Sticky",              "slug": "task_49_arch_drift_alerts"},
     52: {"name": "52 — Onboard Me Walkthrough",          "phase": "MVP v2: Sticky",              "slug": "task_52_onboard_me"},
