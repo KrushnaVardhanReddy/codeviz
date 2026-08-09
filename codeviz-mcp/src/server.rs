@@ -53,7 +53,7 @@ pub fn start_mcp_server() -> Result<(), String> {
     Ok(())
 }
 
-fn handle_request(req: JsonRpcRequest, registry: &LanguageRegistry) -> JsonRpcResponse {
+pub fn handle_request(req: JsonRpcRequest, registry: &LanguageRegistry) -> JsonRpcResponse {
     let id = req.id;
     let method = req.method.as_str();
 

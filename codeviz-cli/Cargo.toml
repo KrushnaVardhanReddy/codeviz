@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+serde_json = "1.0.151"
+codeviz-mcp = { path = "../codeviz-mcp" }
 codeviz-core = { path = "../codeviz-core" }
-codeviz-mcp = { version = "0.1.0", path = "../codeviz-mcp" }
 codeviz-python = { path = "../codeviz-python" }
 codeviz-typescript = { version = "0.1.0", path = "../codeviz-typescript" }
