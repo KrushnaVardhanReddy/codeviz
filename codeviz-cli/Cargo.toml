@@ -12,3 +12,7 @@ codeviz-typescript = { version = "0.1.0", path = "../codeviz-typescript" }
 codeviz-go = { version = "0.1.0", path = "../codeviz-go" }
 codeviz-rust = { path = "../codeviz-rust" }
 codeviz-java = { path = "../codeviz-java" }
+codeviz-kotlin = { path = "../codeviz-kotlin" }
+
+[dev-dependencies]
+tempfile = "3.27.0"
