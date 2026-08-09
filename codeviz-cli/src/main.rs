@@ -133,14 +133,16 @@ pub fn update_pre_commit_config(path: &Path) -> Result<(), String> {
 pub fn update_git_hook(path: &Path) -> Result<(), String> {
     let hooks_dir = path.join(".git").join("hooks");
     if !hooks_dir.exists() {
-        std::fs::create_dir_all(&hooks_dir).map_err(|e| format!("Failed to create .git/hooks directory: {}", e))?;
+        std::fs::create_dir_all(&hooks_dir)
+            .map_err(|e| format!("Failed to create .git/hooks directory: {}", e))?;
     }
 
     let hook_path = hooks_dir.join("pre-commit");
     let hook_cmd = "codeviz check\n";
 
     if hook_path.exists() {
-        let content = std::fs::read_to_string(&hook_path).map_err(|e| format!("Failed to read hook: {}", e))?;
+        let content = std::fs::read_to_string(&hook_path)
+            .map_err(|e| format!("Failed to read hook: {}", e))?;
         if content.contains("codeviz check") {
             println!("Already configured in .git/hooks/pre-commit");
             return Ok(());
@@ -150,7 +152,8 @@ pub fn update_git_hook(path: &Path) -> Result<(), String> {
                 new_content.push('\n');
             }
             new_content.push_str(hook_cmd);
-            std::fs::write(&hook_path, new_content).map_err(|e| format!("Failed to append to hook: {}", e))?;
+            std::fs::write(&hook_path, new_content)
+                .map_err(|e| format!("Failed to append to hook: {}", e))?;
             println!("Appended to .git/hooks/pre-commit");
         }
     } else {
@@ -163,9 +166,12 @@ pub fn update_git_hook(path: &Path) -> Result<(), String> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let mut perms = std::fs::metadata(&hook_path).map_err(|e| format!("Failed to read hook metadata: {}", e))?.permissions();
+        let mut perms = std::fs::metadata(&hook_path)
+            .map_err(|e| format!("Failed to read hook metadata: {}", e))?
+            .permissions();
         perms.set_mode(0o755);
-        std::fs::set_permissions(&hook_path, perms).map_err(|e| format!("Failed to set hook permissions: {}", e))?;
+        std::fs::set_permissions(&hook_path, perms)
+            .map_err(|e| format!("Failed to set hook permissions: {}", e))?;
     }
 
     Ok(())
@@ -174,10 +180,12 @@ pub fn update_git_hook(path: &Path) -> Result<(), String> {
 /// Updates or creates the specified Markdown file to include sentinel tags.
 pub fn update_markdown_file(output: &str) -> Result<(), String> {
     let output_path = Path::new(output);
-    let sentinel_tags = "\n---\n\n## Architecture\n\n<!-- CODEVIZ_START -->\n<!-- CODEVIZ_END -->\n";
+    let sentinel_tags =
+        "\n---\n\n## Architecture\n\n<!-- CODEVIZ_START -->\n<!-- CODEVIZ_END -->\n";
 
     if output_path.exists() {
-        let content = std::fs::read_to_string(output_path).map_err(|e| format!("Failed to read {}: {}", output, e))?;
+        let content = std::fs::read_to_string(output_path)
+            .map_err(|e| format!("Failed to read {}: {}", output, e))?;
         if content.contains("<!-- CODEVIZ_START -->") && content.contains("<!-- CODEVIZ_END -->") {
             println!("Sentinel tags already present in {}", output);
             return Ok(());
@@ -187,11 +195,13 @@ pub fn update_markdown_file(output: &str) -> Result<(), String> {
                 new_content.push('\n');
             }
             new_content.push_str(sentinel_tags);
-            std::fs::write(output_path, new_content).map_err(|e| format!("Failed to append to {}: {}", output, e))?;
+            std::fs::write(output_path, new_content)
+                .map_err(|e| format!("Failed to append to {}: {}", output, e))?;
             println!("Appended sentinel tags to {}", output);
         }
     } else {
-        std::fs::write(output_path, sentinel_tags.trim_start()).map_err(|e| format!("Failed to create {}: {}", output, e))?;
+        std::fs::write(output_path, sentinel_tags.trim_start())
+            .map_err(|e| format!("Failed to create {}: {}", output, e))?;
         println!("Created {} with sentinel tags", output);
     }
 
@@ -203,12 +213,17 @@ pub fn run_install_hook(args: &InstallHookArgs) -> Result<(), String> {
     let path = Path::new(&args.path);
 
     // Check if pre-commit is installed
-    match std::process::Command::new("which").arg("pre-commit").output() {
+    match std::process::Command::new("which")
+        .arg("pre-commit")
+        .output()
+    {
         Ok(output) if output.status.success() => {
             // pre-commit is installed
         }
         _ => {
-            println!("Warning: `pre-commit` not found in PATH. You may need to install it (e.g., `pip install pre-commit`) for the hook to run automatically.");
+            println!(
+                "Warning: `pre-commit` not found in PATH. You may need to install it (e.g., `pip install pre-commit`) for the hook to run automatically."
+            );
         }
     }
 
@@ -272,7 +287,9 @@ pub fn parse_run_args(args: &[String]) -> Result<RunArgs, String> {
 
     let config = match &config_path {
         Some(path) => codeviz_core::Config::load_from_file(std::path::Path::new(path))?,
-        None => codeviz_core::Config::load_from_dir(&std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")))?,
+        None => codeviz_core::Config::load_from_dir(
+            &std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")),
+        )?,
     };
 
     let mut run_args = RunArgs {
@@ -281,7 +298,11 @@ pub fn parse_run_args(args: &[String]) -> Result<RunArgs, String> {
         format: OutputFormat::Mermaid,
         output: None,
         diagram: parse_diagram_kind(&config.graph.diagram_type).unwrap_or(DiagramKind::ModuleGraph),
-        depth: if config.graph.max_depth == 0 { None } else { Some(config.graph.max_depth) },
+        depth: if config.graph.max_depth == 0 {
+            None
+        } else {
+            Some(config.graph.max_depth)
+        },
     };
 
     i = 0;
@@ -349,7 +370,9 @@ pub fn print_help() {
     println!("codeviz --help");
     println!("Usage: codeviz <COMMAND> [OPTIONS]");
     println!("Commands:");
-    println!("  run          Parses source code and injects an updated diagram into a markdown file.");
+    println!(
+        "  run          Parses source code and injects an updated diagram into a markdown file."
+    );
     println!("  serve        Starts the MCP tool server.");
     println!("  install-hook Installs the pre-commit hook and markdown sentinel tags.");
     println!("Options:");
@@ -663,7 +686,6 @@ diagram_type = "module"
         std::fs::remove_file("mock_valid_2.md").unwrap();
         std::fs::remove_file(&toml_file).unwrap();
 
-
         std::fs::write(
             "mock_valid_f.md",
             "<!-- CODEVIZ_START -->\n<!-- CODEVIZ_END -->",
@@ -703,8 +725,6 @@ diagram_type = "module"
         std::fs::remove_file(&toml_file).unwrap();
     }
 
-
-
     #[test]
     fn test_help_flag() {
         let args = vec!["codeviz".to_string(), "--help".to_string()];
@@ -736,17 +756,23 @@ diagram_type = "module"
         use std::io::Write;
 
         let mut temp_file = tempfile::NamedTempFile::new().unwrap();
-        writeln!(temp_file, r#"
+        writeln!(
+            temp_file,
+            r#"
         [graph]
         diagram_type = "module"
         max_depth = 10
-        "#).unwrap();
+        "#
+        )
+        .unwrap();
 
         let path_str = temp_file.path().to_string_lossy().to_string();
 
         let args = vec![
-            "--config".to_string(), path_str,
-            "--diagram".to_string(), "call".to_string() // CLI flag should override config
+            "--config".to_string(),
+            path_str,
+            "--diagram".to_string(),
+            "call".to_string(), // CLI flag should override config
         ];
 
         let run_args = parse_run_args(&args).unwrap();
@@ -759,7 +785,11 @@ diagram_type = "module"
         let temp_dir = tempfile::tempdir().unwrap();
         let args = InstallHookArgs {
             path: temp_dir.path().to_string_lossy().to_string(),
-            output: temp_dir.path().join("README.md").to_string_lossy().to_string(),
+            output: temp_dir
+                .path()
+                .join("README.md")
+                .to_string_lossy()
+                .to_string(),
         };
 
         // Ensure git hook dir doesn't fail
@@ -774,7 +804,11 @@ diagram_type = "module"
         assert!(content.contains("id: codeviz"));
         assert!(content.contains("repos:"));
 
-        let hook_path = temp_dir.path().join(".git").join("hooks").join("pre-commit");
+        let hook_path = temp_dir
+            .path()
+            .join(".git")
+            .join("hooks")
+            .join("pre-commit");
         assert!(hook_path.exists());
         let hook_content = std::fs::read_to_string(&hook_path).unwrap();
         assert!(hook_content.contains("codeviz check"));
@@ -790,7 +824,11 @@ diagram_type = "module"
         let temp_dir = tempfile::tempdir().unwrap();
         let args = InstallHookArgs {
             path: temp_dir.path().to_string_lossy().to_string(),
-            output: temp_dir.path().join("README.md").to_string_lossy().to_string(),
+            output: temp_dir
+                .path()
+                .join("README.md")
+                .to_string_lossy()
+                .to_string(),
         };
 
         // Create initial config without codeviz entry
@@ -814,7 +852,11 @@ diagram_type = "module"
         let temp_dir = tempfile::tempdir().unwrap();
         let args = InstallHookArgs {
             path: temp_dir.path().to_string_lossy().to_string(),
-            output: temp_dir.path().join("README.md").to_string_lossy().to_string(),
+            output: temp_dir
+                .path()
+                .join("README.md")
+                .to_string_lossy()
+                .to_string(),
         };
 
         let initial_content = "repos:\n  - repo: local\n    hooks:\n      - id: codeviz\n";
