@@ -33,6 +33,17 @@ pub struct RunArgs {
     pub no_cache: bool,
 }
 
+/// Arguments for the `export` command.
+#[derive(Debug, PartialEq)]
+pub struct ExportArgs {
+    /// Directory to scan recursively for source files.
+    pub path: String,
+    /// Output format.
+    pub format: OutputFormat,
+    /// Output file path, or "-" for stdout. None also means stdout.
+    pub output: Option<String>,
+}
+
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -133,10 +144,14 @@ fn extract_mermaid_from_markdown(markdown: &str) -> Result<String, String> {
     let start_tag = "<!-- CODEVIZ_START -->";
     let end_tag = "<!-- CODEVIZ_END -->";
 
-    let start_idx = markdown.find(start_tag).ok_or_else(|| "Missing CODEVIZ_START tag".to_string())?;
+    let start_idx = markdown
+        .find(start_tag)
+        .ok_or_else(|| "Missing CODEVIZ_START tag".to_string())?;
 
     let search_slice = &markdown[start_idx + start_tag.len()..];
-    let relative_end_idx = search_slice.find(end_tag).ok_or_else(|| "Missing CODEVIZ_END tag".to_string())?;
+    let relative_end_idx = search_slice
+        .find(end_tag)
+        .ok_or_else(|| "Missing CODEVIZ_END tag".to_string())?;
 
     let inner = &search_slice[..relative_end_idx];
 
@@ -493,12 +508,66 @@ pub fn parse_run_args(args: &[String]) -> Result<RunArgs, String> {
 }
 
 /// Prints the help message for the CLI.
+/// Parses CLI arguments into an `ExportArgs` struct.
+pub fn parse_export_args(args: &[String]) -> Result<ExportArgs, String> {
+    let mut export_args = ExportArgs {
+        path: ".".to_string(),
+        format: OutputFormat::Json,
+        output: None,
+    };
+
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--path" => {
+                if i + 1 < args.len() {
+                    export_args.path = args[i + 1].clone();
+                    i += 2;
+                } else {
+                    return Err("Missing argument for --path".to_string());
+                }
+            }
+            "--format" => {
+                if i + 1 < args.len() {
+                    let val = args[i + 1].clone();
+                    if val.to_lowercase() == "json" || val.to_lowercase() == "dot" {
+                        export_args.format = val.parse().map_err(|_| format!("Failed to parse format: {}", val))?;
+                    } else {
+                        return Err(format!("Unsupported export format: {}", val));
+                    }
+                    i += 2;
+                } else {
+                    return Err("Missing argument for --format".to_string());
+                }
+            }
+            "--output" => {
+                if i + 1 < args.len() {
+                    export_args.output = Some(args[i + 1].clone());
+                    i += 2;
+                } else {
+                    return Err("Missing argument for --output".to_string());
+                }
+            }
+            _ => {
+                // Ignore unknown args or print error? Let's ignore for now.
+                i += 1;
+            }
+        }
+    }
+
+    Ok(export_args)
+}
+/// Prints the help message for the CLI.
 pub fn print_help() {
     println!("codeviz --help");
     println!("Usage: codeviz <COMMAND> [OPTIONS]");
     println!("Commands:");
-    println!("  run          Parses source code and injects an updated diagram into a markdown file.");
-    println!("  check        Checks if the generated diagram matches the output file without modifying it.");
+    println!(
+        "  run          Parses source code and injects an updated diagram into a markdown file."
+    );
+    println!(
+        "  check        Checks if the generated diagram matches the output file without modifying it."
+    );
     println!("  serve        Starts the MCP tool server.");
     println!("  install-hook Installs the pre-commit hook and markdown sentinel tags.");
     println!("  cache clear  Clears the incremental cache.");
@@ -612,6 +681,78 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         return Ok(true);
     }
 
+    if args.len() > 1 && args[1] == "export" {
+        let export_args = parse_export_args(&args[2..])?;
+
+        let mut registry = LanguageRegistry::new();
+        registry.register(Box::new(PythonParser::new()));
+        registry.register(Box::new(TypeScriptParser::new()));
+        registry.register(Box::new(GoParser::new()));
+        registry.register(Box::new(RustLangParser::new()));
+        registry.register(Box::new(JavaParser::new()));
+        registry.register(Box::new(KotlinParser::new()));
+
+        let config = load_config()?;
+        let cache_dir = Path::new(&config.cache.dir);
+        let cache_enabled = config.cache.enabled;
+        let manager = codeviz_core::CacheManager::new(cache_dir, env!("CARGO_PKG_VERSION"));
+
+        let meta = GraphMeta {
+            language: "multiple".to_string(),
+            source_root: export_args.path.clone(),
+            generated_at: "2024-01-01T00:00:00Z".to_string(), // In a real app, use chrono
+            node_count: 0,
+            edge_count: 0,
+        };
+
+        let mut merged_graph = CodeGraph::new(meta);
+
+        let path = Path::new(&export_args.path);
+        let files = walk_dir(path).unwrap_or_default();
+
+        for file in files {
+            if let Some(ext) = file.extension().and_then(|e| e.to_str())
+                && registry.find_parser(ext).is_some()
+            {
+                if cache_enabled && let Some(entry) = manager.get(&file) {
+                    merged_graph.nodes.extend(entry.nodes);
+                    merged_graph.edges.extend(entry.edges);
+                    continue;
+                }
+
+                if let Ok(source) = std::fs::read_to_string(&file)
+                    && let Ok(graph) = registry.parse_file(&file.to_string_lossy(), &source)
+                {
+                    merged_graph.nodes.extend(graph.nodes.clone());
+                    merged_graph.edges.extend(graph.edges.clone());
+
+                    if cache_enabled {
+                        let _ = manager.put(&file, graph.nodes, graph.edges);
+                    }
+                }
+            }
+        }
+
+        merged_graph.meta.node_count = merged_graph.nodes.len();
+        merged_graph.meta.edge_count = merged_graph.edges.len();
+
+        let output_str = match export_args.format {
+            OutputFormat::Json => render_json(&merged_graph)?,
+            OutputFormat::Dot => codeviz_core::render::dot::render_dot(&merged_graph),
+            _ => return Err("Unsupported format for export".to_string()),
+        };
+
+        match export_args.output.as_deref() {
+            Some("-") | None => println!("{}", output_str),
+            Some(file) => {
+                if let Err(e) = std::fs::write(file, output_str) {
+                    return Err(format!("Failed to write to file {}: {}", file, e));
+                }
+            }
+        }
+
+        return Ok(true);
+    }
     if args.len() > 1 && args[1] == "install-hook" {
         let install_hook_args = parse_install_hook_args(&args[2..])?;
         return run_install_hook(&install_hook_args).map(|_| true);
@@ -639,7 +780,18 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         } else if args.len() > 2 && args[2] == "stats" {
             if cache_dir.exists() {
                 let count = std::fs::read_dir(cache_dir)
-                    .map(|iter| iter.filter(|e| e.is_ok() && e.as_ref().unwrap().path().extension().is_some_and(|ext| ext == "json") && e.as_ref().unwrap().path().file_name().unwrap() != "meta.json").count())
+                    .map(|iter| {
+                        iter.filter(|e| {
+                            e.is_ok()
+                                && e.as_ref()
+                                    .unwrap()
+                                    .path()
+                                    .extension()
+                                    .is_some_and(|ext| ext == "json")
+                                && e.as_ref().unwrap().path().file_name().unwrap() != "meta.json"
+                        })
+                        .count()
+                    })
                     .unwrap_or(0);
                 println!("Cache contains {} entries.", count);
             } else {
@@ -672,14 +824,21 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         let cache_enabled = config.cache.enabled && !run_args.no_cache;
         let manager = codeviz_core::CacheManager::new(cache_dir, env!("CARGO_PKG_VERSION"));
 
-        let config_path = run_args.config_path.clone().unwrap_or_else(|| "codeviz.toml".to_string());
+        let config_path = run_args
+            .config_path
+            .clone()
+            .unwrap_or_else(|| "codeviz.toml".to_string());
 
         if cache_enabled {
             let meta_path = cache_dir.join("meta.json");
             let mut invalidate_cache = false;
 
             let config_mtime = if let Ok(metadata) = std::fs::metadata(&config_path) {
-                metadata.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_nanos())
+                metadata
+                    .modified()
+                    .ok()
+                    .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                    .map(|d| d.as_nanos())
             } else {
                 None
             };
@@ -692,7 +851,9 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
 
             if let Ok(meta_str) = std::fs::read_to_string(&meta_path) {
                 if let Ok(meta) = serde_json::from_str::<CacheMeta>(&meta_str) {
-                    if meta.version != env!("CARGO_PKG_VERSION") || meta.config_mtime != config_mtime {
+                    if meta.version != env!("CARGO_PKG_VERSION")
+                        || meta.config_mtime != config_mtime
+                    {
                         invalidate_cache = true;
                     }
                 } else {
@@ -734,9 +895,7 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
             if let Some(ext) = file.extension().and_then(|e| e.to_str())
                 && registry.find_parser(ext).is_some()
             {
-                if cache_enabled
-                    && let Some(entry) = manager.get(&file)
-                {
+                if cache_enabled && let Some(entry) = manager.get(&file) {
                     merged_graph.nodes.extend(entry.nodes);
                     merged_graph.edges.extend(entry.edges);
                     continue;
@@ -764,13 +923,19 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         let mut architecture_violations = false;
         if is_check {
             let config = match &run_args.config_path {
-                Some(path) => codeviz_core::Config::load_from_file(std::path::Path::new(path)).unwrap_or_default(),
-                None => codeviz_core::Config::load_from_dir(&std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."))).unwrap_or_default(),
+                Some(path) => codeviz_core::Config::load_from_file(std::path::Path::new(path))
+                    .unwrap_or_default(),
+                None => codeviz_core::Config::load_from_dir(
+                    &std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")),
+                )
+                .unwrap_or_default(),
             };
             for edge in &merged_graph.edges {
                 if edge.kind == codeviz_core::EdgeKind::Imports {
                     for rule in &config.architecture.rules {
-                        if edge.from_id.contains(&rule.from) && edge.to_id.contains(&rule.cannot_import) {
+                        if edge.from_id.contains(&rule.from)
+                            && edge.to_id.contains(&rule.cannot_import)
+                        {
                             println!(
                                 "❌ Architectural violation: {} cannot import {}",
                                 edge.from_id, edge.to_id
@@ -887,6 +1052,103 @@ fn main() -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_export_json_format() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let src_dir = temp_dir.path().join("src");
+        std::fs::create_dir(&src_dir).unwrap();
+        let main_ts = src_dir.join("main.ts");
+        std::fs::write(&main_ts, "export class Main {}").unwrap();
+
+        let out_file = temp_dir.path().join("out.json");
+
+        let args = vec![
+            "codeviz".to_string(),
+            "export".to_string(),
+            "--path".to_string(),
+            src_dir.to_string_lossy().to_string(),
+            "--format".to_string(),
+            "json".to_string(),
+            "--output".to_string(),
+            out_file.to_string_lossy().to_string(),
+        ];
+
+        let result = run_cli(args);
+        assert!(result.is_ok());
+
+        let json_content = std::fs::read_to_string(&out_file).unwrap();
+        let graph: Result<codeviz_core::CodeGraph, _> = serde_json::from_str(&json_content);
+        assert!(graph.is_ok());
+    }
+
+    #[test]
+    fn test_export_dot_format() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let src_dir = temp_dir.path().join("src");
+        std::fs::create_dir(&src_dir).unwrap();
+        let main_ts = src_dir.join("main.ts");
+        std::fs::write(&main_ts, "export class Main {}").unwrap();
+
+        let out_file = temp_dir.path().join("out.dot");
+
+        let args = vec![
+            "codeviz".to_string(),
+            "export".to_string(),
+            "--path".to_string(),
+            src_dir.to_string_lossy().to_string(),
+            "--format".to_string(),
+            "dot".to_string(),
+            "--output".to_string(),
+            out_file.to_string_lossy().to_string(),
+        ];
+
+        let result = run_cli(args);
+        assert!(result.is_ok());
+
+        let dot_content = std::fs::read_to_string(&out_file).unwrap();
+        assert!(dot_content.starts_with("digraph codeviz {"));
+
+        // Only run dot compilation test if dot is installed
+        if let Ok(_cmd) = std::process::Command::new("dot")
+            .arg("-V")
+            .output()
+        {
+            let mut child = std::process::Command::new("dot")
+                .arg("-Tsvg")
+                .stdin(std::process::Stdio::piped())
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::piped())
+                .spawn()
+                .unwrap();
+
+            if let Some(mut stdin) = child.stdin.take() {
+                use std::io::Write;
+                stdin.write_all(dot_content.as_bytes()).unwrap();
+            }
+
+            let output = child.wait_with_output().unwrap();
+            assert!(output.status.success());
+        }
+    }
+
+    #[test]
+    fn test_parse_export_args() {
+        let args = vec![
+            "codeviz".to_string(),
+            "export".to_string(),
+            "--path".to_string(),
+            "src".to_string(),
+            "--format".to_string(),
+            "json".to_string(),
+            "--output".to_string(),
+            "out.json".to_string(),
+        ];
+        let export_args = parse_export_args(&args[2..]).unwrap();
+        assert_eq!(export_args.path, "src");
+        assert_eq!(export_args.format, OutputFormat::Json);
+        assert_eq!(export_args.output, Some("out.json".to_string()));
+    }
 
     #[test]
     fn test_parse_codeviz_config() {
@@ -1235,7 +1497,10 @@ diagram_type = "module"
         let _ = run_cli(args);
 
         let final_modified = std::fs::metadata(&path_str).unwrap().modified().unwrap();
-        assert_eq!(initial_modified, final_modified, "File should not be modified by check command");
+        assert_eq!(
+            initial_modified, final_modified,
+            "File should not be modified by check command"
+        );
     }
 
     #[test]
