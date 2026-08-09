@@ -27,13 +27,15 @@ This is the golden rule of the CodeViz repository:
 - **Jules Prompts**: `scripts/jules_prompts/` contains the task directives sent to Jules.
 
 ## 4. Current State (As of Last Session)
-We are currently awaiting asynchronous tasks running in Jules' cloud sandboxes:
-- ⏳ **Batch 8**: Critical Features (T18 Check Mode, T19 Incremental Cache, T21 Install Hook)
-- ⏳ **Task 17**: Full Stack E2E Validation Suite (Playwright, CLI, MCP)
-- ⏳ **Task 56**: Interactive Code Playground (Web UI WASM Sandbox)
+We have successfully validated, resolved conflicts, and merged Batch 8, T17, and T56 into the `main` branch. 
+
+We are now currently awaiting asynchronous tasks running in Jules' cloud sandboxes for the next phase of development:
+- ⏳ **Batch 9**: Developer UX (T20 Graph Diff, T22 Watch Mode, T27 JSON/DOT Export)
+- ⏳ **Task 33C (331)**: SurrealDB Migration (Replacing Supabase)
 
 **Next Steps upon resuming:**
-1. Wait for and validate Jules' PRs for T18, T19, T21, T17, and T56.
+1. Wait for and validate Jules' PRs for T20, T22, T27, and T331.
 2. Run automated tests (`npm run test:e2e` and `cargo test`) on each branch.
-3. Merge them into `main` one by one.
-4. Trigger the next batch of tasks (e.g., Task 34 Teams UI).
+3. Resolve any merge conflicts in `codeviz-cli/src/main.rs` between T22 and T27.
+4. Merge them into `main` one by one.
+5. Trigger the next batch of tasks (e.g., Batch 10 or Batch 14).
