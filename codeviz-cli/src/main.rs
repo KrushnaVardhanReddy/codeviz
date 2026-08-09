@@ -63,6 +63,107 @@ impl Default for RunArgs {
     }
 }
 
+/// Normalizes whitespace in a diagram string for comparison.
+/// - Trim leading/trailing whitespace per line
+/// - Collapse multiple blank lines into one
+/// - Ignore trailing newline differences
+pub(crate) fn normalize_whitespace(s: &str) -> String {
+    let mut result = String::new();
+    let mut prev_blank = true; // Start with true to avoid leading blank lines
+
+    for line in s.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            if !prev_blank {
+                result.push('\n');
+                prev_blank = true;
+            }
+        } else {
+            result.push_str(trimmed);
+            result.push('\n');
+            prev_blank = false;
+        }
+    }
+
+    // Remove trailing newline if present, to handle trailing newline differences
+    while result.ends_with('\n') {
+        result.pop();
+    }
+
+    // Also remove leading newline if present
+    if result.starts_with('\n') {
+        result.remove(0);
+    }
+
+    result
+}
+
+/// Extracts the content between CODEVIZ_START and CODEVIZ_END
+fn extract_mermaid_from_markdown(markdown: &str) -> Result<String, String> {
+    let start_tag = "<!-- CODEVIZ_START -->";
+    let end_tag = "<!-- CODEVIZ_END -->";
+
+    let start_idx = markdown.find(start_tag).ok_or_else(|| "Missing CODEVIZ_START tag".to_string())?;
+
+    let search_slice = &markdown[start_idx + start_tag.len()..];
+    let relative_end_idx = search_slice.find(end_tag).ok_or_else(|| "Missing CODEVIZ_END tag".to_string())?;
+
+    let inner = &search_slice[..relative_end_idx];
+
+    // We expect the inner content to be roughly:
+    // \n```mermaid\n(DIAGRAM CONTENT)\n```\n
+    // However, since we normalize everything before comparing, we can just return the raw inner content.
+    Ok(inner.to_string())
+}
+
+/// Checks if a generated mermaid diagram matches what is currently in the output file.
+pub(crate) fn check_diagram_up_to_date(
+    _file_path: &str,
+    markdown: &str,
+    mermaid: &str,
+) -> Result<bool, String> {
+    let current_inner = match extract_mermaid_from_markdown(markdown) {
+        Ok(c) => c,
+        Err(_) => {
+            println!("❌ Diagram is stale. Run codeviz run to update.");
+            return Ok(false);
+        }
+    };
+
+    let mut expected_inner = String::new();
+    expected_inner.push_str("\n```mermaid\n");
+    if !mermaid.is_empty() {
+        expected_inner.push_str(mermaid);
+        if !mermaid.ends_with('\n') {
+            expected_inner.push('\n');
+        }
+    }
+    expected_inner.push_str("```\n");
+
+    let norm_current = normalize_whitespace(&current_inner);
+    let norm_expected = normalize_whitespace(&expected_inner);
+
+    if norm_current == norm_expected {
+        println!("✅ Diagram is up-to-date.");
+        Ok(true)
+    } else {
+        println!("❌ Diagram is stale. Run codeviz run to update.");
+
+        let diff = similar::TextDiff::from_lines(&norm_current, &norm_expected);
+        for change in diff.iter_all_changes() {
+            let sign = match change.tag() {
+                similar::ChangeTag::Delete => "-",
+                similar::ChangeTag::Insert => "+",
+                similar::ChangeTag::Equal => " ",
+            };
+            print!("{}{}", sign, change);
+        }
+        println!();
+
+        Ok(false)
+    }
+}
+
 /// Parses diagram kind from a string.
 fn parse_diagram_kind(s: &str) -> Result<DiagramKind, String> {
     match s {
@@ -169,6 +270,7 @@ pub fn print_help() {
     println!("Usage: codeviz <COMMAND> [OPTIONS]");
     println!("Commands:");
     println!("  run     Parses source code and injects an updated diagram into a markdown file.");
+    println!("  check   Checks if the generated diagram matches the output file without modifying it.");
     println!("  serve   Starts the MCP tool server.");
     println!("Options:");
     println!("  --help  Print this help message");
@@ -273,23 +375,29 @@ fn walk_dir(dir: &Path) -> Result<Vec<PathBuf>, String> {
     Ok(files)
 }
 
-pub fn run_cli(args: Vec<String>) -> Result<(), String> {
+pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
     if args.iter().any(|arg| arg == "--help") {
         print_help();
-        return Ok(());
+        return Ok(true);
     }
 
     if args.len() > 1 && args[1] == "serve" {
         let is_mcp = args.iter().any(|arg| arg == "--mcp");
         if is_mcp {
-            return codeviz_mcp::start_mcp_server();
+            codeviz_mcp::start_mcp_server()?;
+            return Ok(true);
         } else {
             return Err("serve requires --mcp flag".to_string());
         }
     }
 
-    if args.len() > 1 && args[1] == "run" {
+    if args.len() > 1 && (args[1] == "run" || args[1] == "check") {
+        let is_check = args[1] == "check";
         let run_args = parse_run_args(&args[2..])?;
+
+        if is_check && run_args.format != OutputFormat::Mermaid {
+            return Err("check command only supports Mermaid output format".to_string());
+        }
 
         let mut registry = LanguageRegistry::new();
         registry.register(Box::new(PythonParser::new()));
@@ -329,6 +437,27 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
 
         prune_graph(&mut merged_graph, run_args.depth);
 
+        let mut architecture_violations = false;
+        if is_check {
+            let config = match &run_args.config_path {
+                Some(path) => codeviz_core::Config::load_from_file(std::path::Path::new(path)).unwrap_or_default(),
+                None => codeviz_core::Config::load_from_dir(&std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."))).unwrap_or_default(),
+            };
+            for edge in &merged_graph.edges {
+                if edge.kind == codeviz_core::EdgeKind::Imports {
+                    for rule in &config.architecture.rules {
+                        if edge.from_id.contains(&rule.from) && edge.to_id.contains(&rule.cannot_import) {
+                            println!(
+                                "❌ Architectural violation: {} cannot import {}",
+                                edge.from_id, edge.to_id
+                            );
+                            architecture_violations = true;
+                        }
+                    }
+                }
+            }
+        }
+
         match run_args.format {
             OutputFormat::Json => match render_json(&merged_graph) {
                 Ok(json_str) => println!("{}", json_str),
@@ -355,6 +484,8 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
                 };
 
                 let renderer = MermaidRenderer::new();
+                let mut all_up_to_date = !architecture_violations;
+
                 for target in outputs {
                     let diagram_kind = parse_diagram_kind(&target.diagram_type)?;
                     let mermaid_diagram = renderer.render(&merged_graph, diagram_kind);
@@ -363,35 +494,55 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
                         Ok(c) => c,
                         Err(e) => {
                             eprintln!("Failed to read output file {}: {}", target.file, e);
+                            if is_check {
+                                all_up_to_date = false;
+                            }
                             continue;
                         }
                     };
 
-                    let updated_markdown = match inject_mermaid(&markdown, &mermaid_diagram) {
-                        Ok(c) => c,
-                        Err(e) => {
-                            eprintln!("Failed to inject mermaid into {}: {}", target.file, e);
+                    if is_check {
+                        match check_diagram_up_to_date(&target.file, &markdown, &mermaid_diagram) {
+                            Ok(true) => {}
+                            Ok(false) => {
+                                all_up_to_date = false;
+                            }
+                            Err(e) => {
+                                eprintln!("Error checking diagram in {}: {}", target.file, e);
+                                all_up_to_date = false;
+                            }
+                        }
+                    } else {
+                        let updated_markdown = match inject_mermaid(&markdown, &mermaid_diagram) {
+                            Ok(c) => c,
+                            Err(e) => {
+                                eprintln!("Failed to inject mermaid into {}: {}", target.file, e);
+                                continue;
+                            }
+                        };
+
+                        if let Err(e) = std::fs::write(&target.file, updated_markdown) {
+                            eprintln!("Failed to write output file {}: {}", target.file, e);
                             continue;
                         }
-                    };
 
-                    if let Err(e) = std::fs::write(&target.file, updated_markdown) {
-                        eprintln!("Failed to write output file {}: {}", target.file, e);
-                        continue;
+                        println!(
+                            "Successfully parsed {} files, generated diagram with {} nodes and {} edges. Output: {}",
+                            parsed_count,
+                            merged_graph.meta.node_count,
+                            merged_graph.meta.edge_count,
+                            target.file
+                        );
                     }
+                }
 
-                    println!(
-                        "Successfully parsed {} files, generated diagram with {} nodes and {} edges. Output: {}",
-                        parsed_count,
-                        merged_graph.meta.node_count,
-                        merged_graph.meta.edge_count,
-                        target.file
-                    );
+                if is_check {
+                    return Ok(all_up_to_date);
                 }
             }
         }
 
-        return Ok(());
+        return Ok(true);
     }
 
     // Default error for unknown subcommands
@@ -400,7 +551,13 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
 
 fn main() -> Result<(), String> {
     let args: Vec<String> = env::args().collect();
-    run_cli(args)
+    match run_cli(args) {
+        Ok(true) => Ok(()),
+        Ok(false) => {
+            std::process::exit(1);
+        }
+        Err(e) => Err(e),
+    }
 }
 
 #[cfg(test)]
@@ -577,6 +734,101 @@ diagram_type = "module"
         ];
         let result = run_cli(args);
         assert!(result.is_ok()); // Error is just logged now, it doesn't return err
+    }
+
+    #[test]
+    fn test_check_normalization() {
+        let text1 = " \n \n  A  \nB\n \n";
+        let text2 = "A\nB";
+        assert_eq!(normalize_whitespace(text1), normalize_whitespace(text2));
+    }
+
+    #[test]
+    fn test_check_up_to_date() {
+        let markdown = "Header\n<!-- CODEVIZ_START -->\n```mermaid\ngraph TD\nA --> B\n```\n<!-- CODEVIZ_END -->\nFooter";
+        let mermaid = "graph TD\nA --> B";
+
+        let result = check_diagram_up_to_date("dummy.md", markdown, mermaid);
+        assert_eq!(result, Ok(true));
+    }
+
+    #[test]
+    fn test_check_stale_diagram() {
+        let markdown = "Header\n<!-- CODEVIZ_START -->\n```mermaid\ngraph TD\nA --> B\n```\n<!-- CODEVIZ_END -->\nFooter";
+        let mermaid = "graph TD\nA --> B\nB --> C";
+
+        let result = check_diagram_up_to_date("dummy.md", markdown, mermaid);
+        assert_eq!(result, Ok(false));
+    }
+
+    #[test]
+    fn test_check_never_writes() {
+        use std::io::Write;
+        let mut temp_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(temp_file, "<!-- CODEVIZ_START -->\n<!-- CODEVIZ_END -->").unwrap();
+        let path_str = temp_file.path().to_string_lossy().to_string();
+
+        let initial_modified = std::fs::metadata(&path_str).unwrap().modified().unwrap();
+
+        // Ensure some time passes so modified time would change if it were written
+        std::thread::sleep(std::time::Duration::from_millis(10));
+
+        let args = vec![
+            "codeviz".to_string(),
+            "check".to_string(), // use check command
+            "--path".to_string(),
+            ".".to_string(),
+            "--output".to_string(),
+            path_str.clone(),
+        ];
+
+        // We expect it might fail the check if the diagram doesn't match the empty tags,
+        // but it should NOT write to the file.
+        let _ = run_cli(args);
+
+        let final_modified = std::fs::metadata(&path_str).unwrap().modified().unwrap();
+        assert_eq!(initial_modified, final_modified, "File should not be modified by check command");
+    }
+
+    #[test]
+    fn test_architectural_rule_violation() {
+        // 1. Create a mock source directory with two files that import each other
+        let temp_dir = tempfile::tempdir().unwrap();
+        let src_dir = temp_dir.path().join("src");
+        std::fs::create_dir_all(&src_dir).unwrap();
+
+        let mod_a_path = src_dir.join("moduleA.ts");
+        let mod_b_path = src_dir.join("moduleB.ts");
+
+        std::fs::write(&mod_a_path, "import { B } from './moduleB';").unwrap();
+        std::fs::write(&mod_b_path, "export class B {}").unwrap();
+
+        // 2. Create codeviz.toml with an architectural rule
+        let toml_path = temp_dir.path().join("codeviz.toml");
+        let toml_content = r#"
+        [[architecture.rules]]
+        from = "moduleA"
+        cannot_import = "moduleB"
+        "#;
+        std::fs::write(&toml_path, toml_content).unwrap();
+
+        let doc_path = temp_dir.path().join("DOCS.md");
+        std::fs::write(&doc_path, "<!-- CODEVIZ_START -->\n<!-- CODEVIZ_END -->").unwrap();
+
+        let args = vec![
+            "codeviz".to_string(),
+            "check".to_string(),
+            "--path".to_string(),
+            temp_dir.path().to_string_lossy().to_string(),
+            "--config".to_string(),
+            toml_path.to_string_lossy().to_string(),
+            "--output".to_string(),
+            doc_path.to_string_lossy().to_string(),
+        ];
+
+        // 3. Run check - should return Ok(false) due to violation
+        let result = run_cli(args);
+        assert_eq!(result, Ok(false));
     }
 
     #[test]
