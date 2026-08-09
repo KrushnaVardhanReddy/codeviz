@@ -19,3 +19,10 @@ CONSTRAINTS & RULES
 - Implement standard iterative PageRank on reversed `EdgeKind::Imports` edges.
 - Ensure `cargo clippy --all -- -D warnings` and `cargo test --all` pass.
 - Write unit tests for `compute_pagerank`.
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.

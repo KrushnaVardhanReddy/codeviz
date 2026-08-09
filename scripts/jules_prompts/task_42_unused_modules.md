@@ -19,3 +19,10 @@ CONSTRAINTS & RULES
 - Iterate through `NodeKind::File` nodes and find those with no incoming `EdgeKind::Imports`.
 - Ensure `cargo clippy --all -- -D warnings` and `cargo test --all` pass.
 - Write unit tests for `find_unused_modules`.
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.

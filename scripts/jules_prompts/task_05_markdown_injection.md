@@ -25,3 +25,10 @@ Write tests covering:
 3. Only one tag — returns `MalformedTags` error
 4. Idempotency — calling `inject_mermaid` twice produces the same output as calling it once
 5. Empty mermaid string — injects an empty fenced block without panicking
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.

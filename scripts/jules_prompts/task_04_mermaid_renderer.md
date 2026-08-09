@@ -25,3 +25,10 @@ Write unit tests that:
 - Render each `DiagramKind` and assert the output string starts with the correct Mermaid keyword
 - Assert node labels are sanitized correctly
 - Assert the truncation warning appears when graph exceeds 50 nodes
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.

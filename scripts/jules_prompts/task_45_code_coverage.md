@@ -23,3 +23,10 @@ CONSTRAINTS & RULES
 - Update the Mermaid renderer to use `style` lines: `<50%` = red, `50-80%` = yellow, `>80%` = green.
 - Ensure `cargo clippy --all -- -D warnings` and `cargo test --all` pass.
 - Write unit tests for LCOV parsing and graph annotation.
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.

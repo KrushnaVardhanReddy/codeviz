@@ -21,3 +21,10 @@ Jobs:
 1. Build Linux binary: `cargo build --release` → upload `codeviz` artifact
 2. Build macOS binary (macos-latest) → upload `codeviz-macos` artifact
 3. Create GitHub Release with both binaries attached and auto-generated release notes
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.

@@ -20,3 +20,10 @@ CONSTRAINTS & RULES
 - Only consider edges where `kind == EdgeKind::Imports`.
 - Ensure `cargo clippy --all -- -D warnings` and `cargo test --all` pass.
 - Write unit tests for `find_import_cycles`.
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.

@@ -21,3 +21,10 @@ CONSTRAINTS & RULES
 - Deduct points for high fan-in, high fan-out, high node count per file, and cycle participation (you may need to call `find_import_cycles`).
 - Ensure `cargo clippy --all -- -D warnings` and `cargo test --all` pass.
 - Write unit tests for `compute_health_scores`.
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.

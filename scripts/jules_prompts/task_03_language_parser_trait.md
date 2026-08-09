@@ -37,3 +37,10 @@ Write unit tests using a mock `LanguageParser` implementation that:
 - Returns a fixed `CodeGraph` for any input
 - Verifies `LanguageRegistry::parse_file` dispatches correctly by extension
 - Verifies an unknown extension returns the expected error
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.

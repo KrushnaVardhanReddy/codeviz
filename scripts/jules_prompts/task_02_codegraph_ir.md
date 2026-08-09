@@ -44,3 +44,10 @@ GraphMeta {
 Add unit tests in `codeviz-core/src/graph.rs` that:
 - Serialize and deserialize a minimal `CodeGraph` round-trip via `serde_json`
 - Assert all field values survive the round-trip unchanged
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.

@@ -19,3 +19,10 @@ Initialize the CodeViz Rust workspace with four crates.
 6. Add `.gitignore` entries for `target/` and `*.wasm`.
 7. `cargo build` must succeed with zero errors and zero warnings.
 8. Add a basic dummy unit test in each crate's `lib.rs` or `main.rs` to verify test runners work.
+
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION TIPS
+═══════════════════════════════════════════════════════════════
+- Use stable Rust 2021 edition. Do NOT use unstable features like `let_chains`.
+- Always run `cargo test --all` and `cargo clippy --all -- -D warnings` before completing the task.
