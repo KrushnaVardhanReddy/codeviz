@@ -27,12 +27,13 @@ This is the golden rule of the CodeViz repository:
 - **Jules Prompts**: `scripts/jules_prompts/` contains the task directives sent to Jules.
 
 ## 4. Current State (As of Last Session)
-We are currently awaiting two asynchronous tasks running in Jules' cloud sandboxes:
-- ⏳ **Task 40 (Batch 7)**: Query-Based Universal Parser. 
-- ⏳ **Task 33 (Batch 13)**: NextAuth + Supabase + PGLite setup for local zero-mock E2E.
+We are currently awaiting asynchronous tasks running in Jules' cloud sandboxes:
+- ⏳ **Batch 8**: Critical Features (T18 Check Mode, T19 Incremental Cache, T21 Install Hook)
+- ⏳ **Task 17**: Full Stack E2E Validation Suite (Playwright, CLI, MCP)
+- ⏳ **Task 56**: Interactive Code Playground (Web UI WASM Sandbox)
 
 **Next Steps upon resuming:**
-1. Wait for and validate Jules' PRs for Task 40 and Task 33.
-2. Resolve any Git conflicts in `codeviz-cli/src/main.rs` or `package.json`.
-3. Merge them into `main`.
-4. Trigger **Task 17 (Full Stack E2E)** via `jules_submit.py --task 17` (we have already written the specs and orchestrated this task, but we put it on hold until Task 33 Auth is merged to prevent E2E failures).
+1. Wait for and validate Jules' PRs for T18, T19, T21, T17, and T56.
+2. Run automated tests (`npm run test:e2e` and `cargo test`) on each branch.
+3. Merge them into `main` one by one.
+4. Trigger the next batch of tasks (e.g., Task 34 Teams UI).
