@@ -9,6 +9,7 @@ members = [
     "codeviz-go",
     "codeviz-rust",
     "codeviz-java",
-    "codeviz-kotlin"
+    "codeviz-kotlin",
+    "codeviz-langs"
 ]
 resolver = "2"

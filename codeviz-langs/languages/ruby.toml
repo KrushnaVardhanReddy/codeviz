@@ -1,0 +1,25 @@
+[language]
+name = "ruby"
+extensions = ["rb"]
+grammar = "tree-sitter-ruby"
+
+[queries]
+functions = """
+  (method
+    name: (identifier) @name
+  ) @node
+"""
+
+classes = """
+  (class
+    name: (constant) @name
+  ) @node
+"""
+
+imports = """
+  (call
+    method: (identifier) @method (#eq? @method "require")
+    arguments: (argument_list
+      (string (string_content) @path))
+  )
+"""

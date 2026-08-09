@@ -1,0 +1,14 @@
+[language]
+name = "lua"
+extensions = ["lua"]
+grammar = "tree-sitter-lua"
+
+[queries]
+functions = """
+  (function_declaration
+    name: (identifier) @name
+  ) @node
+"""
+
+classes = """
+"""
