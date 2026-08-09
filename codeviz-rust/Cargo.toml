@@ -1,0 +1,9 @@
+[package]
+name = "codeviz-rust"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tree-sitter = "0.22"
+tree-sitter-rust = "0.21"
+codeviz-core = { path = "../codeviz-core" }

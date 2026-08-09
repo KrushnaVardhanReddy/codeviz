@@ -105,6 +105,7 @@ use codeviz_core::{CodeGraph, GraphMeta, LanguageRegistry, inject_mermaid};
 use codeviz_python::PythonParser;
 use codeviz_go::GoParser;
 use codeviz_typescript::TypeScriptParser;
+use codeviz_rust::RustLangParser;
 
 /// Prunes a CodeGraph up to the specified max depth using BFS.
 pub fn prune_graph(graph: &mut CodeGraph, max_depth: Option<usize>) {
@@ -208,6 +209,7 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
         registry.register(Box::new(PythonParser::new()));
         registry.register(Box::new(TypeScriptParser::new()));
         registry.register(Box::new(GoParser::new()));
+        registry.register(Box::new(RustLangParser::new()));
 
         let files = walk_dir(Path::new(&run_args.path))?;
 

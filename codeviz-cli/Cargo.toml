@@ -10,3 +10,4 @@ codeviz-core = { path = "../codeviz-core" }
 codeviz-python = { path = "../codeviz-python" }
 codeviz-typescript = { version = "0.1.0", path = "../codeviz-typescript" }
 codeviz-go = { version = "0.1.0", path = "../codeviz-go" }
+codeviz-rust = { path = "../codeviz-rust" }
