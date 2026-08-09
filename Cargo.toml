@@ -8,5 +8,5 @@ members = [
     "codeviz-typescript",
     "codeviz-go",
     "codeviz-rust"
-]
+, "codeviz-kotlin"]
 resolver = "2"
