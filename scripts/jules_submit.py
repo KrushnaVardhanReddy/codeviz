@@ -145,6 +145,8 @@ TASKS = {
     45: {"name": "45 — Code Coverage Overlay",         "phase": "Phase 18: Advanced",          "slug": "task_45_code_coverage"},
     # Phase 19: Semantic Search
     46: {"name": "46 — Semantic Code Search (LanceDB)",  "phase": "Phase 19: Semantic",          "slug": "task_46_semantic_search"},
+    # Phase 20: Full Stack E2E
+    17: {"name": "17 — Full Stack E2E Validation Suite", "phase": "Phase 20: E2E",               "slug": "task_17_e2e_suite"},
     # MVP v1: Viral OSS Features
     47: {"name": "47 — VS Code Extension",               "phase": "MVP v1: Viral",               "slug": "task_47_vscode_extension"},
     48: {"name": "48 — summarize_architecture MCP Tool", "phase": "MVP v1: Viral",               "slug": "task_48_mcp_summarize"},
