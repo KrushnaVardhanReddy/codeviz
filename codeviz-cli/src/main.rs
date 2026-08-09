@@ -98,14 +98,13 @@ pub fn print_help() {
     println!("  --help  Print this help message");
 }
 
-
-
-use std::path::{Path, PathBuf};
 use codeviz_core::{CodeGraph, GraphMeta, LanguageRegistry, inject_mermaid};
-use codeviz_python::PythonParser;
 use codeviz_go::GoParser;
-use codeviz_typescript::TypeScriptParser;
+use codeviz_java::JavaParser;
+use codeviz_python::PythonParser;
 use codeviz_rust::RustLangParser;
+use codeviz_typescript::TypeScriptParser;
+use std::path::{Path, PathBuf};
 
 /// Prunes a CodeGraph up to the specified max depth using BFS.
 pub fn prune_graph(graph: &mut CodeGraph, max_depth: Option<usize>) {
@@ -145,23 +144,28 @@ pub fn prune_graph(graph: &mut CodeGraph, max_depth: Option<usize>) {
 
     let mut adj: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
     for edge in &graph.edges {
-        adj.entry(edge.from_id.clone()).or_default().push(edge.to_id.clone());
+        adj.entry(edge.from_id.clone())
+            .or_default()
+            .push(edge.to_id.clone());
     }
 
     while let Some((node_id, current_depth)) = queue.pop_front() {
         if current_depth < depth
-            && let Some(neighbors) = adj.get(&node_id) {
-                for neighbor in neighbors {
-                    if !visited.contains(neighbor) {
-                        visited.insert(neighbor.clone());
-                        queue.push_back((neighbor.clone(), current_depth + 1));
-                    }
+            && let Some(neighbors) = adj.get(&node_id)
+        {
+            for neighbor in neighbors {
+                if !visited.contains(neighbor) {
+                    visited.insert(neighbor.clone());
+                    queue.push_back((neighbor.clone(), current_depth + 1));
                 }
             }
+        }
     }
 
     graph.nodes.retain(|n| visited.contains(&n.id));
-    graph.edges.retain(|e| visited.contains(&e.from_id) && visited.contains(&e.to_id));
+    graph
+        .edges
+        .retain(|e| visited.contains(&e.from_id) && visited.contains(&e.to_id));
     graph.meta.node_count = graph.nodes.len();
     graph.meta.edge_count = graph.edges.len();
 }
@@ -169,13 +173,19 @@ pub fn prune_graph(graph: &mut CodeGraph, max_depth: Option<usize>) {
 fn walk_dir(dir: &Path) -> Result<Vec<PathBuf>, String> {
     let mut files = Vec::new();
     if dir.is_dir() {
-        let entries = std::fs::read_dir(dir).map_err(|e| format!("Failed to read dir {}: {}", dir.display(), e))?;
+        let entries = std::fs::read_dir(dir)
+            .map_err(|e| format!("Failed to read dir {}: {}", dir.display(), e))?;
         for entry in entries {
             let entry = entry.map_err(|e| format!("Dir entry error: {}", e))?;
             let path = entry.path();
             if path.is_dir() {
                 // Ignore dot directories
-                if !path.file_name().unwrap_or_default().to_string_lossy().starts_with('.') {
+                if !path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .starts_with('.')
+                {
                     files.extend(walk_dir(&path)?);
                 }
             } else {
@@ -185,7 +195,6 @@ fn walk_dir(dir: &Path) -> Result<Vec<PathBuf>, String> {
     }
     Ok(files)
 }
-
 
 pub fn run_cli(args: Vec<String>) -> Result<(), String> {
     if args.iter().any(|arg| arg == "--help") {
@@ -210,6 +219,7 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
         registry.register(Box::new(TypeScriptParser::new()));
         registry.register(Box::new(GoParser::new()));
         registry.register(Box::new(RustLangParser::new()));
+        registry.register(Box::new(JavaParser::new()));
 
         let files = walk_dir(Path::new(&run_args.path))?;
 
@@ -227,12 +237,13 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
             // Check if file extension is supported before reading source
             if let Some(ext) = file.extension().and_then(|e| e.to_str())
                 && registry.find_parser(ext).is_some()
-                    && let Ok(source) = std::fs::read_to_string(&file)
-                        && let Ok(graph) = registry.parse_file(&file.to_string_lossy(), &source) {
-                            merged_graph.nodes.extend(graph.nodes);
-                            merged_graph.edges.extend(graph.edges);
-                            parsed_count += 1;
-                        }
+                && let Ok(source) = std::fs::read_to_string(&file)
+                && let Ok(graph) = registry.parse_file(&file.to_string_lossy(), &source)
+            {
+                merged_graph.nodes.extend(graph.nodes);
+                merged_graph.edges.extend(graph.edges);
+                parsed_count += 1;
+            }
         }
 
         merged_graph.meta.node_count = merged_graph.nodes.len();
@@ -285,10 +296,14 @@ mod tests {
     #[test]
     fn test_cli_args_parsing() {
         let args = vec![
-            "--path".to_string(), "src".to_string(),
-            "--output".to_string(), "DOCS.md".to_string(),
-            "--diagram".to_string(), "call".to_string(),
-            "--depth".to_string(), "3".to_string()
+            "--path".to_string(),
+            "src".to_string(),
+            "--output".to_string(),
+            "DOCS.md".to_string(),
+            "--diagram".to_string(),
+            "call".to_string(),
+            "--depth".to_string(),
+            "3".to_string(),
         ];
         let run_args = parse_run_args(&args).unwrap();
         assert_eq!(run_args.path, "src");
@@ -300,8 +315,10 @@ mod tests {
     #[test]
     fn test_missing_output_file() {
         let args = vec![
-            "codeviz".to_string(), "run".to_string(),
-            "--output".to_string(), "DOES_NOT_EXIST.md".to_string(),
+            "codeviz".to_string(),
+            "run".to_string(),
+            "--output".to_string(),
+            "DOES_NOT_EXIST.md".to_string(),
         ];
         let result = run_cli(args);
         assert!(result.is_err());
@@ -310,7 +327,7 @@ mod tests {
 
     #[test]
     fn test_depth_truncation() {
-        use codeviz_core::{Node, Edge, EdgeKind, NodeKind};
+        use codeviz_core::{Edge, EdgeKind, Node, NodeKind};
 
         let meta = GraphMeta {
             language: "test".to_string(),
@@ -323,17 +340,40 @@ mod tests {
 
         // A -> B -> C
         graph.nodes.push(Node {
-            id: "A".to_string(), label: "A".to_string(), kind: NodeKind::File, file_path: "A".to_string(), line: None, is_public: true
+            id: "A".to_string(),
+            label: "A".to_string(),
+            kind: NodeKind::File,
+            file_path: "A".to_string(),
+            line: None,
+            is_public: true,
         });
         graph.nodes.push(Node {
-            id: "B".to_string(), label: "B".to_string(), kind: NodeKind::File, file_path: "B".to_string(), line: None, is_public: true
+            id: "B".to_string(),
+            label: "B".to_string(),
+            kind: NodeKind::File,
+            file_path: "B".to_string(),
+            line: None,
+            is_public: true,
         });
         graph.nodes.push(Node {
-            id: "C".to_string(), label: "C".to_string(), kind: NodeKind::File, file_path: "C".to_string(), line: None, is_public: true
+            id: "C".to_string(),
+            label: "C".to_string(),
+            kind: NodeKind::File,
+            file_path: "C".to_string(),
+            line: None,
+            is_public: true,
         });
 
-        graph.edges.push(Edge { from_id: "A".to_string(), to_id: "B".to_string(), kind: EdgeKind::Imports });
-        graph.edges.push(Edge { from_id: "B".to_string(), to_id: "C".to_string(), kind: EdgeKind::Imports });
+        graph.edges.push(Edge {
+            from_id: "A".to_string(),
+            to_id: "B".to_string(),
+            kind: EdgeKind::Imports,
+        });
+        graph.edges.push(Edge {
+            from_id: "B".to_string(),
+            to_id: "C".to_string(),
+            kind: EdgeKind::Imports,
+        });
 
         // Test max_depth = 1 (should keep A and B, drop C)
         let mut pruned = graph.clone();

@@ -1,4 +1,5 @@
-use codeviz_mcp::server::handle_request; use codeviz_mcp::tools::JsonRpcRequest;
+use codeviz_mcp::server::handle_request;
+use codeviz_mcp::tools::JsonRpcRequest;
 use serde_json::json;
 
 #[test]
@@ -27,7 +28,7 @@ fn test_all_6_tools_success() {
         };
 
         let registry = codeviz_core::parser::LanguageRegistry::new();
-    let res = handle_request(req, &registry);
+        let res = handle_request(req, &registry);
         assert!(res.error.is_none(), "Tool {} failed", tool);
         assert!(res.result.is_some(), "Tool {} had no result", tool);
     }

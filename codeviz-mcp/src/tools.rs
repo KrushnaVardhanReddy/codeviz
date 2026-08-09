@@ -1,9 +1,9 @@
+use codeviz_core::render::mermaid::{DiagramKind, MermaidRenderer};
+use codeviz_core::{CodeGraph, EdgeKind, GraphMeta, LanguageRegistry, Node, NodeKind};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::Path;
-use codeviz_core::{CodeGraph, GraphMeta, Node, NodeKind, EdgeKind, LanguageRegistry};
-use codeviz_core::render::mermaid::{MermaidRenderer, DiagramKind};
 
 /// JSON-RPC 2.0 Request
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -148,7 +148,9 @@ pub fn list_tools() -> Vec<ToolDefinition> {
         },
         ToolDefinition {
             name: "find_entry_points".to_string(),
-            description: "Returns all nodes with no incoming Calls edges (i.e., nothing calls them).".to_string(),
+            description:
+                "Returns all nodes with no incoming Calls edges (i.e., nothing calls them)."
+                    .to_string(),
             input_schema: json!({
                 "type": "object",
                 "properties": {
@@ -159,7 +161,8 @@ pub fn list_tools() -> Vec<ToolDefinition> {
         },
         ToolDefinition {
             name: "explain_path".to_string(),
-            description: "Returns the shortest dependency path between two named nodes.".to_string(),
+            description: "Returns the shortest dependency path between two named nodes."
+                .to_string(),
             input_schema: json!({
                 "type": "object",
                 "properties": {
@@ -169,7 +172,7 @@ pub fn list_tools() -> Vec<ToolDefinition> {
                 },
                 "required": ["from", "to", "path"]
             }),
-        }
+        },
     ]
 }
 
@@ -179,16 +182,27 @@ fn prune_graph(graph: &mut CodeGraph, max_nodes: usize) {
     if graph.nodes.len() > max_nodes {
         graph.nodes.truncate(max_nodes);
         let valid_nodes: HashSet<String> = graph.nodes.iter().map(|n| n.id.clone()).collect();
-        graph.edges.retain(|e| valid_nodes.contains(&e.from_id) && valid_nodes.contains(&e.to_id));
+        graph
+            .edges
+            .retain(|e| valid_nodes.contains(&e.from_id) && valid_nodes.contains(&e.to_id));
         graph.meta.node_count = graph.nodes.len();
         graph.meta.edge_count = graph.edges.len();
     }
 }
 
 /// Handles the `get_module_graph` tool.
-pub fn handle_get_module_graph(params: Value, registry: &LanguageRegistry) -> Result<Value, JsonRpcError> {
-    let path = params.get("path").and_then(|v| v.as_str()).ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
-    let max_nodes = params.get("max_nodes").and_then(|v| v.as_u64()).unwrap_or(200) as usize;
+pub fn handle_get_module_graph(
+    params: Value,
+    registry: &LanguageRegistry,
+) -> Result<Value, JsonRpcError> {
+    let path = params
+        .get("path")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
+    let max_nodes = params
+        .get("max_nodes")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(200) as usize;
 
     let mut graph = build_graph_from_path(path, registry)?;
 
@@ -206,22 +220,40 @@ pub fn handle_get_module_graph(params: Value, registry: &LanguageRegistry) -> Re
 }
 
 /// Handles the `get_callers` tool.
-pub fn handle_get_callers(params: Value, registry: &LanguageRegistry) -> Result<Value, JsonRpcError> {
-    let path = params.get("path").and_then(|v| v.as_str()).ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
-    let fn_name = params.get("fn_name").and_then(|v| v.as_str()).ok_or_else(|| JsonRpcError::invalid_params("Missing 'fn_name' parameter"))?;
+pub fn handle_get_callers(
+    params: Value,
+    registry: &LanguageRegistry,
+) -> Result<Value, JsonRpcError> {
+    let path = params
+        .get("path")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
+    let fn_name = params
+        .get("fn_name")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'fn_name' parameter"))?;
 
     let graph = build_graph_from_path(path, registry)?;
 
     // Find node with given fn_name
-    let target_node = graph.nodes.iter().find(|n| n.label == fn_name || n.id.ends_with(fn_name));
+    let target_node = graph
+        .nodes
+        .iter()
+        .find(|n| n.label == fn_name || n.id.ends_with(fn_name));
 
     if let Some(target) = target_node {
-        let caller_ids: HashSet<&String> = graph.edges.iter()
+        let caller_ids: HashSet<&String> = graph
+            .edges
+            .iter()
             .filter(|e| e.to_id == target.id && e.kind == EdgeKind::Calls)
             .map(|e| &e.from_id)
             .collect();
 
-        let callers: Vec<&Node> = graph.nodes.iter().filter(|n| caller_ids.contains(&n.id)).collect();
+        let callers: Vec<&Node> = graph
+            .nodes
+            .iter()
+            .filter(|n| caller_ids.contains(&n.id))
+            .collect();
 
         Ok(json!({
             "callers": callers
@@ -232,21 +264,39 @@ pub fn handle_get_callers(params: Value, registry: &LanguageRegistry) -> Result<
 }
 
 /// Handles the `get_callees` tool.
-pub fn handle_get_callees(params: Value, registry: &LanguageRegistry) -> Result<Value, JsonRpcError> {
-    let path = params.get("path").and_then(|v| v.as_str()).ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
-    let fn_name = params.get("fn_name").and_then(|v| v.as_str()).ok_or_else(|| JsonRpcError::invalid_params("Missing 'fn_name' parameter"))?;
+pub fn handle_get_callees(
+    params: Value,
+    registry: &LanguageRegistry,
+) -> Result<Value, JsonRpcError> {
+    let path = params
+        .get("path")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
+    let fn_name = params
+        .get("fn_name")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'fn_name' parameter"))?;
 
     let graph = build_graph_from_path(path, registry)?;
 
-    let target_node = graph.nodes.iter().find(|n| n.label == fn_name || n.id.ends_with(fn_name));
+    let target_node = graph
+        .nodes
+        .iter()
+        .find(|n| n.label == fn_name || n.id.ends_with(fn_name));
 
     if let Some(target) = target_node {
-        let callee_ids: HashSet<&String> = graph.edges.iter()
+        let callee_ids: HashSet<&String> = graph
+            .edges
+            .iter()
             .filter(|e| e.from_id == target.id && e.kind == EdgeKind::Calls)
             .map(|e| &e.to_id)
             .collect();
 
-        let callees: Vec<&Node> = graph.nodes.iter().filter(|n| callee_ids.contains(&n.id)).collect();
+        let callees: Vec<&Node> = graph
+            .nodes
+            .iter()
+            .filter(|n| callee_ids.contains(&n.id))
+            .collect();
 
         Ok(json!({
             "callees": callees
@@ -257,8 +307,14 @@ pub fn handle_get_callees(params: Value, registry: &LanguageRegistry) -> Result<
 }
 
 /// Handles the `get_class_hierarchy` tool.
-pub fn handle_get_class_hierarchy(params: Value, registry: &LanguageRegistry) -> Result<Value, JsonRpcError> {
-    let path = params.get("path").and_then(|v| v.as_str()).ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
+pub fn handle_get_class_hierarchy(
+    params: Value,
+    registry: &LanguageRegistry,
+) -> Result<Value, JsonRpcError> {
+    let path = params
+        .get("path")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
 
     let graph = build_graph_from_path(path, registry)?;
 
@@ -270,8 +326,14 @@ pub fn handle_get_class_hierarchy(params: Value, registry: &LanguageRegistry) ->
 }
 
 /// Handles the `find_entry_points` tool.
-pub fn handle_find_entry_points(params: Value, registry: &LanguageRegistry) -> Result<Value, JsonRpcError> {
-    let path = params.get("path").and_then(|v| v.as_str()).ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
+pub fn handle_find_entry_points(
+    params: Value,
+    registry: &LanguageRegistry,
+) -> Result<Value, JsonRpcError> {
+    let path = params
+        .get("path")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
 
     let graph = build_graph_from_path(path, registry)?;
 
@@ -282,7 +344,9 @@ pub fn handle_find_entry_points(params: Value, registry: &LanguageRegistry) -> R
         }
     }
 
-    let entry_points: Vec<&Node> = graph.nodes.iter()
+    let entry_points: Vec<&Node> = graph
+        .nodes
+        .iter()
         .filter(|n| {
             matches!(n.kind, NodeKind::Function { .. }) && !has_incoming_calls.contains(&n.id)
         })
@@ -294,15 +358,33 @@ pub fn handle_find_entry_points(params: Value, registry: &LanguageRegistry) -> R
 }
 
 /// Explains the path between two nodes.
-pub fn handle_explain_path(params: Value, registry: &LanguageRegistry) -> Result<Value, JsonRpcError> {
-    let path_str = params.get("path").and_then(|v| v.as_str()).ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
-    let from_name = params.get("from").and_then(|v| v.as_str()).ok_or_else(|| JsonRpcError::invalid_params("Missing 'from' parameter"))?;
-    let to_name = params.get("to").and_then(|v| v.as_str()).ok_or_else(|| JsonRpcError::invalid_params("Missing 'to' parameter"))?;
+pub fn handle_explain_path(
+    params: Value,
+    registry: &LanguageRegistry,
+) -> Result<Value, JsonRpcError> {
+    let path_str = params
+        .get("path")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
+    let from_name = params
+        .get("from")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'from' parameter"))?;
+    let to_name = params
+        .get("to")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'to' parameter"))?;
 
     let graph = build_graph_from_path(path_str, registry)?;
 
-    let from_node = graph.nodes.iter().find(|n| n.label == from_name || n.id.ends_with(from_name));
-    let to_node = graph.nodes.iter().find(|n| n.label == to_name || n.id.ends_with(to_name));
+    let from_node = graph
+        .nodes
+        .iter()
+        .find(|n| n.label == from_name || n.id.ends_with(from_name));
+    let to_node = graph
+        .nodes
+        .iter()
+        .find(|n| n.label == to_name || n.id.ends_with(to_name));
 
     if from_node.is_none() || to_node.is_none() {
         return Ok(json!({
@@ -315,7 +397,9 @@ pub fn handle_explain_path(params: Value, registry: &LanguageRegistry) -> Result
 
     let mut adj = HashMap::new();
     for edge in &graph.edges {
-        adj.entry(&edge.from_id).or_insert_with(Vec::new).push(&edge.to_id);
+        adj.entry(&edge.from_id)
+            .or_insert_with(Vec::new)
+            .push(&edge.to_id);
     }
 
     let mut queue = VecDeque::new();
@@ -371,10 +455,16 @@ pub fn handle_explain_path(params: Value, registry: &LanguageRegistry) -> Result
     }
 }
 
-fn build_graph_from_path(dir_path: &str, registry: &LanguageRegistry) -> Result<CodeGraph, JsonRpcError> {
+fn build_graph_from_path(
+    dir_path: &str,
+    registry: &LanguageRegistry,
+) -> Result<CodeGraph, JsonRpcError> {
     let p = Path::new(dir_path);
     if !p.exists() {
-        return Err(JsonRpcError::internal_error(&format!("Path does not exist: {}", dir_path)));
+        return Err(JsonRpcError::internal_error(&format!(
+            "Path does not exist: {}",
+            dir_path
+        )));
     }
 
     let files = walk_dir(p).map_err(|e| JsonRpcError::internal_error(&e))?;
@@ -391,9 +481,10 @@ fn build_graph_from_path(dir_path: &str, registry: &LanguageRegistry) -> Result<
         if let Some(ext) = file.extension().and_then(|e| e.to_str())
             && registry.find_parser(ext).is_some()
             && let Ok(source) = std::fs::read_to_string(&file)
-            && let Ok(graph) = registry.parse_file(&file.to_string_lossy(), &source) {
-                merged_graph.nodes.extend(graph.nodes);
-                merged_graph.edges.extend(graph.edges);
+            && let Ok(graph) = registry.parse_file(&file.to_string_lossy(), &source)
+        {
+            merged_graph.nodes.extend(graph.nodes);
+            merged_graph.edges.extend(graph.edges);
         }
     }
 
@@ -406,12 +497,18 @@ fn build_graph_from_path(dir_path: &str, registry: &LanguageRegistry) -> Result<
 fn walk_dir(dir: &Path) -> Result<Vec<std::path::PathBuf>, String> {
     let mut files = Vec::new();
     if dir.is_dir() {
-        let entries = std::fs::read_dir(dir).map_err(|e| format!("Failed to read dir {}: {}", dir.display(), e))?;
+        let entries = std::fs::read_dir(dir)
+            .map_err(|e| format!("Failed to read dir {}: {}", dir.display(), e))?;
         for entry in entries {
             let entry = entry.map_err(|e| format!("Dir entry error: {}", e))?;
             let path = entry.path();
             if path.is_dir() {
-                if !path.file_name().unwrap_or_default().to_string_lossy().starts_with('.') {
+                if !path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .starts_with('.')
+                {
                     files.extend(walk_dir(&path)?);
                 }
             } else {
@@ -427,7 +524,7 @@ fn walk_dir(dir: &Path) -> Result<Vec<std::path::PathBuf>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use codeviz_core::{CodeGraph, GraphMeta, Node, NodeKind, Edge, EdgeKind, LanguageRegistry};
+    use codeviz_core::{CodeGraph, Edge, EdgeKind, GraphMeta, LanguageRegistry, Node, NodeKind};
     use serde_json::json;
 
     // Helper to create a mock graph directly since build_graph_from_path reads from disk
@@ -440,9 +537,17 @@ mod tests {
 
     struct DummyParser;
     impl codeviz_core::parser::LanguageParser for DummyParser {
-        fn language_name(&self) -> &str { "dummy" }
-        fn supported_extensions(&self) -> &[&str] { &["dummy"] }
-        fn parse(&self, _source: &str, file_path: &str) -> Result<CodeGraph, codeviz_core::parser::ParseError> {
+        fn language_name(&self) -> &str {
+            "dummy"
+        }
+        fn supported_extensions(&self) -> &[&str] {
+            &["dummy"]
+        }
+        fn parse(
+            &self,
+            _source: &str,
+            file_path: &str,
+        ) -> Result<CodeGraph, codeviz_core::parser::ParseError> {
             let mut graph = CodeGraph::new(GraphMeta {
                 language: "dummy".to_string(),
                 source_root: "/".to_string(),
