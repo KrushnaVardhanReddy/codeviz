@@ -5,6 +5,15 @@ use codeviz_core::render::mermaid::DiagramKind;
 use codeviz_core::render::mermaid::MermaidRenderer;
 use std::env;
 
+/// Arguments for the `install-hook` command.
+#[derive(Debug, PartialEq)]
+pub struct InstallHookArgs {
+    /// Directory to scan recursively for source files.
+    pub path: String,
+    /// Markdown file to inject the diagram into.
+    pub output: String,
+}
+
 /// Arguments for the `run` command.
 #[derive(Debug, PartialEq)]
 pub struct RunArgs {
@@ -71,6 +80,178 @@ fn parse_diagram_kind(s: &str) -> Result<DiagramKind, String> {
         "class" => Ok(DiagramKind::ClassDiagram),
         _ => Err(format!("Invalid diagram kind: {}", s)),
     }
+}
+
+/// Updates or creates the `.pre-commit-config.yaml` file to include the codeviz hook.
+pub fn update_pre_commit_config(path: &Path) -> Result<(), String> {
+    let config_path = path.join(".pre-commit-config.yaml");
+    let hook_entry = r#"repos:
+  - repo: local
+    hooks:
+      - id: codeviz
+        name: Update architecture diagram
+        entry: codeviz run --path ./src --output README.md
+        language: system
+        pass_filenames: false
+        always_run: false
+"#;
+
+    if config_path.exists() {
+        let content = std::fs::read_to_string(&config_path).map_err(|e| e.to_string())?;
+        if content.contains("id: codeviz") {
+            println!("Already configured in .pre-commit-config.yaml");
+            return Ok(());
+        } else {
+            let mut new_content = content.trim_end().to_string();
+            if !new_content.contains("repos:") {
+                new_content.push_str("\nrepos:");
+            }
+            // Add hook entry without the duplicate 'repos:' root
+            let entry_no_repo = r#"
+  - repo: local
+    hooks:
+      - id: codeviz
+        name: Update architecture diagram
+        entry: codeviz run --path ./src --output README.md
+        language: system
+        pass_filenames: false
+        always_run: false"#;
+            new_content.push_str(entry_no_repo);
+            new_content.push('\n');
+            std::fs::write(&config_path, new_content).map_err(|e| e.to_string())?;
+            println!("Updated .pre-commit-config.yaml");
+        }
+    } else {
+        std::fs::write(&config_path, hook_entry).map_err(|e| e.to_string())?;
+        println!("Created .pre-commit-config.yaml");
+    }
+
+    Ok(())
+}
+
+/// Updates or creates the `.git/hooks/pre-commit` file to run `codeviz check`.
+pub fn update_git_hook(path: &Path) -> Result<(), String> {
+    let hooks_dir = path.join(".git").join("hooks");
+    if !hooks_dir.exists() {
+        std::fs::create_dir_all(&hooks_dir).map_err(|e| format!("Failed to create .git/hooks directory: {}", e))?;
+    }
+
+    let hook_path = hooks_dir.join("pre-commit");
+    let hook_cmd = "codeviz check\n";
+
+    if hook_path.exists() {
+        let content = std::fs::read_to_string(&hook_path).map_err(|e| format!("Failed to read hook: {}", e))?;
+        if content.contains("codeviz check") {
+            println!("Already configured in .git/hooks/pre-commit");
+            return Ok(());
+        } else {
+            let mut new_content = content;
+            if !new_content.ends_with('\n') {
+                new_content.push('\n');
+            }
+            new_content.push_str(hook_cmd);
+            std::fs::write(&hook_path, new_content).map_err(|e| format!("Failed to append to hook: {}", e))?;
+            println!("Appended to .git/hooks/pre-commit");
+        }
+    } else {
+        let content = format!("#!/bin/sh\n{}", hook_cmd);
+        std::fs::write(&hook_path, content).map_err(|e| format!("Failed to create hook: {}", e))?;
+        println!("Created .git/hooks/pre-commit");
+    }
+
+    // Set executable permission (Unix only)
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = std::fs::metadata(&hook_path).map_err(|e| format!("Failed to read hook metadata: {}", e))?.permissions();
+        perms.set_mode(0o755);
+        std::fs::set_permissions(&hook_path, perms).map_err(|e| format!("Failed to set hook permissions: {}", e))?;
+    }
+
+    Ok(())
+}
+
+/// Updates or creates the specified Markdown file to include sentinel tags.
+pub fn update_markdown_file(output: &str) -> Result<(), String> {
+    let output_path = Path::new(output);
+    let sentinel_tags = "\n---\n\n## Architecture\n\n<!-- CODEVIZ_START -->\n<!-- CODEVIZ_END -->\n";
+
+    if output_path.exists() {
+        let content = std::fs::read_to_string(output_path).map_err(|e| format!("Failed to read {}: {}", output, e))?;
+        if content.contains("<!-- CODEVIZ_START -->") && content.contains("<!-- CODEVIZ_END -->") {
+            println!("Sentinel tags already present in {}", output);
+            return Ok(());
+        } else {
+            let mut new_content = content;
+            if !new_content.ends_with('\n') {
+                new_content.push('\n');
+            }
+            new_content.push_str(sentinel_tags);
+            std::fs::write(output_path, new_content).map_err(|e| format!("Failed to append to {}: {}", output, e))?;
+            println!("Appended sentinel tags to {}", output);
+        }
+    } else {
+        std::fs::write(output_path, sentinel_tags.trim_start()).map_err(|e| format!("Failed to create {}: {}", output, e))?;
+        println!("Created {} with sentinel tags", output);
+    }
+
+    Ok(())
+}
+
+/// Runs the `install-hook` command logic.
+pub fn run_install_hook(args: &InstallHookArgs) -> Result<(), String> {
+    let path = Path::new(&args.path);
+
+    // Check if pre-commit is installed
+    match std::process::Command::new("which").arg("pre-commit").output() {
+        Ok(output) if output.status.success() => {
+            // pre-commit is installed
+        }
+        _ => {
+            println!("Warning: `pre-commit` not found in PATH. You may need to install it (e.g., `pip install pre-commit`) for the hook to run automatically.");
+        }
+    }
+
+    update_pre_commit_config(path)?;
+    update_git_hook(path)?;
+    update_markdown_file(&args.output)?;
+
+    println!("Install hook completed.");
+    Ok(())
+}
+
+/// Parses the arguments for the `install-hook` command.
+pub fn parse_install_hook_args(args: &[String]) -> Result<InstallHookArgs, String> {
+    let mut hook_args = InstallHookArgs {
+        path: "./src".to_string(),
+        output: "README.md".to_string(),
+    };
+
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--path" => {
+                if i + 1 < args.len() {
+                    hook_args.path = args[i + 1].clone();
+                    i += 1;
+                } else {
+                    return Err("--path requires a value".to_string());
+                }
+            }
+            "--output" => {
+                if i + 1 < args.len() {
+                    hook_args.output = args[i + 1].clone();
+                    i += 1;
+                } else {
+                    return Err("--output requires a value".to_string());
+                }
+            }
+            _ => return Err(format!("Unknown option for install-hook: {}", args[i])),
+        }
+        i += 1;
+    }
+
+    Ok(hook_args)
 }
 
 /// Parses CLI arguments into a `RunArgs` struct.
@@ -168,10 +349,11 @@ pub fn print_help() {
     println!("codeviz --help");
     println!("Usage: codeviz <COMMAND> [OPTIONS]");
     println!("Commands:");
-    println!("  run     Parses source code and injects an updated diagram into a markdown file.");
-    println!("  serve   Starts the MCP tool server.");
+    println!("  run          Parses source code and injects an updated diagram into a markdown file.");
+    println!("  serve        Starts the MCP tool server.");
+    println!("  install-hook Installs the pre-commit hook and markdown sentinel tags.");
     println!("Options:");
-    println!("  --help  Print this help message");
+    println!("  --help       Print this help message");
 }
 
 use codeviz_core::{CodeGraph, GraphMeta, LanguageRegistry, inject_mermaid};
@@ -277,6 +459,11 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
     if args.iter().any(|arg| arg == "--help") {
         print_help();
         return Ok(());
+    }
+
+    if args.len() > 1 && args[1] == "install-hook" {
+        let install_hook_args = parse_install_hook_args(&args[2..])?;
+        return run_install_hook(&install_hook_args);
     }
 
     if args.len() > 1 && args[1] == "serve" {
@@ -565,6 +752,111 @@ diagram_type = "module"
         let run_args = parse_run_args(&args).unwrap();
         assert_eq!(run_args.diagram, DiagramKind::CallGraph);
         assert_eq!(run_args.depth, Some(10));
+    }
+
+    #[test]
+    fn test_install_hook_no_existing_config() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let args = InstallHookArgs {
+            path: temp_dir.path().to_string_lossy().to_string(),
+            output: temp_dir.path().join("README.md").to_string_lossy().to_string(),
+        };
+
+        // Ensure git hook dir doesn't fail
+        std::fs::create_dir_all(temp_dir.path().join(".git").join("hooks")).unwrap();
+
+        let res = super::run_install_hook(&args);
+        assert!(res.is_ok());
+
+        let config_path = temp_dir.path().join(".pre-commit-config.yaml");
+        assert!(config_path.exists());
+        let content = std::fs::read_to_string(&config_path).unwrap();
+        assert!(content.contains("id: codeviz"));
+        assert!(content.contains("repos:"));
+
+        let hook_path = temp_dir.path().join(".git").join("hooks").join("pre-commit");
+        assert!(hook_path.exists());
+        let hook_content = std::fs::read_to_string(&hook_path).unwrap();
+        assert!(hook_content.contains("codeviz check"));
+
+        let output_path = temp_dir.path().join("README.md");
+        assert!(output_path.exists());
+        let md_content = std::fs::read_to_string(&output_path).unwrap();
+        assert!(md_content.contains("<!-- CODEVIZ_START -->"));
+    }
+
+    #[test]
+    fn test_install_hook_existing_config_without_entry() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let args = InstallHookArgs {
+            path: temp_dir.path().to_string_lossy().to_string(),
+            output: temp_dir.path().join("README.md").to_string_lossy().to_string(),
+        };
+
+        // Create initial config without codeviz entry
+        let config_path = temp_dir.path().join(".pre-commit-config.yaml");
+        std::fs::write(&config_path, "repos:\n  - repo: some-other-repo\n").unwrap();
+
+        std::fs::create_dir_all(temp_dir.path().join(".git").join("hooks")).unwrap();
+
+        let res = super::run_install_hook(&args);
+        assert!(res.is_ok());
+
+        let content = std::fs::read_to_string(&config_path).unwrap();
+        assert!(content.contains("some-other-repo"));
+        assert!(content.contains("id: codeviz"));
+        // Should only have one 'repos:'
+        assert_eq!(content.matches("repos:").count(), 1);
+    }
+
+    #[test]
+    fn test_install_hook_existing_config_with_entry() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let args = InstallHookArgs {
+            path: temp_dir.path().to_string_lossy().to_string(),
+            output: temp_dir.path().join("README.md").to_string_lossy().to_string(),
+        };
+
+        let initial_content = "repos:\n  - repo: local\n    hooks:\n      - id: codeviz\n";
+        let config_path = temp_dir.path().join(".pre-commit-config.yaml");
+        std::fs::write(&config_path, initial_content).unwrap();
+
+        std::fs::create_dir_all(temp_dir.path().join(".git").join("hooks")).unwrap();
+
+        let res = super::run_install_hook(&args);
+        assert!(res.is_ok());
+
+        // Content should be unchanged
+        let content = std::fs::read_to_string(&config_path).unwrap();
+        assert_eq!(content, initial_content);
+    }
+
+    #[test]
+    fn test_install_hook_sentinel_tags() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let output_file = temp_dir.path().join("README.md");
+        let args = InstallHookArgs {
+            path: temp_dir.path().to_string_lossy().to_string(),
+            output: output_file.to_string_lossy().to_string(),
+        };
+
+        std::fs::create_dir_all(temp_dir.path().join(".git").join("hooks")).unwrap();
+
+        // 1. Create file and append tags
+        std::fs::write(&output_file, "Some existing content.").unwrap();
+        let res = super::run_install_hook(&args);
+        assert!(res.is_ok());
+
+        let content1 = std::fs::read_to_string(&output_file).unwrap();
+        assert!(content1.starts_with("Some existing content.\n"));
+        assert!(content1.contains("<!-- CODEVIZ_START -->"));
+
+        // 2. Run again, verify tags are not duplicated
+        let res2 = super::run_install_hook(&args);
+        assert!(res2.is_ok());
+
+        let content2 = std::fs::read_to_string(&output_file).unwrap();
+        assert_eq!(content1, content2);
     }
 
     #[test]
