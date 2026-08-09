@@ -10,11 +10,13 @@ pub fn get_language(name: &str) -> Result<tree_sitter::Language, ParseError> {
         "tree-sitter-php" => tree_sitter_php::language_php(),
         "tree-sitter-dart" => tree_sitter_dart::language(),
         "tree-sitter-lua" => tree_sitter_lua::language(),
-        _ => return Err(ParseError {
-            message: format!("Unknown grammar: {}", name),
-            file_path: String::new(),
-            line: None,
-        }),
+        _ => {
+            return Err(ParseError {
+                message: format!("Unknown grammar: {}", name),
+                file_path: String::new(),
+                line: None,
+            })
+        }
     };
     Ok(lang)
 }
