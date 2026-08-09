@@ -29,6 +29,8 @@ pub struct RunArgs {
     pub diagram: DiagramKind,
     /// Maximum graph depth (unlimited if None).
     pub depth: Option<usize>,
+    /// Bypass the cache for this run.
+    pub no_cache: bool,
 }
 
 use serde::Deserialize;
@@ -40,9 +42,26 @@ pub struct OutputTarget {
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
+pub struct CacheConfig {
+    pub enabled: bool,
+    pub dir: String,
+}
+
+impl Default for CacheConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            dir: ".codeviz_cache".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct CodevizConfig {
     #[serde(default)]
     pub outputs: Vec<OutputTarget>,
+    #[serde(default)]
+    pub cache: CacheConfig,
 }
 
 fn load_config() -> Result<CodevizConfig, String> {
@@ -55,6 +74,7 @@ fn load_config() -> Result<CodevizConfig, String> {
                 file: "README.md".to_string(),
                 diagram_type: "module".to_string(),
             }],
+            cache: CacheConfig::default(),
         })
     }
 }
@@ -68,6 +88,7 @@ impl Default for RunArgs {
             output: None,
             diagram: DiagramKind::ModuleGraph,
             depth: None,
+            no_cache: false,
         }
     }
 }
@@ -404,6 +425,7 @@ pub fn parse_run_args(args: &[String]) -> Result<RunArgs, String> {
         } else {
             Some(config.graph.max_depth)
         },
+        no_cache: false,
     };
 
     i = 0;
@@ -457,6 +479,10 @@ pub fn parse_run_args(args: &[String]) -> Result<RunArgs, String> {
                     return Err("Missing argument for --depth".to_string());
                 }
             }
+            "--no-cache" => {
+                run_args.no_cache = true;
+                i += 1;
+            }
             _ => {
                 i += 1;
             }
@@ -475,6 +501,8 @@ pub fn print_help() {
     println!("  check        Checks if the generated diagram matches the output file without modifying it.");
     println!("  serve        Starts the MCP tool server.");
     println!("  install-hook Installs the pre-commit hook and markdown sentinel tags.");
+    println!("  cache clear  Clears the incremental cache.");
+    println!("  cache stats  Prints cache statistics.");
     println!("Options:");
     println!("  --help       Print this help message");
 }
@@ -599,6 +627,30 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         }
     }
 
+    if args.len() > 1 && args[1] == "cache" {
+        let config = load_config()?;
+        let cache_dir = Path::new(&config.cache.dir);
+        let manager = codeviz_core::CacheManager::new(cache_dir, env!("CARGO_PKG_VERSION"));
+
+        if args.len() > 2 && args[2] == "clear" {
+            manager.clear()?;
+            println!("Cache cleared successfully.");
+            return Ok(true);
+        } else if args.len() > 2 && args[2] == "stats" {
+            if cache_dir.exists() {
+                let count = std::fs::read_dir(cache_dir)
+                    .map(|iter| iter.filter(|e| e.is_ok() && e.as_ref().unwrap().path().extension().is_some_and(|ext| ext == "json") && e.as_ref().unwrap().path().file_name().unwrap() != "meta.json").count())
+                    .unwrap_or(0);
+                println!("Cache contains {} entries.", count);
+            } else {
+                println!("Cache is empty (directory does not exist).");
+            }
+            return Ok(true);
+        } else {
+            return Err("Invalid cache subcommand. Use 'clear' or 'stats'".to_string());
+        }
+    }
+
     if args.len() > 1 && (args[1] == "run" || args[1] == "check") {
         let is_check = args[1] == "check";
         let run_args = parse_run_args(&args[2..])?;
@@ -615,7 +667,57 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         registry.register(Box::new(JavaParser::new()));
         registry.register(Box::new(KotlinParser::new()));
 
-        let files = walk_dir(Path::new(&run_args.path))?;
+        let config = load_config()?;
+        let cache_dir = Path::new(&config.cache.dir);
+        let cache_enabled = config.cache.enabled && !run_args.no_cache;
+        let manager = codeviz_core::CacheManager::new(cache_dir, env!("CARGO_PKG_VERSION"));
+
+        let config_path = run_args.config_path.clone().unwrap_or_else(|| "codeviz.toml".to_string());
+
+        if cache_enabled {
+            let meta_path = cache_dir.join("meta.json");
+            let mut invalidate_cache = false;
+
+            let config_mtime = if let Ok(metadata) = std::fs::metadata(&config_path) {
+                metadata.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_nanos())
+            } else {
+                None
+            };
+
+            #[derive(serde::Serialize, serde::Deserialize)]
+            struct CacheMeta {
+                config_mtime: Option<u128>,
+                version: String,
+            }
+
+            if let Ok(meta_str) = std::fs::read_to_string(&meta_path) {
+                if let Ok(meta) = serde_json::from_str::<CacheMeta>(&meta_str) {
+                    if meta.version != env!("CARGO_PKG_VERSION") || meta.config_mtime != config_mtime {
+                        invalidate_cache = true;
+                    }
+                } else {
+                    invalidate_cache = true;
+                }
+            } else {
+                invalidate_cache = true;
+            }
+
+            if invalidate_cache {
+                let _ = manager.clear();
+                if std::fs::create_dir_all(cache_dir).is_ok() {
+                    let new_meta = CacheMeta {
+                        config_mtime,
+                        version: env!("CARGO_PKG_VERSION").to_string(),
+                    };
+                    if let Ok(meta_str) = serde_json::to_string(&new_meta) {
+                        let _ = std::fs::write(meta_path, meta_str);
+                    }
+                }
+            }
+        }
+
+        let mut files = walk_dir(Path::new(&run_args.path))?;
+        files.retain(|f| !f.starts_with(cache_dir));
 
         let mut merged_graph = CodeGraph::new(GraphMeta {
             language: "mixed".to_string(),
@@ -631,12 +733,26 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
             // Check if file extension is supported before reading source
             if let Some(ext) = file.extension().and_then(|e| e.to_str())
                 && registry.find_parser(ext).is_some()
-                && let Ok(source) = std::fs::read_to_string(&file)
-                && let Ok(graph) = registry.parse_file(&file.to_string_lossy(), &source)
             {
-                merged_graph.nodes.extend(graph.nodes);
-                merged_graph.edges.extend(graph.edges);
-                parsed_count += 1;
+                if cache_enabled
+                    && let Some(entry) = manager.get(&file)
+                {
+                    merged_graph.nodes.extend(entry.nodes);
+                    merged_graph.edges.extend(entry.edges);
+                    continue;
+                }
+
+                if let Ok(source) = std::fs::read_to_string(&file)
+                    && let Ok(graph) = registry.parse_file(&file.to_string_lossy(), &source)
+                {
+                    merged_graph.nodes.extend(graph.nodes.clone());
+                    merged_graph.edges.extend(graph.edges.clone());
+                    parsed_count += 1;
+
+                    if cache_enabled {
+                        let _ = manager.put(&file, graph.nodes, graph.edges);
+                    }
+                }
             }
         }
 
