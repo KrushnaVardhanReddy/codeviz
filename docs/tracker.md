@@ -18,8 +18,8 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 ## Phase 6-10: Config & Tooling
 - `[x]` **Batch 6 (Phase 6)**: Java + Kotlin Parsers (Tasks 15, 25)
 - `[x]` **Batch 7 (Phase 7)**: Config + Universal Parser (Tasks 16, 26, 40)
-- `[/]` **Batch 8 (Phase 8)**: Critical Features (Tasks 18, 19, 21)
-- `[ ]` **Batch 9 (Phase 9)**: Developer UX (Tasks 20, 22, 27)
+- `[x]` **Batch 8 (Phase 8)**: Critical Features (Tasks 18, 19, 21)
+- `[/]` **Batch 9 (Phase 9)**: Developer UX (Tasks 20, 22, 27)
 - `[ ]` **Batch 10 (Phase 10)**: Distribution (GitHub Action + npm WASM) (Tasks 23, 24)
 
 ## Phase 11-12: Web UI & CFG
@@ -29,11 +29,11 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 ## Phase 13-17: Enterprise, Auth & E2E
 - `[x]` **Batch 13 (Phase 13)**: `[OSS]` Auth Core (NextAuth + GitHub/Google OAuth) (Task 33A)
 - `[x]` **Batch 13.5 (Phase 13)**: `[OSS]` Auth DB Adapter & Playwright E2E (Task 33B)
-- `[ ]` **Batch 13.6 (Phase 13)**: `[OSS]` SurrealDB Migration — replace Supabase, enable real DB in E2E (Task 33C)
+- `[/]` **Batch 13.6 (Phase 13)**: `[OSS]` SurrealDB Migration — replace Supabase, enable real DB in E2E (Task 33C)
 - `[ ]` **Batch 14 (Phase 14)**: `[OSS]` Basic Teams & Workspaces (≤5 members) (Task 34)
 - `[ ]` **Batch 15 (Phase 15)**: `[ENT]` Enterprise SSO (SAML) & Audit Logs (Task 35)
 - `[ ]` **Batch 16 (Phase 16)**: `[BIZ]` Enterprise Insights — Heatmap, Blast Radius, Git History (Tasks 36-39)
-- `[/]` **Batch 17 (Phase 17)**: `[OSS]` E2E Validation Suite (CLI, MCP, Playwright) (Task 17)
+- `[x]` **Batch 17 (Phase 17)**: `[OSS]` E2E Validation Suite (CLI, MCP, Playwright) (Task 17)
 
 ## Phase 18: Advanced Analysis
 - `[ ]` **Batch 18 (Phase 18)**: `[BIZ]` Advanced Analysis (Tasks 41-45)
@@ -54,7 +54,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[ ]` **T47** `[OSS]` VS Code Extension — sidebar graph panel, status bar, auto-refresh on save
 - `[ ]` **T48** `[OSS]` `summarize_architecture` MCP Tool — instant codebase overview for AI agents
 - `[ ]` **T55** `[OSS]` MCP Debugging Tools — `trace_call_path`, `get_callers_recursive`, `get_blast_radius`
-- `[/]` **T56** `[OSS]` Interactive Code Playground — live WASM parser sandbox on the web UI
+- `[x]` **T56** `[OSS]` Interactive Code Playground — live WASM parser sandbox on the web UI
 - `[ ]` **T53** `[OSS]` Interactive Call Path Explorer — animated BFS graph traversal in Web UI
 
 ### MVP v2 — "Make It Sticky" (Team Features — Retention & Collaboration)
