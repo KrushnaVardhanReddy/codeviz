@@ -1,0 +1,12 @@
+[package]
+name = "codeviz-java"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+codeviz-core = { path = "../codeviz-core" }
+tree-sitter = "0.22"
+tree-sitter-java = "0.21"
+
+[dev-dependencies]
+tempfile = "3.27.0"
