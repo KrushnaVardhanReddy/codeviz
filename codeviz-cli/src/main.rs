@@ -97,7 +97,8 @@ pub fn parse_run_args(args: &[String]) -> Result<RunArgs, String> {
     let mut run_args = RunArgs {
         config_path,
         path: ".".to_string(),
-        output: config.output.targets.first().cloned().unwrap_or_else(|| "README.md".to_string()),
+        format: OutputFormat::Mermaid,
+        output: None,
         diagram: parse_diagram_kind(&config.graph.diagram_type).unwrap_or(DiagramKind::ModuleGraph),
         depth: if config.graph.max_depth == 0 { None } else { Some(config.graph.max_depth) },
     };
