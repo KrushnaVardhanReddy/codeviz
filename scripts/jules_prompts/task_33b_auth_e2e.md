@@ -4,10 +4,10 @@ TASK: T33B — Auth DB Adapter & Playwright E2E
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
 Integrate the NextAuth setup (from T33A) with Supabase to store user profiles,
-and configure Playwright + PGLite for zero-mock local E2E testing.
+and configure Playwright for E2E testing (bypassing DB writes during testing).
 
 Files to Create/Modify:
-- `codeviz-web/lib/db.ts` (Supabase client with PGLite local proxy)
+- `codeviz-web/lib/db.ts` (Supabase client configuration)
 - `codeviz-web/playwright.config.ts` (Playwright E2E configuration)
 - `codeviz-web/package.json` (add test:e2e script)
 
@@ -25,12 +25,12 @@ CRITICAL CONTEXT & GUARDRAILS (READ CAREFULLY)
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
 - Use Supabase for the production database adapter.
-- For local E2E tests, you MUST configure `@electric-sql/pglite` as a local, in-memory PostgreSQL instance and use Playwright for tests (`npm run test:e2e`).
+- For local E2E tests, you MUST conditionally disable the database adapter (`adapter: process.env.E2E_TEST ? undefined : SupabaseAdapter(...)`) so NextAuth falls back to JWT sessions. Do NOT attempt to build a custom DB proxy.
 - Add basic Playwright tests verifying the login flow UI.
 
 ═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
 ═══════════════════════════════════════════════════════════════
-- Install: `npm install @auth/supabase-adapter @electric-sql/pglite playwright`.
+- Install: `npm install @auth/supabase-adapter @supabase/supabase-js playwright`.
 - Store `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
 - Use the Supabase adapter from `@auth/supabase-adapter` to auto-manage the `users` and `sessions` tables.

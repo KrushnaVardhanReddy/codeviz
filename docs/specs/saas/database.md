@@ -3,15 +3,14 @@
 ## Overview
 CodeViz utilizes a robust, real-time database architecture built on **Supabase** (PostgreSQL) for production environments, ensuring robust RBAC and team workspace capabilities (Phase 13-16). 
 
-To guarantee a completely local, zero-mocking development and testing environment, CodeViz leverages **PGLite** (a WASM-based local PostgreSQL instance) for all automated E2E tests.
+To test locally without network dependencies, E2E tests should bypass the DB adapter entirely and rely on NextAuth's mock sessions or JWT tokens.
 
-## Local E2E Testing Strategy (Playwright + PGLite)
-1. **Zero Mocking**: Tests hit an actual, local PostgreSQL engine (PGLite) embedded in the test runner memory, preventing the need to mock network calls or database SDK logic.
+## Local E2E Testing Strategy (Playwright)
+1. **Mocked Sessions**: Tests interacting with protected routes should use a mocked NextAuth session (e.g. `CredentialsProvider` active only when `E2E_TEST=true`).
 2. **Framework**: We use **Playwright** (`npm run test:e2e`) as the end-to-end framework. 
-3. **Seeding**: The Playwright `test.beforeEach` hooks automatically instantiate a fresh PGLite instance and seed the SQL schema.
-4. **Supabase Client Proxy**: The application's Supabase client is configured to proxy local requests to the PGLite driver when the `E2E_TEST` environment variable is active.
+3. **No SDK Proxies**: Do NOT attempt to build a proxy between the Supabase JS SDK and local SQL instances (like PGLite), as this is brittle and complex.
 
 ## Implementation Requirements
-- Initialize `@supabase/supabase-js` and `@electric-sql/pglite` dependencies.
-- Implement the client router in `codeviz-web/lib/db.ts` to switch between cloud Supabase and in-memory PGLite.
+- Initialize `@supabase/supabase-js`.
 - Create `codeviz-web/playwright.config.ts` for E2E setups.
+- Use `adapter: process.env.E2E_TEST ? undefined : SupabaseAdapter(...)` in `auth.ts` to bypass DB writes during testing.

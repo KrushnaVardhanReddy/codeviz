@@ -20,7 +20,7 @@ CONSTRAINTS & RULES
 - DOGFOODING: The CLI E2E test (`codeviz-cli/tests/e2e_test.rs`) must execute `cargo run --bin codeviz -- run --path .` against the actual CodeViz root directory to parse itself! Assert that it successfully parses Rust and TypeScript files.
 - MCP Python Test: Use `pytest` to spin up the `codeviz-mcp` binary via stdio, send `tools/list`, and assert `add_language_support` is present.
 - Playwright: Use `@playwright/test`. Spin up the Next.js server locally and assert that the graph canvas renders correctly and the CFG Side Panel opens when an interactive element is clicked.
-- Do NOT use mock data for the database! The Playwright config must ensure `E2E_TEST=true` so that the `pglite` in-memory database is used for local tests.
+- Do NOT use mock data for the database if testing actual API routes, but do not attempt to use PGLite as a proxy for the Supabase SDK.
 
 ═══════════════════════════════════════════════════════════════
 IMPLEMENTATION TIPS
