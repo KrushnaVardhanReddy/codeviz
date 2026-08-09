@@ -185,6 +185,25 @@ This registers ALL language parsers (both hand-written and generic ones) in one 
 
 ---
 
+## Dynamic Extension via MCP
+
+To allow AI agents to teach CodeViz new languages on the fly, implement a new MCP tool `add_language_support`.
+
+**Input parameters:**
+- `language`: (String) e.g., "elixir"
+- `extensions`: (Array of Strings) e.g., `["ex", "exs"]`
+- `grammar`: (String) e.g., "tree-sitter-elixir"
+- `queries`: (Object) keys: `functions`, `classes`, `imports`, etc. Values: Tree-sitter query strings.
+
+**Behavior:**
+1. The MCP handler takes these parameters and writes a `<language>.toml` file to `codeviz-langs/languages/`.
+2. It dynamically parses the TOML and registers the new language with the `LanguageRegistry`.
+3. Returns a success message.
+
+*Note: For runtime safety, the `grammar` requested must already be compiled in the registry. Future versions may allow downloading WASM grammars.*
+
+---
+
 ## Acceptance Criteria
 - [ ] `GenericParser` implements `LanguageParser` trait.
 - [ ] All 6 TOML language files ship with the binary (via `include_str!`).
@@ -192,3 +211,4 @@ This registers ALL language parsers (both hand-written and generic ones) in one 
 - [ ] `cargo test --all` passes.
 - [ ] Running `codeviz run --path ./test_ruby_project --output mermaid` produces a valid Mermaid diagram for a Ruby project.
 - [ ] A contributor can add a new language by adding one `.toml` file and one line in `grammar_map.rs`.
+- [ ] Implement `add_language_support` MCP tool in `codeviz-mcp/src/tools.rs`.

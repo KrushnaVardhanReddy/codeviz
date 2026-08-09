@@ -27,6 +27,7 @@ Files to Modify:
 - `Cargo.toml` (add `codeviz-langs` to workspace members)
 - `codeviz-cli/Cargo.toml` (add `codeviz-langs` dependency)
 - `codeviz-cli/src/main.rs` (call `codeviz_langs::register_all(&mut registry)`)
+- `codeviz-mcp/src/tools.rs` (add `add_language_support` tool)
 
 Spec (READ ONLY — implement from it, never edit):
   docs/specs/features/universal_parser.md
@@ -78,3 +79,4 @@ IMPLEMENTATION TIPS
   }
   ```
   where `all_parsers()` returns `Vec<GenericParser>` by loading each embedded TOML.
+- Implement the `add_language_support` MCP tool in `codeviz-mcp/src/tools.rs` to write `<language>.toml` to disk and register it on the fly.
