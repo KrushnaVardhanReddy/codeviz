@@ -2,9 +2,9 @@ pub mod config;
 pub mod engine;
 pub mod grammar_map;
 
+use codeviz_core::parser::LanguageRegistry;
 pub use config::LangConfig;
 pub use engine::GenericParser;
-use codeviz_core::parser::LanguageRegistry;
 
 /// Loads all pre-defined language parsers from embedded TOML files.
 pub fn all_parsers() -> Vec<GenericParser> {

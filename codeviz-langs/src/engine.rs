@@ -108,101 +108,119 @@ impl LanguageParser for GenericParser {
 
         // Process functions
         if let Some(ref q_str) = self.config.queries.functions {
-            self.run_query(q_str, language.clone(), source, file_path, &mut |m, query| {
-                let name_idx = query.capture_index_for_name("name");
-                let node_idx = query.capture_index_for_name("node");
+            self.run_query(
+                q_str,
+                language.clone(),
+                source,
+                file_path,
+                &mut |m, query| {
+                    let name_idx = query.capture_index_for_name("name");
+                    let node_idx = query.capture_index_for_name("node");
 
-                let mut name_val = None;
-                let mut line_val = None;
+                    let mut name_val = None;
+                    let mut line_val = None;
 
-                for cap in m.captures {
-                    if let Some(idx) = name_idx {
-                        if cap.index == idx {
-                            if let Ok(text) = cap.node.utf8_text(source_bytes) {
-                                name_val = Some(text.to_string());
+                    for cap in m.captures {
+                        if let Some(idx) = name_idx {
+                            if cap.index == idx {
+                                if let Ok(text) = cap.node.utf8_text(source_bytes) {
+                                    name_val = Some(text.to_string());
+                                }
+                            }
+                        }
+                        if let Some(idx) = node_idx {
+                            if cap.index == idx {
+                                line_val = Some(cap.node.start_position().row as u32 + 1);
                             }
                         }
                     }
-                    if let Some(idx) = node_idx {
-                        if cap.index == idx {
-                            line_val = Some(cap.node.start_position().row as u32 + 1);
-                        }
-                    }
-                }
 
-                if let Some(name) = name_val {
-                    graph.nodes.push(Node {
-                        id: format!("{}::{}", file_path, name),
-                        label: name,
-                        kind: NodeKind::Function { is_async: false },
-                        file_path: file_path.to_string(),
-                        line: line_val,
-                        is_public: true,
-                    });
-                }
-                Ok(())
-            })?;
+                    if let Some(name) = name_val {
+                        graph.nodes.push(Node {
+                            id: format!("{}::{}", file_path, name),
+                            label: name,
+                            kind: NodeKind::Function { is_async: false },
+                            file_path: file_path.to_string(),
+                            line: line_val,
+                            is_public: true,
+                        });
+                    }
+                    Ok(())
+                },
+            )?;
         }
 
         // Process classes
         if let Some(ref q_str) = self.config.queries.classes {
-            self.run_query(q_str, language.clone(), source, file_path, &mut |m, query| {
-                let name_idx = query.capture_index_for_name("name");
-                let node_idx = query.capture_index_for_name("node");
+            self.run_query(
+                q_str,
+                language.clone(),
+                source,
+                file_path,
+                &mut |m, query| {
+                    let name_idx = query.capture_index_for_name("name");
+                    let node_idx = query.capture_index_for_name("node");
 
-                let mut name_val = None;
-                let mut line_val = None;
+                    let mut name_val = None;
+                    let mut line_val = None;
 
-                for cap in m.captures {
-                    if let Some(idx) = name_idx {
-                        if cap.index == idx {
-                            if let Ok(text) = cap.node.utf8_text(source_bytes) {
-                                name_val = Some(text.to_string());
+                    for cap in m.captures {
+                        if let Some(idx) = name_idx {
+                            if cap.index == idx {
+                                if let Ok(text) = cap.node.utf8_text(source_bytes) {
+                                    name_val = Some(text.to_string());
+                                }
+                            }
+                        }
+                        if let Some(idx) = node_idx {
+                            if cap.index == idx {
+                                line_val = Some(cap.node.start_position().row as u32 + 1);
                             }
                         }
                     }
-                    if let Some(idx) = node_idx {
-                        if cap.index == idx {
-                            line_val = Some(cap.node.start_position().row as u32 + 1);
-                        }
-                    }
-                }
 
-                if let Some(name) = name_val {
-                    graph.nodes.push(Node {
-                        id: format!("{}::{}", file_path, name),
-                        label: name,
-                        kind: NodeKind::Class,
-                        file_path: file_path.to_string(),
-                        line: line_val,
-                        is_public: true,
-                    });
-                }
-                Ok(())
-            })?;
+                    if let Some(name) = name_val {
+                        graph.nodes.push(Node {
+                            id: format!("{}::{}", file_path, name),
+                            label: name,
+                            kind: NodeKind::Class,
+                            file_path: file_path.to_string(),
+                            line: line_val,
+                            is_public: true,
+                        });
+                    }
+                    Ok(())
+                },
+            )?;
         }
 
         // Process imports
         if let Some(ref q_str) = self.config.queries.imports {
-            self.run_query(q_str, language.clone(), source, file_path, &mut |m, query| {
-                let path_idx = query.capture_index_for_name("path");
+            self.run_query(
+                q_str,
+                language.clone(),
+                source,
+                file_path,
+                &mut |m, query| {
+                    let path_idx = query.capture_index_for_name("path");
 
-                for cap in m.captures {
-                    if let Some(idx) = path_idx {
-                        if cap.index == idx {
-                            if let Ok(text) = cap.node.utf8_text(source_bytes) {
-                                // For basic imports, just record the edge to the imported path
-                                graph.edges.push(Edge {
-                                    from_id: file_path.to_string(),
-                                    to_id: text.to_string(),
-                                    kind: EdgeKind::Imports,
-                                });
+                    for cap in m.captures {
+                        if let Some(idx) = path_idx {
+                            if cap.index == idx {
+                                if let Ok(text) = cap.node.utf8_text(source_bytes) {
+                                    // For basic imports, just record the edge to the imported path
+                                    graph.edges.push(Edge {
+                                        from_id: file_path.to_string(),
+                                        to_id: text.to_string(),
+                                        kind: EdgeKind::Imports,
+                                    });
+                                }
                             }
                         }
                     }
-                }
-                Ok(())
-            })?;
+                    Ok(())
+                },
+            )?;
         }
 
         graph.meta.node_count = graph.nodes.len();
