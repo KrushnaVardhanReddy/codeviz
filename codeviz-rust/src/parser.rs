@@ -100,7 +100,10 @@ impl RustLangParser {
     ) -> Result<(), ParseError> {
         let mut cursor = node.walk();
         for child in node.children(&mut cursor) {
-            if child.kind() == "scoped_identifier" || child.kind() == "identifier" || child.kind() == "use_list" {
+            if child.kind() == "scoped_identifier"
+                || child.kind() == "identifier"
+                || child.kind() == "use_list"
+            {
                 self.extract_use_path(child, source_bytes, file_path, graph, "")?;
             }
         }
@@ -117,15 +120,27 @@ impl RustLangParser {
     ) -> Result<(), ParseError> {
         if node.kind() == "scoped_identifier" {
             let path_str = self.get_text(node, source_bytes);
-            let target = if prefix.is_empty() { path_str } else { format!("{}::{}", prefix, path_str) };
+            let target = if prefix.is_empty() {
+                path_str
+            } else {
+                format!("{}::{}", prefix, path_str)
+            };
 
             // if we have 'use std::fmt;' we can just link to std::fmt.
             // if we have 'use std::fmt::Display;' we might also link to std::fmt::Display or just std::fmt. The spec says "extract base module" for use std::collections::HashMap -> std::collections. But simple extraction is often enough.
             // Let's create an edge to the whole path or base module
             // We'll just split off the last part if it looks like an item, or just emit the whole thing.
             let parts: Vec<&str> = target.split("::").collect();
-            let base_module = if parts.len() > 1 && parts.last().unwrap_or(&"").chars().next().unwrap_or('a').is_uppercase() {
-                parts[..parts.len()-1].join("::")
+            let base_module = if parts.len() > 1
+                && parts
+                    .last()
+                    .unwrap_or(&"")
+                    .chars()
+                    .next()
+                    .unwrap_or('a')
+                    .is_uppercase()
+            {
+                parts[..parts.len() - 1].join("::")
             } else {
                 target
             };
@@ -136,21 +151,25 @@ impl RustLangParser {
                 kind: EdgeKind::Imports,
             });
         } else if node.kind() == "identifier" {
-             let path_str = self.get_text(node, source_bytes);
-             let target = if prefix.is_empty() { path_str } else { format!("{}::{}", prefix, path_str) };
-             graph.edges.push(Edge {
+            let path_str = self.get_text(node, source_bytes);
+            let target = if prefix.is_empty() {
+                path_str
+            } else {
+                format!("{}::{}", prefix, path_str)
+            };
+            graph.edges.push(Edge {
                 from_id: file_path.to_string(),
                 to_id: target,
                 kind: EdgeKind::Imports,
             });
         } else if node.kind() == "use_list" {
             // handle use a::{b, c}
-             let mut cursor = node.walk();
-             for child in node.children(&mut cursor) {
-                 if child.kind() == "scoped_identifier" || child.kind() == "identifier" {
-                     self.extract_use_path(child, source_bytes, file_path, graph, prefix)?;
-                 }
-             }
+            let mut cursor = node.walk();
+            for child in node.children(&mut cursor) {
+                if child.kind() == "scoped_identifier" || child.kind() == "identifier" {
+                    self.extract_use_path(child, source_bytes, file_path, graph, prefix)?;
+                }
+            }
         }
         Ok(())
     }
@@ -238,12 +257,15 @@ impl RustLangParser {
             if let Some(bounds_node) = node.child_by_field_name("bounds") {
                 let mut cursor = bounds_node.walk();
                 for child in bounds_node.children(&mut cursor) {
-                    if child.kind() == "trait_bound" || child.kind() == "type_identifier" || child.kind() == "scoped_type_identifier" {
-                         let bound_name = self.get_text(child, source_bytes);
-                         let bound_label = self.sanitize_label(&bound_name);
-                         // Try to get just the trait name if it's something like `fmt::Display`
+                    if child.kind() == "trait_bound"
+                        || child.kind() == "type_identifier"
+                        || child.kind() == "scoped_type_identifier"
+                    {
+                        let bound_name = self.get_text(child, source_bytes);
+                        let bound_label = self.sanitize_label(&bound_name);
+                        // Try to get just the trait name if it's something like `fmt::Display`
 
-                         graph.edges.push(Edge {
+                        graph.edges.push(Edge {
                             from_id: id.clone(),
                             to_id: bound_label,
                             kind: EdgeKind::Inherits,
@@ -402,34 +424,58 @@ pub async fn bark() {}
         let graph = parser.parse(snippet, "test.rs").unwrap();
 
         // 1 `Imports` edge (`std::fmt`)
-        let imports: Vec<_> = graph.edges.iter().filter(|e| e.kind == EdgeKind::Imports).collect();
+        let imports: Vec<_> = graph
+            .edges
+            .iter()
+            .filter(|e| e.kind == EdgeKind::Imports)
+            .collect();
         assert_eq!(imports.len(), 1, "Expected 1 Imports edge");
         assert_eq!(imports[0].to_id, "std::fmt", "Imports should be std::fmt");
 
         // 1 `Interface` node (`Greet`)
-        let interfaces: Vec<_> = graph.nodes.iter().filter(|n| n.kind == NodeKind::Interface).collect();
+        let interfaces: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|n| n.kind == NodeKind::Interface)
+            .collect();
         assert_eq!(interfaces.len(), 1, "Expected 1 Interface node");
         assert_eq!(interfaces[0].label, "Greet", "Interface should be Greet");
 
         // 1 `Inherits` edge (`Greet` -> `fmt::Display`)
-        let inherits: Vec<_> = graph.edges.iter().filter(|e| e.kind == EdgeKind::Inherits).collect();
+        let inherits: Vec<_> = graph
+            .edges
+            .iter()
+            .filter(|e| e.kind == EdgeKind::Inherits)
+            .collect();
         assert_eq!(inherits.len(), 1, "Expected 1 Inherits edge");
         assert_eq!(inherits[0].from_id, "test.rs::Greet");
         assert_eq!(inherits[0].to_id, "fmt::Display");
 
         // 1 `Class` node (`Dog`)
-        let classes: Vec<_> = graph.nodes.iter().filter(|n| n.kind == NodeKind::Class).collect();
+        let classes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|n| n.kind == NodeKind::Class)
+            .collect();
         assert_eq!(classes.len(), 1, "Expected 1 Class node");
         assert_eq!(classes[0].label, "Dog");
 
         // 1 `Implements` edge (`Dog` -> `Greet`)
-        let implements: Vec<_> = graph.edges.iter().filter(|e| e.kind == EdgeKind::Implements).collect();
+        let implements: Vec<_> = graph
+            .edges
+            .iter()
+            .filter(|e| e.kind == EdgeKind::Implements)
+            .collect();
         assert_eq!(implements.len(), 1, "Expected 1 Implements edge");
         assert_eq!(implements[0].from_id, "test.rs::Dog");
         assert_eq!(implements[0].to_id, "Greet");
 
         // 1 async `Function` node (`bark`) with `is_public: true`
-        let funcs: Vec<_> = graph.nodes.iter().filter(|n| matches!(n.kind, NodeKind::Function { .. })).collect();
+        let funcs: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|n| matches!(n.kind, NodeKind::Function { .. }))
+            .collect();
         assert_eq!(funcs.len(), 1, "Expected 1 Function node");
         assert_eq!(funcs[0].label, "bark");
         assert_eq!(funcs[0].is_public, true);
