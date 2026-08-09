@@ -124,7 +124,8 @@ TASKS = {
     31: {"name": "31 — CFG Parser Emitters",         "phase": "Phase 12: CFG",               "slug": "task_31_cfg_parsers"},
     32: {"name": "32 — CFG Web UI Renderer",         "phase": "Phase 12: CFG",               "slug": "task_32_cfg_webui"},
     # Phase 13: Auth
-    33: {"name": "33 — Auth: GitHub & Google OAuth", "phase": "Phase 13: Auth",              "slug": "task_33_auth"},
+    33: {"name": "33A — Auth Core: GitHub & Google OAuth", "phase": "Phase 13: Auth",              "slug": "task_33a_auth_core"},
+    330: {"name": "33B — Auth DB Adapter & E2E", "phase": "Phase 13: Auth",                        "slug": "task_33b_auth_e2e"},
     # Phase 14: Teams
     34: {"name": "34 — Team Workspaces & Repo Groups","phase": "Phase 14: Teams",            "slug": "task_34_teams"},
     # Phase 15: Enterprise
