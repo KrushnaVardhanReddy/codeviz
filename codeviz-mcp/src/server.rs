@@ -1,10 +1,10 @@
 use crate::tools::*;
 use codeviz_core::LanguageRegistry;
-use serde_json::{json, Value};
-use std::io::{self, BufRead, Write};
-use codeviz_python::PythonParser;
 use codeviz_go::GoParser;
+use codeviz_python::PythonParser;
 use codeviz_typescript::TypeScriptParser;
+use serde_json::{Value, json};
+use std::io::{self, BufRead, Write};
 
 /// Starts the MCP JSON-RPC server over stdio.
 pub fn start_mcp_server() -> Result<(), String> {
@@ -32,14 +32,18 @@ pub fn start_mcp_server() -> Result<(), String> {
                 let request: Result<JsonRpcRequest, _> = serde_json::from_str(trimmed);
                 let response = match request {
                     Ok(req) => handle_request(req, &registry),
-                    Err(_) => error_response(None, JsonRpcError {
-                        code: ERROR_PARSE,
-                        message: "Parse error".to_string(),
-                        data: None,
-                    }),
+                    Err(_) => error_response(
+                        None,
+                        JsonRpcError {
+                            code: ERROR_PARSE,
+                            message: "Parse error".to_string(),
+                            data: None,
+                        },
+                    ),
                 };
 
-                let response_json = serde_json::to_string(&response).unwrap_or_else(|_| "{}".to_string());
+                let response_json =
+                    serde_json::to_string(&response).unwrap_or_else(|_| "{}".to_string());
                 if let Err(e) = writeln!(writer, "{}", response_json) {
                     eprintln!("Failed to write to stdout: {}", e);
                     break;

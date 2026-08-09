@@ -1,6 +1,5 @@
 use std::fs;
 
-
 #[test]
 fn test_resolve_import_path_with_mod() {
     // We simulate creating a go.mod

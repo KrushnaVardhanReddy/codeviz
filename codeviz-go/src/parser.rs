@@ -1,8 +1,8 @@
 use codeviz_core::ir::{CodeGraph, Edge, EdgeKind, GraphMeta, Node, NodeKind};
 use codeviz_core::parser::{LanguageParser, ParseError};
+use std::path::Path;
 use tree_sitter::{Node as TsNode, Parser, Tree};
 use tree_sitter_go::language;
-use std::path::Path;
 
 /// A parser for the Go programming language using tree-sitter.
 pub struct GoParser;
@@ -76,7 +76,13 @@ impl GoParser {
                 let mut list_cursor = child.walk();
                 for spec in child.children(&mut list_cursor) {
                     if spec.kind() == "import_spec" {
-                        self.extract_import_spec(spec, source_bytes, file_path, graph, source_root)?;
+                        self.extract_import_spec(
+                            spec,
+                            source_bytes,
+                            file_path,
+                            graph,
+                            source_root,
+                        )?;
                     }
                 }
             }
@@ -106,11 +112,12 @@ impl GoParser {
             if let Ok(path_str) = path_node.utf8_text(source_bytes) {
                 // path_str is like "fmt" with quotes. Remove the quotes.
                 let mut clean_path = path_str.trim_matches('"').to_string();
-                if clean_path != "C" { // skip cgo
+                if clean_path != "C" {
+                    // skip cgo
                     if !source_root.is_empty() {
                         clean_path = resolve_import_path(&clean_path, source_root);
                     }
-                     graph.edges.push(Edge {
+                    graph.edges.push(Edge {
                         from_id: file_path.to_string(),
                         to_id: clean_path,
                         kind: EdgeKind::Imports,
@@ -147,7 +154,11 @@ impl GoParser {
                                 kind: kind.clone(),
                                 file_path: file_path.to_string(),
                                 line: Some(name_node.start_position().row as u32 + 1),
-                                is_public: name.chars().next().map(|c| c.is_uppercase()).unwrap_or(false),
+                                is_public: name
+                                    .chars()
+                                    .next()
+                                    .map(|c| c.is_uppercase())
+                                    .unwrap_or(false),
                             });
 
                             if kind == NodeKind::Class {
@@ -156,16 +167,26 @@ impl GoParser {
                                 for field_list_candidate in type_node.children(&mut struct_cursor) {
                                     if field_list_candidate.kind() == "field_declaration_list" {
                                         let mut field_cursor = field_list_candidate.walk();
-                                        for field_decl in field_list_candidate.children(&mut field_cursor) {
+                                        for field_decl in
+                                            field_list_candidate.children(&mut field_cursor)
+                                        {
                                             if field_decl.kind() == "field_declaration" {
                                                 // An embedded struct field lacks a 'name' field
-                                                if field_decl.child_by_field_name("name").is_none() {
-                                                    if let Some(type_ident) = field_decl.child_by_field_name("type") {
-                                                        if let Ok(embedded_name) = type_ident.utf8_text(source_bytes) {
+                                                if field_decl.child_by_field_name("name").is_none()
+                                                {
+                                                    if let Some(type_ident) =
+                                                        field_decl.child_by_field_name("type")
+                                                    {
+                                                        if let Ok(embedded_name) =
+                                                            type_ident.utf8_text(source_bytes)
+                                                        {
                                                             // In a real scenario we'd resolve it, here we assume it's in the same file or package
                                                             graph.edges.push(Edge {
                                                                 from_id: id.clone(),
-                                                                to_id: format!("{}::{}", file_path, embedded_name),
+                                                                to_id: format!(
+                                                                    "{}::{}",
+                                                                    file_path, embedded_name
+                                                                ),
                                                                 kind: EdgeKind::Inherits,
                                                             });
                                                         }
@@ -194,7 +215,12 @@ impl GoParser {
         if let Some(name_node) = node.child_by_field_name("name") {
             if let Ok(name) = name_node.utf8_text(source_bytes) {
                 let id = format!("{}::{}", file_path, name);
-                let is_public = name == "main" || name.chars().next().map(|c| c.is_uppercase()).unwrap_or(false);
+                let is_public = name == "main"
+                    || name
+                        .chars()
+                        .next()
+                        .map(|c| c.is_uppercase())
+                        .unwrap_or(false);
 
                 graph.nodes.push(Node {
                     id,
@@ -250,7 +276,11 @@ impl GoParser {
                     format!("{}::{}::{}", file_path, receiver_name, name) // or just use name for label
                 };
 
-                let is_public = name.chars().next().map(|c| c.is_uppercase()).unwrap_or(false);
+                let is_public = name
+                    .chars()
+                    .next()
+                    .map(|c| c.is_uppercase())
+                    .unwrap_or(false);
 
                 graph.nodes.push(Node {
                     id,
@@ -278,7 +308,11 @@ pub(crate) fn resolve_import_path(import_path: &str, source_root: &str) -> Strin
                     if import_path == module_name {
                         return "".to_string(); // not realistic but just in case
                     }
-                    return import_path.strip_prefix(module_name).unwrap_or("").trim_start_matches('/').to_string();
+                    return import_path
+                        .strip_prefix(module_name)
+                        .unwrap_or("")
+                        .trim_start_matches('/')
+                        .to_string();
                 }
             }
         }
@@ -426,6 +460,9 @@ func main() {}
         assert!(func_nodes.iter().any(|n| n.label == "Run"));
 
         let main_func = func_nodes.iter().find(|n| n.label == "main").unwrap();
-        assert!(main_func.is_public, "main must be marked as entry point (is_public: true)");
+        assert!(
+            main_func.is_public,
+            "main must be marked as entry point (is_public: true)"
+        );
     }
 }
