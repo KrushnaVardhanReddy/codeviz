@@ -66,6 +66,7 @@ MANDATORY RULES — VIOLATION = REJECTED PR:
 4. No `unwrap()` in library code — use `?` or explicit error handling.
 5. Commit message must start with "jules: " prefix.
 6. Include comprehensive unit tests (`#[cfg(test)] mod tests { ... }`) for all new logic.
+7. COMMUNICATION PROTOCOL: Whenever you ask a question or pause to report progress, you MUST prefix your message with the Task Number and Name (e.g. "TASK: T## — [Name]").
 
 Project: CodeViz
 Tech stack: Rust (workspace), Tree-sitter, wasm-pack, JSON-RPC (MCP)
