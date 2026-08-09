@@ -16,3 +16,6 @@ Cargo.lock
 .vscode/
 .idea/
 *.wasm
+
+# Business-sensitive specs (pricing strategy, commercial tier definitions)
+docs/specs/saas/pricing.md

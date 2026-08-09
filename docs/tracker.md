@@ -5,6 +5,8 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 
 > [!NOTE]
 > `[x]` = Done | `[/]` = In Progress | `[ ]` = Not Started
+>
+> **Open-Core Model**: `[OSS]` = MIT Licensed (free forever) | `[TEAM]` = $12/seat/mo | `[BIZ]` = $30/seat/mo | `[ENT]` = Enterprise contract
 
 ## Phase 0-5: Foundation & Core Parsers
 - `[x]` **Batch 1 (Phase 0)**: Foundation (Tasks 1-5) - Core AST and Graph IR.
@@ -25,18 +27,18 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[/]` **Batch 12 (Phase 12)**: Control Flow Graph & UI Side Panel (Tasks 30-32)
 
 ## Phase 13-17: Enterprise, Auth & E2E
-- `[x]` **Batch 13 (Phase 13)**: Auth Core (NextAuth setup) (Task 33A)
-- `[/]` **Batch 13.5 (Phase 13)**: Auth DB Adapter & Playwright E2E (Task 33B)
-- `[ ]` **Batch 14 (Phase 14)**: Teams & Workspaces (Task 34)
-- `[ ]` **Batch 15 (Phase 15)**: Enterprise SSO & Audit Logs (Task 35)
-- `[ ]` **Batch 16 (Phase 16)**: Enterprise Insights (Tasks 36-39)
-- `[ ]` **Batch 17 (Phase 17)**: E2E Validation Suite (CLI, MCP, Playwright) (Task 17)
+- `[x]` **Batch 13 (Phase 13)**: `[OSS]` Auth Core (NextAuth + GitHub/Google OAuth) (Task 33A)
+- `[/]` **Batch 13.5 (Phase 13)**: `[OSS]` Auth DB Adapter & Playwright E2E (Task 33B)
+- `[ ]` **Batch 14 (Phase 14)**: `[OSS]` Basic Teams & Workspaces (≤5 members) (Task 34)
+- `[ ]` **Batch 15 (Phase 15)**: `[ENT]` Enterprise SSO (SAML) & Audit Logs (Task 35)
+- `[ ]` **Batch 16 (Phase 16)**: `[BIZ]` Enterprise Insights — Heatmap, Blast Radius, Git History (Tasks 36-39)
+- `[ ]` **Batch 17 (Phase 17)**: `[OSS]` E2E Validation Suite (CLI, MCP, Playwright) (Task 17)
 
 ## Phase 18: Advanced Analysis
-- `[ ]` **Batch 18 (Phase 18)**: Advanced Analysis (Tasks 41-45)
-  - Circular Dependencies, Unused Modules, PageRank, Health Score, Code Coverage.
+- `[ ]` **Batch 18 (Phase 18)**: `[BIZ]` Advanced Analysis (Tasks 41-45)
+  - Circular Deps `[OSS]`, Unused Modules `[OSS]`, PageRank `[BIZ]`, Health Score `[BIZ]`, Code Coverage `[TEAM]`.
 
 ## Phase 19: Semantic Search
-- `[ ]` **Batch 19 (Phase 19)**: Semantic Code Search with LanceDB (Task 46)
+- `[ ]` **Batch 19 (Phase 19)**: `[TEAM]` Semantic Code Search with LanceDB (Task 46)
   - Natural-language search over the CodeGraph using LanceDB + OpenAI embeddings.
   - Requires: Task 33 (Auth) + Task 34 (Teams) + Phase 18 complete.
