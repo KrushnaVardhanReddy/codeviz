@@ -12,16 +12,19 @@ Files to Create/Modify:
 - `codeviz-web/app/login/page.tsx`
 - `codeviz-web/app/api/auth/[...nextauth]/route.ts`
 - `codeviz-web/components/UserNav.tsx` (avatar + sign out in top navbar)
-- `codeviz-web/lib/db.ts` (Supabase client)
+- `codeviz-web/lib/db.ts` (Supabase client with PGLite local proxy)
+- `codeviz-web/playwright.config.ts` (Playwright E2E configuration)
 
 Spec (READ ONLY — implement from it, never edit):
   docs/specs/saas/auth.md
+  docs/specs/saas/database.md
 
 ═══════════════════════════════════════════════════════════════
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
-- CONTEXT: Use NextAuth.js v5 (Auth.js) — NOT the older v4 API. The v5 config file is `auth.ts` at the project root, not inside `pages/api/`.
-- Use Supabase as the database adapter for storing sessions and users.
+- CONTEXT: Use NextAuth.js v5 (Auth.js) — NOT the older v4 API.
+- Use Supabase for production database adapter.
+- For local E2E tests, you MUST configure `@electric-sql/pglite` as a local, in-memory PostgreSQL instance and use Playwright for tests (`npm run test:e2e`).
 - All `/app/*` routes must be protected by the middleware.
 - Public routes: `/`, `/login`, `/pricing`, `/docs`.
 - The login page must have "Sign in with GitHub" and "Sign in with Google" buttons.
