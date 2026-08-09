@@ -1,0 +1,17 @@
+[language]
+name = "dart"
+extensions = ["dart"]
+grammar = "tree-sitter-dart"
+
+[queries]
+functions = """
+  (function_signature
+    name: (identifier) @name
+  ) @node
+"""
+
+classes = """
+  (class_definition
+    name: (identifier) @name
+  ) @node
+"""

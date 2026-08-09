@@ -1,0 +1,17 @@
+[language]
+name = "csharp"
+extensions = ["cs"]
+grammar = "tree-sitter-c-sharp"
+
+[queries]
+functions = """
+  (method_declaration
+    name: (identifier) @name
+  ) @node
+"""
+
+classes = """
+  (class_declaration
+    name: (identifier) @name
+  ) @node
+"""

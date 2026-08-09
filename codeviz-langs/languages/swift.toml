@@ -1,0 +1,17 @@
+[language]
+name = "swift"
+extensions = ["swift"]
+grammar = "tree-sitter-swift"
+
+[queries]
+functions = """
+  (function_declaration
+    name: (simple_identifier) @name
+  ) @node
+"""
+
+classes = """
+  (class_declaration
+    name: (type_identifier) @name
+  ) @node
+"""

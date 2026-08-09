@@ -1,0 +1,17 @@
+[language]
+name = "php"
+extensions = ["php"]
+grammar = "tree-sitter-php"
+
+[queries]
+functions = """
+  (method_declaration
+    name: (name) @name
+  ) @node
+"""
+
+classes = """
+  (class_declaration
+    name: (name) @name
+  ) @node
+"""
