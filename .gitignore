@@ -19,3 +19,4 @@ Cargo.lock
 
 # Business-sensitive specs (pricing strategy, commercial tier definitions)
 docs/specs/saas/pricing.md
+docs/specs/saas/competitive_analysis.md
