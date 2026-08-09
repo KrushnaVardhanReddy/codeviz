@@ -1,4 +1,4 @@
-use codeviz_mcp::{handle_request, JsonRpcRequest};
+use codeviz_mcp::{JsonRpcRequest, handle_request};
 use serde_json::json;
 
 #[test]
@@ -9,7 +9,10 @@ fn test_all_6_tools_success() {
         ("get_callees", json!({"fn_name": "main", "path": "src"})),
         ("get_class_hierarchy", json!({"path": "src"})),
         ("find_entry_points", json!({"path": "src"})),
-        ("explain_path", json!({"from": "a", "to": "b", "path": "src"})),
+        (
+            "explain_path",
+            json!({"from": "a", "to": "b", "path": "src"}),
+        ),
     ];
 
     for (i, (tool, args)) in tools.into_iter().enumerate() {

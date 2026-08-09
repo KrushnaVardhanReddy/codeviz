@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -95,7 +94,6 @@ impl JsonRpcError {
         }
     }
 }
-
 
 /// Handles an incoming JSON-RPC request and dispatches it to the appropriate handler.
 pub fn handle_request(req: JsonRpcRequest) -> JsonRpcResponse {
@@ -217,7 +215,7 @@ pub fn handle_tools_call(req: JsonRpcRequest) -> JsonRpcResponse {
     let tool_args = params.get("arguments").unwrap_or(&Value::Null);
 
     // Mock CodeGraph logic
-    use codeviz_core::{CodeGraph, GraphMeta, Node, NodeKind, Edge, EdgeKind};
+    use codeviz_core::{CodeGraph, Edge, EdgeKind, GraphMeta, Node, NodeKind};
 
     let mock_meta = GraphMeta {
         language: "mock".to_string(),
@@ -251,7 +249,6 @@ pub fn handle_tools_call(req: JsonRpcRequest) -> JsonRpcResponse {
         kind: EdgeKind::Calls,
     });
 
-
     match tool_name {
         "get_module_graph" => {
             if !tool_args.is_object() || tool_args.get("path").is_none() {
@@ -266,9 +263,12 @@ pub fn handle_tools_call(req: JsonRpcRequest) -> JsonRpcResponse {
                 })),
                 error: None,
             }
-        },
+        }
         "get_callers" => {
-            if !tool_args.is_object() || tool_args.get("fn_name").is_none() || tool_args.get("path").is_none() {
+            if !tool_args.is_object()
+                || tool_args.get("fn_name").is_none()
+                || tool_args.get("path").is_none()
+            {
                 return error_response(id, JsonRpcError::invalid_params("Missing fn_name or path"));
             }
             JsonRpcResponse {
@@ -279,9 +279,12 @@ pub fn handle_tools_call(req: JsonRpcRequest) -> JsonRpcResponse {
                 })),
                 error: None,
             }
-        },
+        }
         "get_callees" => {
-            if !tool_args.is_object() || tool_args.get("fn_name").is_none() || tool_args.get("path").is_none() {
+            if !tool_args.is_object()
+                || tool_args.get("fn_name").is_none()
+                || tool_args.get("path").is_none()
+            {
                 return error_response(id, JsonRpcError::invalid_params("Missing fn_name or path"));
             }
             JsonRpcResponse {
@@ -292,7 +295,7 @@ pub fn handle_tools_call(req: JsonRpcRequest) -> JsonRpcResponse {
                 })),
                 error: None,
             }
-        },
+        }
         "get_class_hierarchy" => {
             if !tool_args.is_object() || tool_args.get("path").is_none() {
                 return error_response(id, JsonRpcError::invalid_params("Missing path"));
@@ -305,7 +308,7 @@ pub fn handle_tools_call(req: JsonRpcRequest) -> JsonRpcResponse {
                 })),
                 error: None,
             }
-        },
+        }
         "find_entry_points" => {
             if !tool_args.is_object() || tool_args.get("path").is_none() {
                 return error_response(id, JsonRpcError::invalid_params("Missing path"));
@@ -318,10 +321,17 @@ pub fn handle_tools_call(req: JsonRpcRequest) -> JsonRpcResponse {
                 })),
                 error: None,
             }
-        },
+        }
         "explain_path" => {
-            if !tool_args.is_object() || tool_args.get("from").is_none() || tool_args.get("to").is_none() || tool_args.get("path").is_none() {
-                return error_response(id, JsonRpcError::invalid_params("Missing from, to, or path"));
+            if !tool_args.is_object()
+                || tool_args.get("from").is_none()
+                || tool_args.get("to").is_none()
+                || tool_args.get("path").is_none()
+            {
+                return error_response(
+                    id,
+                    JsonRpcError::invalid_params("Missing from, to, or path"),
+                );
             }
             JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
@@ -332,7 +342,7 @@ pub fn handle_tools_call(req: JsonRpcRequest) -> JsonRpcResponse {
                 })),
                 error: None,
             }
-        },
+        }
         _ => error_response(id, JsonRpcError::unknown_tool(tool_name)),
     }
 }

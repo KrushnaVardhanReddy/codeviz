@@ -1,8 +1,12 @@
-use std::process::{Command, Stdio};
-use std::io::{Write, BufRead, BufReader};
 use serde_json::Value;
+use std::io::{BufRead, BufReader, Write};
+use std::process::{Command, Stdio};
 
-fn send_request(stdin: &mut std::process::ChildStdin, stdout_reader: &mut BufReader<std::process::ChildStdout>, req: Value) -> Value {
+fn send_request(
+    stdin: &mut std::process::ChildStdin,
+    stdout_reader: &mut BufReader<std::process::ChildStdout>,
+    req: Value,
+) -> Value {
     let req_str = serde_json::to_string(&req).unwrap();
     writeln!(stdin, "{}", req_str).unwrap();
 
@@ -39,7 +43,14 @@ fn test_mcp_integration() {
     let tools = res_list["result"]["tools"].as_array().unwrap();
     assert_eq!(tools.len(), 6);
 
-    let required_tools = vec!["get_module_graph", "get_callers", "get_callees", "get_class_hierarchy", "find_entry_points", "explain_path"];
+    let required_tools = vec![
+        "get_module_graph",
+        "get_callers",
+        "get_callees",
+        "get_class_hierarchy",
+        "find_entry_points",
+        "explain_path",
+    ];
 
     for tool in required_tools {
         let req_tool = serde_json::json!({
@@ -57,10 +68,18 @@ fn test_mcp_integration() {
             }
         });
         let res_tool = send_request(&mut stdin, &mut stdout_reader, req_tool);
-        assert!(res_tool["error"].is_null(), "Tool {} returned error: {:?}", tool, res_tool["error"]);
-        assert!(!res_tool["result"].is_null(), "Tool {} returned no result", tool);
+        assert!(
+            res_tool["error"].is_null(),
+            "Tool {} returned error: {:?}",
+            tool,
+            res_tool["error"]
+        );
+        assert!(
+            !res_tool["result"].is_null(),
+            "Tool {} returned no result",
+            tool
+        );
     }
-
 
     // Test unknown tool
     let req_unknown = serde_json::json!({

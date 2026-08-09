@@ -1,4 +1,4 @@
-use codeviz_mcp::{handle_request, JsonRpcRequest};
+use codeviz_mcp::{JsonRpcRequest, handle_request};
 use serde_json::json;
 
 #[test]

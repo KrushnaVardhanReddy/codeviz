@@ -1,4 +1,7 @@
-use codeviz_core::{CodeGraph, render::mermaid::{MermaidRenderer, DiagramKind}};
+use codeviz_core::{
+    CodeGraph,
+    render::mermaid::{DiagramKind, MermaidRenderer},
+};
 use wasm_bindgen::prelude::*;
 
 fn get_diagram_kind(kind: &str) -> Result<DiagramKind, String> {
