@@ -15,7 +15,7 @@ test('login flow works using E2E credentials', async ({ page }) => {
   await page.locator('form', { has: page.locator('button', { hasText: 'Sign in with E2E Test Account' }) }).locator('button').click();
 
   // Wait for the page to redirect
-  await page.waitForURL('http://localhost:3000/');
+  await page.waitForURL('http://localhost:3001/');
 
   // Verify there's no sign in error in the URL
   expect(page.url()).not.toContain('error=');
