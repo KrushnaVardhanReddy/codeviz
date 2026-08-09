@@ -135,6 +135,12 @@ TASKS = {
     39: {"name": "39 — Architectural Linting",       "phase": "Phase 16: Insights",          "slug": "task_39_arch_linting"},
     # Phase 17: Universal Parser
     40: {"name": "40 — Query-Based Universal Parser",  "phase": "Phase 17: Universal",         "slug": "task_40_universal_parser"},
+    # Phase 18: Advanced Analysis
+    41: {"name": "41 — Circular Dependency Detection", "phase": "Phase 18: Advanced",          "slug": "task_41_circular_deps"},
+    42: {"name": "42 — Unused Module Detection",       "phase": "Phase 18: Advanced",          "slug": "task_42_unused_modules"},
+    43: {"name": "43 — PageRank & Centrality",         "phase": "Phase 18: Advanced",          "slug": "task_43_pagerank"},
+    44: {"name": "44 — Code Health Score",             "phase": "Phase 18: Advanced",          "slug": "task_44_code_health"},
+    45: {"name": "45 — Code Coverage Overlay",         "phase": "Phase 18: Advanced",          "slug": "task_45_code_coverage"},
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -159,6 +165,7 @@ BATCHES = {
     14: {"desc": "Phase 14: Teams & Workspaces",                       "tasks": [34]},
     15: {"desc": "Phase 15: Enterprise SSO & Audit Logs",              "tasks": [35]},
     16: {"desc": "Phase 16: Enterprise Insights",                      "tasks": [36, 37, 38, 39]},
+    18: {"desc": "Phase 18: Advanced Analysis (Cycles, PageRank, Health)", "tasks": [41, 42, 43, 44, 45]},
 }
 
 # ─────────────────────────────────────────────────────────────
