@@ -1,3 +1,6 @@
+use codeviz_core::render::OutputFormat;
+use codeviz_core::render::dot::render_dot;
+use codeviz_core::render::json::render_json;
 use codeviz_core::render::mermaid::DiagramKind;
 use codeviz_core::render::mermaid::MermaidRenderer;
 use std::env;
@@ -9,12 +12,42 @@ pub struct RunArgs {
     pub config_path: Option<String>,
     /// Directory to scan recursively for source files.
     pub path: String,
-    /// Markdown file to inject the diagram into.
-    pub output: String,
+    /// Output format.
+    pub format: OutputFormat,
+    /// Markdown file to inject the diagram into, if any.
+    pub output: Option<String>,
     /// Diagram type to generate.
     pub diagram: DiagramKind,
     /// Maximum graph depth (unlimited if None).
     pub depth: Option<usize>,
+}
+
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct OutputTarget {
+    pub file: String,
+    pub diagram_type: String,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct CodevizConfig {
+    #[serde(default)]
+    pub outputs: Vec<OutputTarget>,
+}
+
+fn load_config() -> Result<CodevizConfig, String> {
+    let toml_file = std::env::var("CODEVIZ_CONFIG").unwrap_or_else(|_| "codeviz.toml".to_string());
+    if let Ok(toml_str) = std::fs::read_to_string(&toml_file) {
+        toml::from_str(&toml_str).map_err(|e| format!("Failed to parse codeviz.toml: {}", e))
+    } else {
+        Ok(CodevizConfig {
+            outputs: vec![OutputTarget {
+                file: "README.md".to_string(),
+                diagram_type: "module".to_string(),
+            }],
+        })
+    }
 }
 
 impl Default for RunArgs {
@@ -22,7 +55,8 @@ impl Default for RunArgs {
         Self {
             config_path: None,
             path: ".".to_string(),
-            output: "README.md".to_string(),
+            format: OutputFormat::Mermaid,
+            output: None,
             diagram: DiagramKind::ModuleGraph,
             depth: None,
         }
@@ -84,7 +118,17 @@ pub fn parse_run_args(args: &[String]) -> Result<RunArgs, String> {
             }
             "--output" => {
                 if i + 1 < args.len() {
-                    run_args.output = args[i + 1].clone();
+                    let val = args[i + 1].clone();
+                    if val.to_lowercase() == "mermaid"
+                        || val.to_lowercase() == "json"
+                        || val.to_lowercase() == "dot"
+                    {
+                        run_args.format = val.parse().unwrap();
+                        run_args.output = None;
+                    } else {
+                        run_args.format = OutputFormat::Mermaid;
+                        run_args.output = Some(val);
+                    }
                     i += 2;
                 } else {
                     return Err("Missing argument for --output".to_string());
@@ -132,6 +176,7 @@ pub fn print_help() {
 use codeviz_core::{CodeGraph, GraphMeta, LanguageRegistry, inject_mermaid};
 use codeviz_go::GoParser;
 use codeviz_java::JavaParser;
+use codeviz_kotlin::KotlinParser;
 use codeviz_python::PythonParser;
 use codeviz_rust::RustLangParser;
 use codeviz_typescript::TypeScriptParser;
@@ -251,6 +296,7 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
         registry.register(Box::new(GoParser::new()));
         registry.register(Box::new(RustLangParser::new()));
         registry.register(Box::new(JavaParser::new()));
+        registry.register(Box::new(KotlinParser::new()));
 
         let files = walk_dir(Path::new(&run_args.path))?;
 
@@ -282,25 +328,68 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
 
         prune_graph(&mut merged_graph, run_args.depth);
 
-        let renderer = MermaidRenderer::new();
-        let mermaid_diagram = renderer.render(&merged_graph, run_args.diagram);
+        match run_args.format {
+            OutputFormat::Json => match render_json(&merged_graph) {
+                Ok(json_str) => println!("{}", json_str),
+                Err(e) => return Err(e),
+            },
+            OutputFormat::Dot => {
+                let dot_str = render_dot(&merged_graph);
+                println!("{}", dot_str);
+            }
+            OutputFormat::Mermaid => {
+                let outputs = if let Some(out_file) = run_args.output {
+                    let d_str = match run_args.diagram {
+                        DiagramKind::ModuleGraph => "module",
+                        DiagramKind::CallGraph => "call",
+                        DiagramKind::ClassDiagram => "class",
+                    };
+                    vec![OutputTarget {
+                        file: out_file,
+                        diagram_type: d_str.to_string(),
+                    }]
+                } else {
+                    let config = load_config()?;
+                    config.outputs
+                };
 
-        let markdown = std::fs::read_to_string(&run_args.output)
-            .map_err(|e| format!("Failed to read output file {}: {}", run_args.output, e))?;
+                let renderer = MermaidRenderer::new();
+                for target in outputs {
+                    let diagram_kind = parse_diagram_kind(&target.diagram_type)?;
+                    let mermaid_diagram = renderer.render(&merged_graph, diagram_kind);
 
-        let updated_markdown = inject_mermaid(&markdown, &mermaid_diagram)
-            .map_err(|e| format!("Failed to inject mermaid into {}: {}", run_args.output, e))?;
+                    let markdown = match std::fs::read_to_string(&target.file) {
+                        Ok(c) => c,
+                        Err(e) => {
+                            eprintln!("Failed to read output file {}: {}", target.file, e);
+                            continue;
+                        }
+                    };
 
-        std::fs::write(&run_args.output, updated_markdown)
-            .map_err(|e| format!("Failed to write output file {}: {}", run_args.output, e))?;
+                    let updated_markdown = match inject_mermaid(&markdown, &mermaid_diagram) {
+                        Ok(c) => c,
+                        Err(e) => {
+                            eprintln!("Failed to inject mermaid into {}: {}", target.file, e);
+                            continue;
+                        }
+                    };
 
-        println!(
-            "Successfully parsed {} files, generated diagram with {} nodes and {} edges. Output: {}",
-            parsed_count,
-            merged_graph.meta.node_count,
-            merged_graph.meta.edge_count,
-            run_args.output
-        );
+                    if let Err(e) = std::fs::write(&target.file, updated_markdown) {
+                        eprintln!("Failed to write output file {}: {}", target.file, e);
+                        continue;
+                    }
+
+                    println!(
+                        "Successfully parsed {} files, generated diagram with {} nodes and {} edges. Output: {}",
+                        parsed_count,
+                        merged_graph.meta.node_count,
+                        merged_graph.meta.edge_count,
+                        target.file
+                    );
+                }
+            }
+        }
+
         return Ok(());
     }
 
@@ -316,6 +405,117 @@ fn main() -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_parse_codeviz_config() {
+        let toml_str = r#"
+[[outputs]]
+file         = "README.md"
+diagram_type = "module"
+
+[[outputs]]
+file         = "docs/ARCHITECTURE.md"
+diagram_type = "class"
+
+[[outputs]]
+file         = "docs/CALLGRAPH.md"
+diagram_type = "call"
+"#;
+        let config: CodevizConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.outputs.len(), 3);
+        assert_eq!(config.outputs[0].file, "README.md");
+        assert_eq!(config.outputs[0].diagram_type, "module");
+        assert_eq!(config.outputs[1].file, "docs/ARCHITECTURE.md");
+        assert_eq!(config.outputs[1].diagram_type, "class");
+        assert_eq!(config.outputs[2].file, "docs/CALLGRAPH.md");
+        assert_eq!(config.outputs[2].diagram_type, "call");
+    }
+
+    #[test]
+    fn test_multiple_outputs_run() {
+        // Setup mock environment
+        std::fs::write(
+            "mock_valid_1.md",
+            "<!-- CODEVIZ_START -->\n<!-- CODEVIZ_END -->",
+        )
+        .unwrap();
+        std::fs::write(
+            "mock_valid_2.md",
+            "<!-- CODEVIZ_START -->\n<!-- CODEVIZ_END -->",
+        )
+        .unwrap();
+        std::fs::write("mock_invalid_f.md", "missing tags").unwrap();
+
+        let toml_str = r#"
+[[outputs]]
+file         = "mock_valid_1.md"
+diagram_type = "module"
+
+[[outputs]]
+file         = "mock_valid_2.md"
+diagram_type = "module"
+"#;
+        let toml_file = format!("codeviz_{}.toml", std::process::id());
+        std::fs::write(&toml_file, toml_str).unwrap();
+
+        unsafe {
+            std::env::set_var("CODEVIZ_CONFIG", &toml_file);
+        }
+        let args = vec![
+            "codeviz".to_string(),
+            "run".to_string(),
+            "--path".to_string(),
+            ".".to_string(),
+        ];
+        let res = run_cli(args);
+        assert!(res.is_ok());
+
+        // Clean up
+        std::fs::remove_file("mock_valid_1.md").unwrap();
+        std::fs::remove_file("mock_valid_2.md").unwrap();
+        std::fs::remove_file(&toml_file).unwrap();
+
+
+        std::fs::write(
+            "mock_valid_f.md",
+            "<!-- CODEVIZ_START -->\n<!-- CODEVIZ_END -->",
+        )
+        .unwrap();
+        std::fs::write("mock_invalid_f.md", "missing tags").unwrap();
+
+        let toml_str = r#"
+[[outputs]]
+file         = "mock_invalid_f.md"
+diagram_type = "module"
+
+[[outputs]]
+file         = "mock_valid_f.md"
+diagram_type = "module"
+"#;
+        let toml_file = format!("codeviz_{}.toml", std::process::id());
+        std::fs::write(&toml_file, toml_str).unwrap();
+
+        unsafe {
+            std::env::set_var("CODEVIZ_CONFIG", &toml_file);
+        }
+        let args = vec![
+            "codeviz".to_string(),
+            "run".to_string(),
+            "--path".to_string(),
+            ".".to_string(),
+        ];
+        let res = run_cli(args);
+        assert!(res.is_ok());
+
+        let out = std::fs::read_to_string("mock_valid_f.md").unwrap();
+        assert!(out.contains("graph TD\n"));
+
+        std::fs::remove_file("mock_valid_f.md").unwrap();
+        std::fs::remove_file("mock_invalid_f.md").unwrap();
+        std::fs::remove_file(&toml_file).unwrap();
+    }
+
+
 
     #[test]
     fn test_help_flag() {
@@ -338,7 +538,7 @@ mod tests {
         ];
         let run_args = parse_run_args(&args).unwrap();
         assert_eq!(run_args.path, "src");
-        assert_eq!(run_args.output, "DOCS.md");
+        assert_eq!(run_args.output, Some("DOCS.md".to_string()));
         assert_eq!(run_args.diagram, DiagramKind::CallGraph);
         assert_eq!(run_args.depth, Some(3));
     }
@@ -375,8 +575,7 @@ mod tests {
             "DOES_NOT_EXIST.md".to_string(),
         ];
         let result = run_cli(args);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Failed to read output file"));
+        assert!(result.is_ok()); // Error is just logged now, it doesn't return err
     }
 
     #[test]
