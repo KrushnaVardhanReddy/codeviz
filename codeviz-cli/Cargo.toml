@@ -15,6 +15,7 @@ codeviz-java = { path = "../codeviz-java" }
 codeviz-kotlin = { path = "../codeviz-kotlin" }
 toml = "1.1.4"
 serde = { version = "1.0.229", features = ["derive"] }
+similar = "3.1.2"
 
 [dev-dependencies]
 tempfile = "3.27.0"

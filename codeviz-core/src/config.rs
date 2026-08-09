@@ -8,6 +8,19 @@ pub struct Config {
     pub languages: LanguagesConfig,
     pub output: OutputConfig,
     pub cache: CacheConfig,
+    pub architecture: ArchitectureConfig,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Clone, Default)]
+#[serde(default)]
+pub struct ArchitectureConfig {
+    pub rules: Vec<ArchRule>,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Clone)]
+pub struct ArchRule {
+    pub from: String,
+    pub cannot_import: String,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
@@ -183,6 +196,32 @@ mod tests {
 
         assert_eq!(config.cache.enabled, true); // Default
         assert_eq!(config.cache.dir, ".codeviz_cache"); // Default
+
+        // Check defaults for architecture
+        assert_eq!(config.architecture.rules.len(), 0);
+    }
+
+    #[test]
+    fn test_parse_architecture_rules() {
+        let toml_str = r#"
+            [graph]
+            max_depth = 2
+
+            [[architecture.rules]]
+            from = "moduleA"
+            cannot_import = "moduleB"
+
+            [[architecture.rules]]
+            from = "frontend"
+            cannot_import = "backend::db"
+        "#;
+
+        let config: Config = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.architecture.rules.len(), 2);
+        assert_eq!(config.architecture.rules[0].from, "moduleA");
+        assert_eq!(config.architecture.rules[0].cannot_import, "moduleB");
+        assert_eq!(config.architecture.rules[1].from, "frontend");
+        assert_eq!(config.architecture.rules[1].cannot_import, "backend::db");
     }
 
     #[test]
