@@ -3,6 +3,7 @@ use codeviz_core::render::dot::render_dot;
 use codeviz_core::render::json::render_json;
 use codeviz_core::render::mermaid::DiagramKind;
 use codeviz_core::render::mermaid::MermaidRenderer;
+use serde::Deserialize;
 use std::env;
 
 /// Arguments for the `run` command.
@@ -18,9 +19,9 @@ pub struct RunArgs {
     pub diagram: DiagramKind,
     /// Maximum graph depth (unlimited if None).
     pub depth: Option<usize>,
+    /// Config file path
+    pub config: String,
 }
-
-use serde::Deserialize;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct OutputTarget {
@@ -34,10 +35,9 @@ pub struct CodevizConfig {
     pub outputs: Vec<OutputTarget>,
 }
 
-fn load_config() -> Result<CodevizConfig, String> {
-    let toml_file = std::env::var("CODEVIZ_CONFIG").unwrap_or_else(|_| "codeviz.toml".to_string());
-    if let Ok(toml_str) = std::fs::read_to_string(&toml_file) {
-        toml::from_str(&toml_str).map_err(|e| format!("Failed to parse codeviz.toml: {}", e))
+fn load_config(path: &str) -> Result<CodevizConfig, String> {
+    if let Ok(toml_str) = std::fs::read_to_string(path) {
+        toml::from_str(&toml_str).map_err(|e| format!("Failed to parse {}: {}", path, e))
     } else {
         Ok(CodevizConfig {
             outputs: vec![OutputTarget {
@@ -56,6 +56,7 @@ impl Default for RunArgs {
             output: None,
             diagram: DiagramKind::ModuleGraph,
             depth: None,
+            config: "codeviz.toml".to_string(),
         }
     }
 }
@@ -109,6 +110,14 @@ pub fn parse_run_args(args: &[String]) -> Result<RunArgs, String> {
                     i += 2;
                 } else {
                     return Err("Missing argument for --diagram".to_string());
+                }
+            }
+            "--config" => {
+                if i + 1 < args.len() {
+                    run_args.config = args[i + 1].clone();
+                    i += 2;
+                } else {
+                    return Err("Missing argument for --config".to_string());
                 }
             }
             "--depth" => {
@@ -314,7 +323,7 @@ pub fn run_cli(args: Vec<String>) -> Result<(), String> {
                         diagram_type: d_str.to_string(),
                     }]
                 } else {
-                    let config = load_config()?;
+                    let config = load_config(&run_args.config)?;
                     config.outputs
                 };
 
@@ -420,7 +429,7 @@ diagram_type = "module"
 file         = "mock_valid_2.md"
 diagram_type = "module"
 "#;
-        let toml_file = format!("codeviz_{}.toml", std::process::id());
+        let toml_file = format!("codeviz_t{}.toml", std::process::id());
         std::fs::write(&toml_file, toml_str).unwrap();
 
         unsafe {
@@ -431,6 +440,8 @@ diagram_type = "module"
             "run".to_string(),
             "--path".to_string(),
             ".".to_string(),
+            "--config".to_string(),
+            toml_file.clone(),
         ];
         let res = run_cli(args);
         assert!(res.is_ok());
@@ -439,7 +450,6 @@ diagram_type = "module"
         std::fs::remove_file("mock_valid_1.md").unwrap();
         std::fs::remove_file("mock_valid_2.md").unwrap();
         std::fs::remove_file(&toml_file).unwrap();
-
 
         std::fs::write(
             "mock_valid_f.md",
@@ -457,7 +467,7 @@ diagram_type = "module"
 file         = "mock_valid_f.md"
 diagram_type = "module"
 "#;
-        let toml_file = format!("codeviz_{}.toml", std::process::id());
+        let toml_file = format!("codeviz_t{}.toml", std::process::id());
         std::fs::write(&toml_file, toml_str).unwrap();
 
         unsafe {
@@ -468,6 +478,8 @@ diagram_type = "module"
             "run".to_string(),
             "--path".to_string(),
             ".".to_string(),
+            "--config".to_string(),
+            toml_file.clone(),
         ];
         let res = run_cli(args);
         assert!(res.is_ok());
@@ -479,8 +491,6 @@ diagram_type = "module"
         std::fs::remove_file("mock_invalid_f.md").unwrap();
         std::fs::remove_file(&toml_file).unwrap();
     }
-
-
 
     #[test]
     fn test_help_flag() {
