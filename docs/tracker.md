@@ -15,7 +15,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 
 ## Phase 6-10: Config & Tooling
 - `[/]` **Batch 6 (Phase 6)**: Java + Kotlin Parsers (Tasks 15, 25) — *Running in Jules*
-- `[ ]` **Batch 7 (Phase 7)**: Config + Universal Parser (Tasks 16, 26, 40)
+- `[/]` **Batch 7 (Phase 7)**: Config + Universal Parser (Tasks 16, 26, 40) — *Running in Jules*
 - `[ ]` **Batch 8 (Phase 8)**: Critical Features (Tasks 18, 19, 21)
 - `[ ]` **Batch 9 (Phase 9)**: Developer UX (Tasks 20, 22, 27)
 - `[ ]` **Batch 10 (Phase 10)**: Distribution (GitHub Action + npm WASM) (Tasks 23, 24)
