@@ -1,5 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import CFGViewer from './CFGViewer';
 
 interface DetailPanelProps {
   node: any | null;
@@ -16,7 +17,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ node, onClose, edges }) => {
 
   return (
     <div
-      className={`fixed top-0 right-0 h-full w-[350px] bg-gray-900 border-l border-gray-700 shadow-xl transition-transform duration-300 ease-in-out z-50 overflow-y-auto ${
+      className={`fixed top-0 right-0 h-full w-[350px] bg-gray-900/80 backdrop-blur-md border-l border-gray-700 shadow-2xl transition-transform duration-300 ease-in-out z-50 overflow-y-auto ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}
     >
@@ -48,9 +49,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ node, onClose, edges }) => {
 
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-gray-300 mb-2">Control Flow Graph</h3>
-            <div className="bg-gray-800/50 border border-gray-700 border-dashed rounded-md p-4 text-center text-sm text-gray-400">
-              CFG coming soon
-            </div>
+            <CFGViewer sourceSnippet={node.data?.sourceSnippet} />
           </div>
 
           <div>
