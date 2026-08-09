@@ -24,11 +24,12 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[x]` **Batch 11 (Phase 11)**: Web UI Scaffolding & Graph (Tasks 28, 29)
 - `[/]` **Batch 12 (Phase 12)**: Control Flow Graph & UI Side Panel (Tasks 30-32)
 
-## Phase 13-16: Enterprise & Auth
+## Phase 13-17: Enterprise, Auth & E2E
 - `[/]` **Batch 13 (Phase 13)**: Auth (GitHub + Google OAuth) (Task 33)
 - `[ ]` **Batch 14 (Phase 14)**: Teams & Workspaces (Task 34)
 - `[ ]` **Batch 15 (Phase 15)**: Enterprise SSO & Audit Logs (Task 35)
 - `[ ]` **Batch 16 (Phase 16)**: Enterprise Insights (Tasks 36-39)
+- `[ ]` **Batch 17 (Phase 17)**: E2E Validation Suite (CLI, MCP, Playwright) (Task 17)
 
 ## Phase 18: Advanced Analysis
 - `[ ]` **Batch 18 (Phase 18)**: Advanced Analysis (Tasks 41-45)
