@@ -12,3 +12,11 @@ Chronological append-only record of all wiki ingest and lint operations.
 - Created Jules prompt: `scripts/jules_prompts/task_46_semantic_search.md`
 - Created wiki page: `pages/semantic_search_lancedb.md`
 - Added Phase 19 (Batch 19) to `docs/tracker.md`
+
+## [2026-08-09] ingest | SurrealDB-First Testing Pattern (T33C Decision)
+- Decided to migrate from Supabase to SurrealDB for CodeViz auth and E2E testing.
+- Key insight: SurrealDB's single binary + in-memory mode is a universal AI-agent-friendly pattern.
+- Created spec: `docs/specs/saas/task_33c_surrealdb.md`
+- Created Jules prompt: `scripts/jules_prompts/task_33c_surrealdb.md`
+- Created wiki page: `pages/surrealdb_first_pattern.md`
+- Updated `wiki/index.md` with new entry.

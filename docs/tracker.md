@@ -29,6 +29,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 ## Phase 13-17: Enterprise, Auth & E2E
 - `[x]` **Batch 13 (Phase 13)**: `[OSS]` Auth Core (NextAuth + GitHub/Google OAuth) (Task 33A)
 - `[x]` **Batch 13.5 (Phase 13)**: `[OSS]` Auth DB Adapter & Playwright E2E (Task 33B)
+- `[ ]` **Batch 13.6 (Phase 13)**: `[OSS]` SurrealDB Migration — replace Supabase, enable real DB in E2E (Task 33C)
 - `[ ]` **Batch 14 (Phase 14)**: `[OSS]` Basic Teams & Workspaces (≤5 members) (Task 34)
 - `[ ]` **Batch 15 (Phase 15)**: `[ENT]` Enterprise SSO (SAML) & Audit Logs (Task 35)
 - `[ ]` **Batch 16 (Phase 16)**: `[BIZ]` Enterprise Insights — Heatmap, Blast Radius, Git History (Tasks 36-39)

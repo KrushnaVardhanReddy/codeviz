@@ -126,6 +126,7 @@ TASKS = {
     # Phase 13: Auth
     33: {"name": "33A — Auth Core: GitHub & Google OAuth", "phase": "Phase 13: Auth",              "slug": "task_33a_auth_core"},
     330: {"name": "33B — Auth DB Adapter & E2E", "phase": "Phase 13: Auth",                        "slug": "task_33b_auth_e2e"},
+    331: {"name": "33C — SurrealDB Migration",    "phase": "Phase 13: Auth",                        "slug": "task_33c_surrealdb"},
     # Phase 14: Teams
     34: {"name": "34 — Team Workspaces & Repo Groups","phase": "Phase 14: Teams",            "slug": "task_34_teams"},
     # Phase 15: Enterprise
