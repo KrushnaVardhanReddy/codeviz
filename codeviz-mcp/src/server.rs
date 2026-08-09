@@ -3,6 +3,7 @@ use codeviz_core::LanguageRegistry;
 use serde_json::{json, Value};
 use std::io::{self, BufRead, Write};
 use codeviz_python::PythonParser;
+use codeviz_go::GoParser;
 use codeviz_typescript::TypeScriptParser;
 
 /// Starts the MCP JSON-RPC server over stdio.
@@ -10,6 +11,7 @@ pub fn start_mcp_server() -> Result<(), String> {
     let mut registry = LanguageRegistry::new();
     registry.register(Box::new(PythonParser::new()));
     registry.register(Box::new(TypeScriptParser::new()));
+    registry.register(Box::new(GoParser::new()));
 
     let stdin = io::stdin();
     let stdout = io::stdout();
