@@ -1,0 +1,7 @@
+Create a React Flow component that will render a codebase architecture graph.
+The input will be a JSON object containing nodes (files, functions) and edges (imports, calls).
+The component should:
+1. Use a dark theme that matches the scaffolding.
+2. Allow zooming, panning, and dragging of nodes.
+3. Show different icons depending on node type (e.g. JS file, Python file, function).
+4. Connect nodes with bezier curve edges.
