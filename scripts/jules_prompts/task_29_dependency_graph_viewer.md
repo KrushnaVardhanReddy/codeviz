@@ -26,6 +26,9 @@ Spec (READ ONLY — implement from it, never edit):
 CONSTRAINTS & RULES
 ═══════════════════════════════════════════════════════════════
 - CONTEXT: Use the exact color tokens defined in the spec. Do not pick your own colors.
+- Extract the component into its own file (e.g. `components/DependencyGraph.tsx`) so the main page stays clean.
+- Ensure the interactive diagram works fluidly.
+- **CRITICAL:** Use the pre-generated static HTML and Tailwind classes from `ui-prototypes/codeviz_graph.html` to build the visual nodes and edges for the React Flow diagram. Extract the styling classes and SVG structures to ensure it matches the generated design perfectly.
 - Each node component must use the color from `colorMap.ts` so colors can be changed in one place.
 - Async functions must render with a ⚡ lightning badge in the top-right corner of the function node.
 - The detail panel must slide in from the right (CSS transition) when a node is clicked.

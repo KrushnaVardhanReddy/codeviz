@@ -36,3 +36,4 @@ IMPLEMENTATION TIPS
 - For dark mode, add `darkMode: 'class'` to `tailwind.config.ts` and set `<html className="dark">` in layout.tsx.
 - The `graphTypes.ts` file should define TypeScript interfaces that exactly mirror the Rust `CodeGraph`, `Node`, `Edge`, `NodeKind`, and `EdgeKind` structs so the JSON import is type-safe.
 - Start with a hardcoded sample `CodeGraph` JSON in `page.tsx` so the canvas renders immediately without needing the WASM engine yet.
+- **CRITICAL:** Use the pre-generated static HTML and Tailwind classes from `ui-prototypes/codeviz_dashboard.html` to build the layout, sidebar, and visual aesthetics of the Next.js app. Extract the raw HTML structure and convert it into React components.
