@@ -5,6 +5,8 @@ use std::env;
 /// Arguments for the `run` command.
 #[derive(Debug, PartialEq)]
 pub struct RunArgs {
+    /// Config file path
+    pub config_path: Option<String>,
     /// Directory to scan recursively for source files.
     pub path: String,
     /// Markdown file to inject the diagram into.
@@ -18,6 +20,7 @@ pub struct RunArgs {
 impl Default for RunArgs {
     fn default() -> Self {
         Self {
+            config_path: None,
             path: ".".to_string(),
             output: "README.md".to_string(),
             diagram: DiagramKind::ModuleGraph,
@@ -38,9 +41,34 @@ fn parse_diagram_kind(s: &str) -> Result<DiagramKind, String> {
 
 /// Parses CLI arguments into a `RunArgs` struct.
 pub fn parse_run_args(args: &[String]) -> Result<RunArgs, String> {
-    let mut run_args = RunArgs::default();
+    let mut config_path = None;
     let mut i = 0;
+    while i < args.len() {
+        if args[i] == "--config" {
+            if i + 1 < args.len() {
+                config_path = Some(args[i + 1].clone());
+                break;
+            } else {
+                return Err("Missing argument for --config".to_string());
+            }
+        }
+        i += 1;
+    }
 
+    let config = match &config_path {
+        Some(path) => codeviz_core::Config::load_from_file(std::path::Path::new(path))?,
+        None => codeviz_core::Config::load_from_dir(&std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")))?,
+    };
+
+    let mut run_args = RunArgs {
+        config_path,
+        path: ".".to_string(),
+        output: config.output.targets.first().cloned().unwrap_or_else(|| "README.md".to_string()),
+        diagram: parse_diagram_kind(&config.graph.diagram_type).unwrap_or(DiagramKind::ModuleGraph),
+        depth: if config.graph.max_depth == 0 { None } else { Some(config.graph.max_depth) },
+    };
+
+    i = 0;
     while i < args.len() {
         match args[i].as_str() {
             "--path" => {
@@ -50,6 +78,9 @@ pub fn parse_run_args(args: &[String]) -> Result<RunArgs, String> {
                 } else {
                     return Err("Missing argument for --path".to_string());
                 }
+            }
+            "--config" => {
+                i += 2;
             }
             "--output" => {
                 if i + 1 < args.len() {
@@ -295,6 +326,29 @@ mod tests {
         assert_eq!(run_args.output, "DOCS.md");
         assert_eq!(run_args.diagram, DiagramKind::CallGraph);
         assert_eq!(run_args.depth, Some(3));
+    }
+
+    #[test]
+    fn test_cli_flag_precedence() {
+        use std::io::Write;
+
+        let mut temp_file = tempfile::NamedTempFile::new().unwrap();
+        writeln!(temp_file, r#"
+        [graph]
+        diagram_type = "module"
+        max_depth = 10
+        "#).unwrap();
+
+        let path_str = temp_file.path().to_string_lossy().to_string();
+
+        let args = vec![
+            "--config".to_string(), path_str,
+            "--diagram".to_string(), "call".to_string() // CLI flag should override config
+        ];
+
+        let run_args = parse_run_args(&args).unwrap();
+        assert_eq!(run_args.diagram, DiagramKind::CallGraph);
+        assert_eq!(run_args.depth, Some(10));
     }
 
     #[test]

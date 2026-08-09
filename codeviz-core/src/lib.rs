@@ -1,3 +1,6 @@
+pub mod config;
+pub use config::Config;
+
 pub mod inject;
 pub use inject::{InjectError, inject_mermaid};
 
