@@ -21,7 +21,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[ ]` **Batch 10 (Phase 10)**: Distribution (GitHub Action + npm WASM) (Tasks 23, 24)
 
 ## Phase 11-12: Web UI & CFG
-- `[/]` **Batch 11 (Phase 11)**: Web UI Scaffolding & Graph (Tasks 28, 29) — *Running in Stitch*
+- `[/]` **Batch 11 (Phase 11)**: Web UI Scaffolding & Graph (Tasks 28, 29) — *Running in Jules*
 - `[ ]` **Batch 12 (Phase 12)**: Control Flow Graph & UI Side Panel (Tasks 30-32)
 
 ## Phase 13-16: Enterprise & Auth
