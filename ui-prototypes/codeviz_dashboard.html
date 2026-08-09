@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CodeViz Architecture Graph</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary-fixed": "#acedff",
+                        "error": "#ffb4ab",
+                        "outline-variant": "#464554",
+                        "on-secondary": "#003640",
+                        "surface": "#0b1326",
+                        "tertiary": "#4edea3",
+                        "on-error-container": "#ffdad6",
+                        "background": "#0b1326",
+                        "surface-tint": "#c0c1ff",
+                        "on-tertiary-container": "#000703",
+                        "tertiary-container": "#00885d",
+                        "on-secondary-fixed": "#001f26",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-secondary-container": "#00424e",
+                        "surface-container": "#171f33",
+                        "on-background": "#dae2fd",
+                        "surface-bright": "#31394d",
+                        "surface-container-lowest": "#060e20",
+                        "error-container": "#93000a",
+                        "inverse-surface": "#dae2fd",
+                        "secondary-container": "#03b5d3",
+                        "on-surface": "#dae2fd",
+                        "surface-container-highest": "#2d3449",
+                        "primary": "#c0c1ff",
+                        "inverse-primary": "#494bd6",
+                        "surface-dim": "#0b1326",
+                        "primary-fixed": "#e1e0ff",
+                        "on-primary-container": "#0d0096",
+                        "on-primary-fixed": "#07006c",
+                        "surface-container-high": "#222a3d",
+                        "tertiary-fixed": "#6ffbbe",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "on-surface-variant": "#c7c4d7",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "primary-container": "#8083ff",
+                        "surface-variant": "#2d3449",
+                        "inverse-on-surface": "#283044",
+                        "outline": "#908fa0",
+                        "on-tertiary": "#003824",
+                        "secondary": "#4cd7f6",
+                        "surface-container-low": "#131b2e",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed": "#002113",
+                        "on-primary": "#1000a9",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "tertiary-fixed-dim": "#4edea3"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.125rem",
+                        lg: "0.25rem",
+                        xl: "0.5rem",
+                        full: "0.75rem"
+                    },
+                    spacing: {
+                        "panel-padding": "20px",
+                        "unit": "4px",
+                        "margin-edge": "40px",
+                        "gutter-md": "24px",
+                        "stack-gap": "12px"
+                    },
+                    fontFamily: {
+                        "headline-md": ["Geist"],
+                        "label-sm": ["JetBrains Mono"],
+                        "body-lg": ["Geist"],
+                        "body-md": ["Geist"],
+                        "headline-lg-mobile": ["Geist"],
+                        "headline-lg": ["Geist"],
+                        "label-md": ["JetBrains Mono"],
+                        "display-lg": ["Geist"]
+                    },
+                    fontSize: {
+                        "headline-md": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "headline-lg-mobile": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "600" }],
+                        "label-md": ["14px", { lineHeight: "20px", fontWeight: "500" }],
+                        "display-lg": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        
+        .glass-panel {
+            background-color: theme('colors.surface-container');
+            backdrop-filter: blur(12px);
+            border: 1px solid theme('colors.outline-variant');
+        }
+        
+        .node-glow {
+            box-shadow: 0 0 15px -5px theme('colors.secondary');
+            transition: all 0.3s ease;
+        }
+        
+        .node-glow:hover {
+            box-shadow: 0 0 25px 0px theme('colors.secondary');
+            transform: scale(1.05);
+        }
+
+        .bg-grid-pattern {
+            background-image: 
+                linear-gradient(to right, rgba(70, 69, 84, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(70, 69, 84, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-body-md overflow-hidden bg-background">
+<!-- TopNavBar -->
+<nav class="bg-surface/70 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-outline-variant/20 shadow-[0_0_15px_-5px_rgba(73,75,214,0.2)] flex justify-between items-center px-margin-edge h-16 w-full">
+<div class="flex items-center">
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">CodeViz</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 relative">
+<span class="material-symbols-outlined text-on-surface-variant absolute left-3">search</span>
+<input class="bg-surface-container-highest border border-outline-variant/50 rounded text-on-surface pl-10 pr-4 py-1.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-label-sm w-64 transition-colors" placeholder="Search architecture..." type="text"/>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors duration-200 active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors duration-200 active:scale-95">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</nav>
+<div class="flex flex-1 pt-16 h-screen">
+<!-- SideNavBar -->
+<aside class="bg-surface-container/70 backdrop-blur-lg fixed left-0 top-16 h-[calc(100vh-64px)] w-64 border-r border-outline-variant/10 no-shadow flex flex-col py-panel-padding gap-stack-gap z-40 hidden md:flex">
+<div class="px-4 mb-4">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 rounded bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-primary">data_object</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md text-primary text-sm leading-tight">src/core</div>
+<div class="text-on-surface-variant text-xs">main branch</div>
+</div>
+</div>
+<button class="w-full bg-primary/10 border border-primary/30 text-primary py-2 rounded font-label-md hover:bg-primary/20 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span> New Analysis
+                </button>
+</div>
+<div class="flex-1 overflow-y-auto px-2">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 py-2 text-tertiary font-bold border-l-2 border-tertiary pl-2 font-label-md cursor-pointer active:opacity-80 hover:bg-surface-bright/50 transition-all rounded-r" href="#">
+<span class="material-symbols-outlined text-sm">folder_open</span> Explorer
+                        </a>
+</li>
+<li>
+<a class="flex items-center gap-3 py-2 text-on-surface-variant hover:text-on-surface pl-2 font-label-md cursor-pointer active:opacity-80 hover:bg-surface-bright/50 transition-all rounded-r" href="#">
+<span class="material-symbols-outlined text-sm">account_tree</span> Branches
+                        </a>
+</li>
+<li>
+<a class="flex items-center gap-3 py-2 text-on-surface-variant hover:text-on-surface pl-2 font-label-md cursor-pointer active:opacity-80 hover:bg-surface-bright/50 transition-all rounded-r" href="#">
+<span class="material-symbols-outlined text-sm">account_tree</span> Graph
+                        </a>
+</li>
+<li>
+<a class="flex items-center gap-3 py-2 text-on-surface-variant hover:text-on-surface pl-2 font-label-md cursor-pointer active:opacity-80 hover:bg-surface-bright/50 transition-all rounded-r" href="#">
+<span class="material-symbols-outlined text-sm">history</span> History
+                        </a>
+</li>
+</ul>
+<div class="mt-8 px-2">
+<div class="text-xs text-on-surface-variant mb-2 uppercase tracking-wider font-label-sm">Project Files</div>
+<ul class="space-y-1">
+<li class="flex items-center gap-2 py-1 text-on-surface-variant hover:text-on-surface cursor-pointer text-sm pl-2">
+<span class="material-symbols-outlined text-[16px]">folder</span> src
+                        </li>
+<li class="flex items-center gap-2 py-1 text-on-surface-variant hover:text-on-surface cursor-pointer text-sm pl-6">
+<span class="material-symbols-outlined text-[16px]">folder</span> components
+                        </li>
+<li class="flex items-center gap-2 py-1 text-on-surface hover:text-primary cursor-pointer text-sm pl-6">
+<span class="material-symbols-outlined text-[16px] text-tertiary">folder_open</span> core
+                        </li>
+<li class="flex items-center gap-2 py-1 text-on-surface-variant hover:text-on-surface cursor-pointer text-sm pl-10">
+<span class="material-symbols-outlined text-[14px] text-secondary">javascript</span> App.tsx
+                        </li>
+<li class="flex items-center gap-2 py-1 text-on-surface-variant hover:text-on-surface cursor-pointer text-sm pl-10">
+<span class="material-symbols-outlined text-[14px] text-secondary">javascript</span> Layout.tsx
+                        </li>
+</ul>
+</div>
+</div>
+<div class="px-2 mt-auto border-t border-outline-variant/10 pt-4">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 py-2 text-on-surface-variant hover:text-on-surface pl-2 font-label-md cursor-pointer active:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined text-sm">description</span> Docs
+                        </a>
+</li>
+<li>
+<a class="flex items-center gap-3 py-2 text-on-surface-variant hover:text-on-surface pl-2 font-label-md cursor-pointer active:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined text-sm">help</span> Help
+                        </a>
+</li>
+</ul>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-0 md:ml-64 p-gutter-md h-full relative overflow-hidden bg-grid-pattern">
+<!-- Floating Controls -->
+<div class="absolute top-gutter-md right-gutter-md z-10 flex gap-2">
+<button class="bg-surface-container/90 backdrop-blur border border-outline-variant/30 text-on-surface p-2 rounded hover:bg-surface-bright transition-colors shadow-lg">
+<span class="material-symbols-outlined text-sm">zoom_in</span>
+</button>
+<button class="bg-surface-container/90 backdrop-blur border border-outline-variant/30 text-on-surface p-2 rounded hover:bg-surface-bright transition-colors shadow-lg">
+<span class="material-symbols-outlined text-sm">zoom_out</span>
+</button>
+<button class="bg-surface-container/90 backdrop-blur border border-outline-variant/30 text-on-surface p-2 rounded hover:bg-surface-bright transition-colors shadow-lg">
+<span class="material-symbols-outlined text-sm">fit_screen</span>
+</button>
+</div>
+<!-- Architecture Graph Canvas -->
+<div class="w-full h-full glass-panel rounded-xl shadow-2xl relative overflow-hidden flex items-center justify-center">
+<div class="absolute top-4 left-4 z-10 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">account_tree</span>
+<h2 class="font-headline-md text-lg text-on-surface">CodeViz Architecture Graph (React Flow)</h2>
+</div>
+<!-- Graph Nodes Placeholder Container -->
+<div class="relative w-full h-full max-w-4xl max-h-[600px] flex flex-col items-center justify-center p-8">
+<!-- SVG Connections (Underneath nodes) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 0;">
+<!-- App -> Layout -->
+<path class="opacity-50" d="M 50% 20% C 50% 40%, 30% 40%, 30% 60%" fill="none" stroke="theme('colors.secondary')" stroke-dasharray="5,5" stroke-width="2"></path>
+<!-- App -> Dashboard -->
+<path class="opacity-80 shadow-[0_0_10px_theme('colors.secondary')]" d="M 50% 20% C 50% 40%, 70% 40%, 70% 60%" fill="none" stroke="theme('colors.secondary')" stroke-width="2"></path>
+</svg>
+<!-- Root Node -->
+<div class="absolute top-[10%] left-1/2 transform -translate-x-1/2 z-10">
+<div class="bg-surface-container-highest border-2 border-primary rounded-lg p-4 w-48 text-center node-glow cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary"></div>
+<div class="flex items-center justify-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-xl">widgets</span>
+<span class="font-label-md text-on-surface font-bold">App.tsx</span>
+</div>
+<div class="text-[10px] text-on-surface-variant font-label-sm bg-surface-container-low py-1 rounded">Core Entry</div>
+</div>
+</div>
+<!-- Child Node 1 -->
+<div class="absolute top-[60%] left-[20%] transform -translate-x-1/2 z-10">
+<div class="bg-surface-container border border-outline-variant rounded-lg p-4 w-48 text-center cursor-pointer hover:border-secondary transition-colors relative">
+<div class="flex items-center justify-center gap-2 mb-2">
+<span class="material-symbols-outlined text-secondary text-xl">space_dashboard</span>
+<span class="font-label-md text-on-surface">Layout.tsx</span>
+</div>
+<div class="text-[10px] text-on-surface-variant font-label-sm bg-surface-container-low py-1 rounded">UI Shell</div>
+</div>
+</div>
+<!-- Child Node 2 (Active/Selected) -->
+<div class="absolute top-[60%] left-[80%] transform -translate-x-1/2 z-10">
+<div class="bg-surface-container-highest border-2 border-secondary rounded-lg p-4 w-48 text-center node-glow cursor-pointer relative overflow-hidden">
+<div class="absolute inset-0 bg-secondary/5 pointer-events-none"></div>
+<div class="flex items-center justify-center gap-2 mb-2">
+<span class="material-symbols-outlined text-secondary text-xl">dashboard</span>
+<span class="font-label-md text-on-surface font-bold">Dashboard.tsx</span>
+</div>
+<div class="text-[10px] text-on-surface-variant font-label-sm bg-surface-container-low py-1 rounded flex justify-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary mt-1"></span> Active View
+                            </div>
+</div>
+</div>
+</div>
+<!-- Data overlay bottom -->
+<div class="absolute bottom-4 left-4 right-4 bg-surface-container-lowest/80 backdrop-blur-md border border-outline-variant/30 rounded p-3 flex justify-between items-center text-xs text-on-surface-variant font-label-sm">
+<div class="flex gap-4">
+<span>Nodes: 3</span>
+<span>Edges: 2</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                        Live Sync
+                    </div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
