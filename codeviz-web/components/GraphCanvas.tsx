@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   ReactFlow,
   Background,
@@ -10,12 +10,12 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { CodeGraph, NodeKind, EdgeKind } from '../lib/graphTypes';
+import DetailPanel from './DetailPanel';
 
 interface GraphCanvasProps {
   graph: CodeGraph;
 }
 
-// Helper to determine node styles based on NodeKind
 const getNodeStyle = (kind: NodeKind) => {
   if (kind === 'File') return { backgroundColor: '#1E3A5F', borderColor: '#3B82F6', color: 'white' };
   if (kind === 'Module') return { backgroundColor: '#2D1B69', borderColor: '#8B5CF6', color: 'white' };
@@ -26,7 +26,6 @@ const getNodeStyle = (kind: NodeKind) => {
   return { backgroundColor: '#333', borderColor: '#666', color: 'white' };
 };
 
-// Helper to determine edge styles based on EdgeKind
 const getEdgeStyle = (kind: EdgeKind) => {
   if (kind === 'Imports') return { stroke: '#3B82F6' };
   if (kind === 'Calls') return { stroke: '#22C55E' };
@@ -38,15 +37,24 @@ const getEdgeStyle = (kind: EdgeKind) => {
 };
 
 export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
+  const [selectedNode, setSelectedNode] = useState<any>(null);
+
+  const onNodeClick = useCallback((event: React.MouseEvent, node: any) => {
+    setSelectedNode(node);
+  }, []);
+
+  const closePanel = () => {
+    setSelectedNode(null);
+  };
+
   const nodes: ReactFlowNode[] = useMemo(() => {
-    // Very basic layout algorithm for demonstration
     return graph.nodes.map((node, index) => {
       const col = index % 3;
       const row = Math.floor(index / 3);
       return {
         id: node.id,
         position: { x: 100 + col * 250, y: 100 + row * 150 },
-        data: { label: node.label },
+        data: { label: node.label, kind: node.kind, testId: `node-${node.id}` },
         style: {
           ...getNodeStyle(node.kind),
           padding: '10px',
@@ -65,14 +73,22 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
       target: edge.to_id,
       style: getEdgeStyle(edge.kind),
       animated: edge.kind === 'Calls',
+      data: { kind: edge.kind }
     }));
   }, [graph.edges]);
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative" data-testid="graph-canvas">
       <ReactFlow
-        nodes={nodes}
+        nodes={nodes.map(n => ({
+          ...n,
+          data: {
+            ...n.data,
+            label: <div data-testid={`node-${n.id}`}>{String(n.data.label)}</div>
+          }
+        }))}
         edges={edges}
+        onNodeClick={onNodeClick}
         fitView
         className="bg-slate-900"
         colorMode="dark"
@@ -85,6 +101,8 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
           className="bg-slate-800 border-slate-700"
         />
       </ReactFlow>
+
+      <DetailPanel node={selectedNode} onClose={closePanel} edges={edges} />
     </div>
   );
 };
