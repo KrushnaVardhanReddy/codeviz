@@ -25,8 +25,8 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[/]` **Batch 12 (Phase 12)**: Control Flow Graph & UI Side Panel (Tasks 30-32)
 
 ## Phase 13-17: Enterprise, Auth & E2E
-- `[/]` **Batch 13 (Phase 13)**: Auth Core (NextAuth setup) (Task 33A)
-- `[ ]` **Batch 13.5 (Phase 13)**: Auth DB Adapter & Playwright E2E (Task 33B)
+- `[x]` **Batch 13 (Phase 13)**: Auth Core (NextAuth setup) (Task 33A)
+- `[/]` **Batch 13.5 (Phase 13)**: Auth DB Adapter & Playwright E2E (Task 33B)
 - `[ ]` **Batch 14 (Phase 14)**: Teams & Workspaces (Task 34)
 - `[ ]` **Batch 15 (Phase 15)**: Enterprise SSO & Audit Logs (Task 35)
 - `[ ]` **Batch 16 (Phase 16)**: Enterprise Insights (Tasks 36-39)
