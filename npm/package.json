@@ -1,0 +1,28 @@
+{
+  "name": "codeviz",
+  "version": "0.1.0",
+  "description": "Zero-drift architecture diagrams from source code — WASM build",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/",
+    "../codeviz-wasm/pkg/codeviz_wasm_bg.wasm"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "web-tree-sitter": "^0.22.6"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.24",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,54 @@
+name: npm-publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build WASM
+        run: |
+          cd codeviz-wasm
+          wasm-pack build --target web
+
+      - name: Install Node.js dependencies
+        run: |
+          cd npm
+          npm install
+
+      - name: Build Wrapper
+        run: |
+          cd npm
+          npm run build
+
+      - name: Check Package Size
+        run: |
+          cd npm
+          npm pack
+          SIZE=$(stat -c%s codeviz-*.tgz)
+          echo "Package size: $SIZE bytes"
+          if [ "$SIZE" -gt 3145728 ]; then
+            echo "Package exceeds 3MB limit"
+            exit 1
+          fi
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd npm
+          echo "//registry.npmjs.org/:_authToken=\${NODE_AUTH_TOKEN}" > .npmrc
+          npm publish

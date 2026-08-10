@@ -41,3 +41,20 @@ To build the WASM bundle, use:
 ```bash
 wasm-pack build --target web
 ```
+
+## CDN Usage
+
+You can use CodeViz WASM directly in the browser via a CDN:
+
+```javascript
+<script type="module">
+    import init, { parse } from 'https://unpkg.com/codeviz/codeviz_wasm.js';
+
+    // Initialize the WASM module
+    await init();
+
+    // Parse source code and generate a diagram
+    const diagram = parse("import os", "python", "module");
+    console.log(diagram);
+</script>
+```
