@@ -1,25 +1,50 @@
-TASK: T38 — Heatmap UI Layer
+TASK: T38 — Enterprise Insights: Heatmap UI
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Integrate `churn_score` and `primary_authors` into the React Flow Web UI to show "Hotspots".
-
-Files to Modify/Create:
-- `codeviz-web/components/Toolbar.tsx` (add toggle)
-- `codeviz-web/components/nodes/FileNode.tsx` (apply heatmap colors)
-- `codeviz-web/components/DetailPanel.tsx` (show authors)
-
-Spec (READ ONLY — implement from it, never edit):
-  docs/specs/ui/heatmap.md
+Implement a Heatmap view in the CodeViz Web UI. This feature allows users to toggle
+different color overlays on the React Flow graph canvas based on `churn_score` and
+`health_score` (from T36). This visually surfaces technical debt and high-risk hotspots.
 
 ═══════════════════════════════════════════════════════════════
-CONSTRAINTS & RULES
+BACKGROUND — WHAT ALREADY EXISTS
 ═══════════════════════════════════════════════════════════════
-- Toggle must switch node backgrounds from standard colors to a heatmap scale (blue to red based on churn).
-- Do not break existing color modes.
+- The Web UI relies on React Flow in `codeviz-web/components/GraphCanvas.tsx`.
+- The `NodeMeta` contains fields like `churn_score` and `health_score`.
 
 ═══════════════════════════════════════════════════════════════
-IMPLEMENTATION TIPS
+DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-- Use a simple CSS scale or D3 color scale for mapping churn values to colors.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. MODIFY: codeviz-web/components/GraphCanvas.tsx
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add a "View Mode" dropdown/toggle in the toolbar above the canvas:
+- Standard (Default colors based on node kind)
+- Git Churn Heatmap (Colors nodes based on `churn_score` relative to max churn in the graph: cool blue to hot red)
+- Health Score Heatmap (Colors nodes based on `health_score`: green > 8, yellow 5-8, red < 5)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. CREATE/MODIFY: Node Components
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Update the custom React Flow node component (`codeviz-web/components/CustomNode.tsx` or similar)
+to accept a `viewMode` prop or read it from a React Context/Zustand store.
+Apply the appropriate background colors based on the mode.
+Ensure text remains readable (e.g. use white text on dark red backgrounds).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. ADD: Legend Component
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+When a heatmap mode is active, display a floating legend in the bottom right corner
+explaining the color scale.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL IMPLEMENTATION RULES
+═══════════════════════════════════════════════════════════════
+1. Do not break standard node selection or drag/drop functionality.
+2. The logic for calculating max/min for the color scale should happen dynamically based on the current graph's nodes.
+3. Run `npm run build` to ensure no TypeScript compilation errors.
+
+Commit: "jules: T38 — Graph Heatmap UI for Git churn and Health scores"
+Target branch: feat-t38-heatmap-ui

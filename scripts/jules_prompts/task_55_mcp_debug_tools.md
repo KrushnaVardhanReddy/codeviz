@@ -1,42 +1,84 @@
-TASK: T55 — MCP Debugging Tools (trace_call_path, get_callers_recursive, get_blast_radius)
+TASK: T55 — MCP Debugging Tools
 
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Add three new MCP tools that enable deep, AI-assisted debugging via graph
-traversal. All three are pure graph algorithms on the existing CodeGraph.
-
-Files to Modify:
-- `codeviz-core/src/graph.rs`  (add all_paths(), callers_recursive(), blast_radius())
-- `codeviz-mcp/src/tools.rs`  (add 3 new tool handlers + JSON schemas)
-- `codeviz-mcp/src/server.rs` (register new tools in tools/list response)
+Add three new powerful graph traversal tools to the MCP server: `trace_call_path`,
+`get_callers_recursive`, and `get_blast_radius`. These tools enable AI agents
+to perform deep architectural debugging without needing full codebase context.
 
 Spec (READ ONLY — implement from it, never edit):
   docs/specs/features/mcp_debug_tools.md
 
 ═══════════════════════════════════════════════════════════════
-CONSTRAINTS & RULES
+BACKGROUND — WHAT ALREADY EXISTS
 ═══════════════════════════════════════════════════════════════
-- No new Rust crates. Use only std::collections.
-- all_paths() MUST have a hard cap on max_paths (default 10, max 50).
-  Do NOT allow unbounded DFS on dense graphs.
-- callers_recursive() and blast_radius() MUST detect cycles
-  (use a `visited: HashSet<String>`) to avoid infinite loops.
-- No unwrap() anywhere. Return Result<_, ParseError>.
-- Write unit tests for each new graph method:
-  - Linear chain: trace_call_path returns exactly 1 path.
-  - Isolated node: blast_radius returns count 0.
-  - Cyclic graph: no infinite loop.
-- Ensure `cargo test --all` and `cargo clippy --all -- -D warnings` pass.
+
+EXISTING INFRASTRUCTURE:
+  - The `CodeGraph` structure is defined in `codeviz-core/src/graph.rs`.
+  - MCP server implementation is in `codeviz-mcp/src/`.
+  - Existing MCP tools are defined and registered in `codeviz-mcp/src/tools.rs` and `server.rs`.
 
 ═══════════════════════════════════════════════════════════════
-IMPLEMENTATION TIPS
+DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-- For all_paths(): use recursive DFS with a `current_path: Vec<String>` and
-  a `visited: HashSet<String>` to track the current path (prevents revisiting
-  the same node in one path). Collect into `Vec<Vec<String>>`.
-- For callers_recursive(): filter edges by `EdgeKind::Calls` where
-  `edge.to_id == fn_name`. Recurse on each caller up to `depth` levels.
-  Use a `global_visited: HashSet<String>` to handle cycles.
-- For blast_radius(): BFS forward from the given node following
-  `EdgeKind::Calls` where `edge.from_id == fn_name`.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. MODIFY: codeviz-core/src/graph.rs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add three new public methods to the `CodeGraph` struct. These methods must be
+pure graph algorithms that operate on `self.nodes` and `self.edges`.
+
+  /// Returns all paths (up to `max_paths`) from `start_node_id` to `target_node_id`.
+  /// Paths follow the `Calls` edge kind.
+  pub fn all_paths(&self, start_node_id: &str, target_node_id: &str, max_paths: usize) -> Vec<Vec<String>> {
+      // Implement DFS with backtracking.
+      // Short-circuit if max_paths is reached.
+  }
+
+  /// Returns the recursive caller tree up to `max_depth`.
+  pub fn callers_recursive(&self, target_node_id: &str, max_depth: usize) -> serde_json::Value {
+      // Implement reverse graph traversal.
+      // Detect cycles to avoid infinite loops.
+  }
+
+  /// Returns all transitively reachable nodes from the given node.
+  pub fn blast_radius(&self, start_node_id: &str) -> Vec<String> {
+      // Implement forward BFS/DFS.
+      // Detect cycles.
+  }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. MODIFY: codeviz-mcp/src/tools.rs & codeviz-mcp/src/server.rs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Register three new tools in the MCP server:
+
+1. `trace_call_path`
+   - Inputs: `from` (string), `to` (string), `path` (string, directory), `max_paths` (number, default 10, max 50).
+2. `get_callers_recursive`
+   - Inputs: `fn_name` (string, ID), `path` (string, directory), `depth` (number, default 3, max 10).
+3. `get_blast_radius`
+   - Inputs: `fn_name` (string, ID), `path` (string, directory).
+
+Ensure the `tools/list` endpoint correctly reports their JSON schemas.
+Update the `tools/call` handler to execute the respective `CodeGraph` methods.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. CREATE/MODIFY: Unit Tests
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add unit tests in `codeviz-core/src/graph.rs` (or a dedicated test file) to
+validate:
+- `all_paths` finds all linear paths and respects `max_paths`.
+- `callers_recursive` handles cycles gracefully and respects `max_depth`.
+- `blast_radius` handles cycles gracefully.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL IMPLEMENTATION RULES
+═══════════════════════════════════════════════════════════════
+1. Do NOT use `unwrap()`. Return standard `Result` types.
+2. All graph traversal methods MUST detect cycles and short-circuit to prevent infinite loops.
+3. Use only the Rust standard library for graph algorithms. No external graph crates.
+4. Ensure `cargo test --all` and `cargo clippy --all -- -D warnings` pass.
+
+Commit: "jules: T55 — MCP Debugging Tools"
+Target branch: feat-t55-mcp-debug-tools

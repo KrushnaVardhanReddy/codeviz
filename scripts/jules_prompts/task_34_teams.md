@@ -3,38 +3,68 @@ TASK: T34 — Team Workspaces & Repo Groups
 ═══════════════════════════════════════════════════════════════
 OBJECTIVE
 ═══════════════════════════════════════════════════════════════
-Implement Team Workspaces: a shared environment where multiple engineers can
-view, annotate, and save CodeViz graphs together. Includes Repo Groups and
-Saved Views features.
-
-Files to Create/Modify:
-- `codeviz-web/app/w/[slug]/page.tsx` (workspace home)
-- `codeviz-web/app/w/[slug]/repos/[repo]/page.tsx` (repo graph viewer)
-- `codeviz-web/app/w/[slug]/repos/[repo]/views/[view]/page.tsx` (saved view)
-- `codeviz-web/app/w/[slug]/settings/page.tsx` (workspace settings)
-- `codeviz-web/app/w/[slug]/settings/members/page.tsx` (member management)
-- `codeviz-web/components/SaveViewModal.tsx`
-- `codeviz-web/components/AnnotationTooltip.tsx`
-- `codeviz-web/lib/supabase/workspaces.ts` (DB queries for workspaces)
+Implement the backend architecture and UI scaffolding for Team Workspaces and Repo Groups.
+This allows Pro and Enterprise users to create shared environments where multiple
+engineers can view, annotate, and save CodeViz graphs together.
 
 Spec (READ ONLY — implement from it, never edit):
   docs/specs/saas/teams.md
 
 ═══════════════════════════════════════════════════════════════
-CONSTRAINTS & RULES
+BACKGROUND — WHAT ALREADY EXISTS
 ═══════════════════════════════════════════════════════════════
-- CONTEXT: All workspace routes must check that the authenticated user is a member of that workspace. Return 403 if not.
-- Pro plan must enforce a 5-member limit. Show an upgrade prompt if exceeded.
-- Saved Views must store the full React Flow canvas state (zoom, pan, which nodes are expanded).
-- Shareable links must work without login for 'viewer' access (read-only).
-- Write unit tests for the workspace membership check logic in `workspaces.ts`.
-- Ensure `npm run build` passes without errors.
+
+- SurrealDB integration exists in `codeviz-web/seed.surql` with basic user/session models.
+- Next.js web application is set up in `codeviz-web/app`.
+- The `GraphCanvas` component can render a `CodeGraph` JSON blob.
 
 ═══════════════════════════════════════════════════════════════
-IMPLEMENTATION TIPS
+DELIVERABLES
 ═══════════════════════════════════════════════════════════════
-- Use Supabase Row Level Security (RLS) to enforce workspace membership at the database level. This is the most secure approach.
-- To get the React Flow canvas state for saving: call `useReactFlow().toObject()` which returns `{ nodes, edges, viewport }`. Store this JSON as `canvas_state` in `saved_views`.
-- To restore a Saved View: call `useReactFlow().setViewport(canvasState.viewport)` and set the nodes/edges from the stored state.
-- For the 5-member Pro limit: query `count(*)` from `workspace_members` before inserting a new member and compare against the plan limit.
-- Use Supabase Realtime subscriptions to show live annotation updates when multiple team members are viewing the same graph simultaneously.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. MODIFY: codeviz-web/seed.surql
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add the database schema for workspaces, repo groups, saved views, and annotations.
+Translate the SQL schema from the spec into SurrealDB schema format (`DEFINE TABLE`).
+
+  - `workspaces`
+  - `workspace_members`
+  - `repo_groups`
+  - `saved_views`
+  - `annotations`
+
+Add seed data for a workspace with some members and a repo group.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. CREATE/MODIFY: Next.js Routes
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Implement the required UI pages (they can be skeleton/scaffolding components that
+fetch from the database):
+
+- `codeviz-web/app/w/[slug]/page.tsx` — Workspace home (lists Repo Groups)
+- `codeviz-web/app/w/[slug]/repos/[repo]/page.tsx` — Graph viewer for a specific Repo Group
+- `codeviz-web/app/w/[slug]/repos/[repo]/views/[view]/page.tsx` — A specific Saved View
+- `codeviz-web/app/w/[slug]/settings/page.tsx` — Workspace settings
+- `codeviz-web/app/w/[slug]/settings/members/page.tsx` — Manage members
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. CREATE: API Routes for Workspace Management
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create backend API routes in `codeviz-web/app/api/` (or Server Actions) to:
+- Create a workspace.
+- Invite members (enforce 5-member limit on 'pro' plan).
+- Create a repo group.
+- Save a view (canvas state).
+- Add annotations to nodes.
+
+═══════════════════════════════════════════════════════════════
+CRITICAL IMPLEMENTATION RULES
+═══════════════════════════════════════════════════════════════
+1. Do NOT mock database calls. Use real SurrealDB queries.
+2. The UI does not need to be perfectly styled, but the React components must wire up correctly to the database.
+3. Ensure all Server Actions/APIs check authorization (user is logged in and belongs to workspace).
+4. Run `npm run build` and `npm run test:e2e` to ensure no breakages.
+
+Commit: "jules: T34 — Team Workspaces & Repo Groups"
+Target branch: feat-t34-teams
