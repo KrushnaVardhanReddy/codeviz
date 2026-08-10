@@ -12,9 +12,6 @@ pub struct CodeGraph {
     pub control_flow: Vec<ControlFlowGraph>,
     /// Metadata about the graph.
     pub meta: GraphMeta,
-    /// Control flow graphs for functions (optional).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub control_flow: Option<Vec<ControlFlowGraph>>,
 }
 
 impl CodeGraph {
@@ -25,7 +22,6 @@ impl CodeGraph {
             edges: Vec::new(),
             control_flow: Vec::new(),
             meta,
-            control_flow: None,
         }
     }
 }
