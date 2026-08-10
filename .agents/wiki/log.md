@@ -32,3 +32,8 @@ Chronological append-only record of all wiki ingest and lint operations.
 - Created spec: `docs/specs/features/mvp_e2e_suites.md`
 - Created wiki page: `pages/mvp_e2e_suites.md`
 - Updated `wiki/index.md` with new entry.
+
+## [2026-08-10] ingest | QA & Blind Spots Mitigation
+- Created spec: `docs/specs/features/qa_blind_spots.md`
+- Created wiki page: `pages/qa_blind_spots.md`
+- Updated `wiki/index.md` with new entry.

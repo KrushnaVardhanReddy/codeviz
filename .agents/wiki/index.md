@@ -12,3 +12,4 @@ This is the catalog of all concepts, entities, and synthesis pages in the CodeVi
 - [MCP Architecture Summarizer](pages/mcp_summarize.md) - Generates deterministic narrative summaries of codebase architectures.
 - [Interactive Call Path Explorer](pages/call_path_explorer.md) - Web UI BFS animation for exploring call paths.
 - [MVP Full-Stack E2E Test Suites](pages/mvp_e2e_suites.md) - Zero-mocking full-stack testing strategy for MVPs.
+- [QA & Blind Spots Mitigation](pages/qa_blind_spots.md) - Strategies for cross-platform, VS Code, and performance testing.

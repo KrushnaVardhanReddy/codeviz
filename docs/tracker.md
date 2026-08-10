@@ -61,6 +61,8 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 
 ### `[ ]` Batch 21 — MVP v1 Full E2E
 - `[ ]` **T57** `[OSS]` MVP v1 Full-Stack E2E Test Suite — Playwright + SurrealDB + Rust CLI (zero mock)
+- `[ ]` **T60** `[OSS]` Cross-Platform Path Normalization — Windows compatibility and CI workflows
+- `[ ]` **T61** `[OSS]` VS Code Extension E2E Tests — using `@vscode/test-electron`
 
 ### MVP v2 — "Make It Sticky" (Team Features — Retention & Collaboration)
 > Goal: Make teams embed CodeViz in their daily workflow.
@@ -70,6 +72,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 
 ### `[ ]` Batch 22 — MVP v2 Full E2E
 - `[ ]` **T58** `[OSS]` MVP v2 Full-Stack E2E Test Suite — Playwright + SurrealDB + Rust CLI (zero mock)
+- `[ ]` **T62** `[TEAM]` Graph Rendering Stress Test — Performance benchmarking for repos >10,000 files
 
 ### MVP v3 — "Make It Pay" (Enterprise Features — Revenue)
 > Goal: Close enterprise contracts.
