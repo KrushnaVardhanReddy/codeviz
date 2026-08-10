@@ -71,7 +71,7 @@ pub struct Edge {
 }
 
 /// The kind of a code graph edge.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum EdgeKind {
     /// Module-level dependency
     Imports,

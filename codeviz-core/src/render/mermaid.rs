@@ -113,6 +113,85 @@ impl MermaidRenderer {
     pub(crate) fn sanitize_id(id: &str) -> String {
         id.replace("/", "_").replace(".", "_").replace("::", "_")
     }
+
+    /// Renders a diff diagram highlighting added and removed nodes and edges.
+    pub fn render_diff(&self, diff: &crate::diff::GraphDiff, kind: DiagramKind) -> String {
+        let mut output = String::new();
+
+        let header = match kind {
+            DiagramKind::ModuleGraph => "graph TD\n",
+            DiagramKind::CallGraph => "flowchart TD\n",
+            DiagramKind::ClassDiagram => "classDiagram\n",
+        };
+        output.push_str(header);
+
+        output.push_str("    classDef added fill:#aaffaa,stroke:#00aa00;\n");
+        output.push_str("    classDef removed fill:#ffaaaa,stroke:#aa0000;\n");
+
+        for node in &diff.added_nodes {
+            let sanitized_id = Self::sanitize_id(&node.id);
+            output.push_str(&format!("    class {} added;\n", sanitized_id));
+        }
+
+        for node in &diff.removed_nodes {
+            let sanitized_id = Self::sanitize_id(&node.id);
+            output.push_str(&format!("    class {} removed;\n", sanitized_id));
+        }
+
+        let valid_edge = |edge: &crate::Edge| -> bool {
+            match kind {
+                DiagramKind::ModuleGraph => matches!(edge.kind, EdgeKind::Imports),
+                DiagramKind::CallGraph => matches!(edge.kind, EdgeKind::Calls),
+                DiagramKind::ClassDiagram => {
+                    matches!(edge.kind, EdgeKind::Inherits | EdgeKind::Implements)
+                }
+            }
+        };
+
+        for edge in &diff.added_edges {
+            if valid_edge(edge) {
+                let from = Self::sanitize_id(&edge.from_id);
+                let to = Self::sanitize_id(&edge.to_id);
+                match kind {
+                    DiagramKind::ModuleGraph | DiagramKind::CallGraph => {
+                        output.push_str(&format!("    {} -->|added| {}:::added\n", from, to));
+                    }
+                    DiagramKind::ClassDiagram => match edge.kind {
+                        EdgeKind::Inherits => {
+                            output.push_str(&format!("    {} <|-- {}:::added\n", to, from))
+                        }
+                        EdgeKind::Implements => {
+                            output.push_str(&format!("    {} <|.. {}:::added\n", to, from))
+                        }
+                        _ => {}
+                    },
+                }
+            }
+        }
+
+        for edge in &diff.removed_edges {
+            if valid_edge(edge) {
+                let from = Self::sanitize_id(&edge.from_id);
+                let to = Self::sanitize_id(&edge.to_id);
+                match kind {
+                    DiagramKind::ModuleGraph | DiagramKind::CallGraph => {
+                        output.push_str(&format!("    {} -->|removed| {}:::removed\n", from, to));
+                    }
+                    DiagramKind::ClassDiagram => match edge.kind {
+                        EdgeKind::Inherits => {
+                            output.push_str(&format!("    {} <|-- {}:::removed\n", to, from))
+                        }
+                        EdgeKind::Implements => {
+                            output.push_str(&format!("    {} <|.. {}:::removed\n", to, from))
+                        }
+                        _ => {}
+                    },
+                }
+            }
+        }
+
+        output
+    }
 }
 
 #[cfg(test)]
@@ -320,5 +399,31 @@ mod tests {
         let out = renderer.render(&graph, DiagramKind::ClassDiagram);
         assert!(out.starts_with("classDiagram\n"));
         assert!(out.contains("Animal <|-- Dog\n"));
+    }
+
+    #[test]
+    fn test_render_diff() {
+        let mut diff = crate::diff::GraphDiff {
+            added_nodes: vec![],
+            removed_nodes: vec![],
+            added_edges: vec![],
+            removed_edges: vec![],
+        };
+
+        let node_added = crate::Node {
+            id: "src/new.rs".to_string(),
+            label: "new.rs".to_string(),
+            kind: crate::NodeKind::File,
+            file_path: "src/new.rs".to_string(),
+            line: None,
+            is_public: true,
+        };
+        diff.added_nodes.push(node_added);
+
+        let renderer = MermaidRenderer::new();
+        let result = renderer.render_diff(&diff, DiagramKind::ModuleGraph);
+        assert!(result.contains("graph TD"));
+        assert!(result.contains("class src_new_rs added;"));
+        assert!(result.contains("classDef added fill:#aaffaa"));
     }
 }
