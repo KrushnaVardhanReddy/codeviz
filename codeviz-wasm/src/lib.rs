@@ -123,6 +123,19 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph) {
     }
 }
 
+/// Return a list of supported language identifiers.
+#[wasm_bindgen]
+pub fn supported_languages() -> js_sys::Array {
+    let arr = js_sys::Array::new();
+    arr.push(&JsValue::from_str("python"));
+    arr.push(&JsValue::from_str("typescript"));
+    arr.push(&JsValue::from_str("javascript"));
+    arr.push(&JsValue::from_str("go"));
+    arr.push(&JsValue::from_str("rust"));
+    arr.push(&JsValue::from_str("java"));
+    arr
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
