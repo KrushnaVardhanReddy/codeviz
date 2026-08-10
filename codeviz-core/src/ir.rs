@@ -50,8 +50,7 @@ impl CodeGraph {
         let total_nodes = self.nodes.len();
         let total_edges = self.edges.len();
 
-        let mut languages = Vec::new();
-        languages.push(self.meta.language.clone());
+        let languages = vec![self.meta.language.clone()];
 
         let mut file_paths = HashSet::new();
         for node in &self.nodes {

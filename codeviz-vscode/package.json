@@ -1,0 +1,75 @@
+{
+  "name": "codeviz",
+  "displayName": "CodeViz",
+  "description": "CodeViz Extension",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "activationEvents": [
+    "workspaceContains:codeviz.toml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codeviz.showGraph",
+        "title": "CodeViz: Show Graph"
+      },
+      {
+        "command": "codeviz.refreshGraph",
+        "title": "CodeViz: Refresh Graph"
+      },
+      {
+        "command": "codeviz.openWebUi",
+        "title": "CodeViz: Open in Web UI"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "codeviz-explorer",
+          "title": "CodeViz",
+          "icon": "$(type-hierarchy)"
+        }
+      ]
+    },
+    "views": {
+      "codeviz-explorer": [
+        {
+          "type": "webview",
+          "id": "codeviz.graphView",
+          "name": "Graph"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CodeViz",
+      "properties": {
+        "codeviz.useWasm": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use bundled WASM instead of local codeviz binary"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "node ./out/test/runTest.js"
+  },
+  "dependencies": {
+    "codeviz": "file:../npm"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^18.x",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^3.1.0",
+    "glob": "^13.0.6",
+    "mocha": "^11.8.0",
+    "typescript": "^5.3.3"
+  }
+}

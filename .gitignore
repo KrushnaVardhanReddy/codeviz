@@ -25,3 +25,6 @@ playwright-report/
 test-results/
 node_modules/
 .codeviz_cache/
+codeviz-vscode/.vscode-test/
+codeviz-vscode/node_modules/
+codeviz-vscode/out/
