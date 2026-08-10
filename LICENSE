@@ -33,17 +33,17 @@ SOFTWARE.
 
 ---
 
-## 2. CodeViz Cloud SaaS (Business Source License 1.1)
+## 2. CodeViz Cloud SaaS (Proprietary Commercial License)
 
 **Applies to:**
 - `codeviz-web/`
 
-Copyright (c) 2026 Krushna Vardhan Reddy Pakkiragari
+Copyright (c) 2026 Krushna Vardhan Reddy Pakkiragari. All Rights Reserved.
 
-The Licensor hereby grants you the right to copy, modify, create derivative
-works, redistribute, and make non-production use of the Licensed Work. The
-Licensed Work may not be used for Production purposes, which is defined as
-operating a hosted or managed service that provides CodeViz functionality to
-third parties.
+The source code in the `codeviz-web/` directory is proprietary and confidential. 
+You are granted a limited, non-exclusive, non-transferable license to view the source code for educational and debugging purposes only.
 
-This license will convert to the MIT License on January 1, 2030 (the Change Date).
+You may NOT:
+1. Use, copy, modify, merge, publish, distribute, sublicense, or sell copies of this software.
+2. Use this software to operate a hosted or managed service that provides CodeViz functionality to third parties.
+3. Use this software for any commercial purpose without explicit written consent from the author.

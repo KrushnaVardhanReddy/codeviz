@@ -4,7 +4,7 @@
 > Parse your source code → generate a Mermaid diagram → inject it into your README. Automatically. Every commit.
 
 [![CI](https://img.shields.io/github/actions/workflow/status/krushna/codeviz/ci.yml?label=CI&style=flat-square)](.)
-[![License: Dual](https://img.shields.io/badge/License-MIT%20%7C%20BSL-blue.svg?style=flat-square)](LICENSE)
+[![License: Dual](https://img.shields.io/badge/License-MIT%20%7C%20Proprietary-blue.svg?style=flat-square)](LICENSE)
 [![WASM Ready](https://img.shields.io/badge/WASM-Ready-orange?style=flat-square)](.)
 [![MCP Server](https://img.shields.io/badge/MCP-Server-purple?style=flat-square)](.)
 
@@ -167,4 +167,4 @@ exclude = ["**/tests/**", "**/vendor/**"]
 CodeViz operates on an Open-Core model to ensure the community always has access to the parsing engine, while protecting the commercial SaaS offering:
 
 - **Core Engine & CLI** (`codeviz-core`, `codeviz-cli`, `codeviz-wasm`, `codeviz-mcp`): **MIT License**. Free forever.
-- **CodeViz Cloud SaaS** (`codeviz-web`): **Business Source License (BSL)**. You may view the source, but you may not use it to offer a competing commercial SaaS offering.
+- **CodeViz Cloud SaaS** (`codeviz-web`): **Proprietary Commercial License**. All rights reserved. You may view the source for educational purposes, but you may not host, distribute, or offer a competing commercial SaaS offering.
