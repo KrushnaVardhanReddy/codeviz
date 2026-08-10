@@ -11,6 +11,7 @@ export interface Node {
   file_path: string;
   line: number | null;
   is_public: boolean;
+  control_flow?: ControlFlowGraph;
 }
 
 export type NodeKind =
@@ -42,3 +43,46 @@ export interface GraphMeta {
   node_count: number;
   edge_count: number;
 }
+
+export interface ControlFlowGraph {
+  function_id: string;
+  blocks: CfgBlock[];
+  cfg_edges: CfgEdge[];
+}
+
+export interface CfgBlock {
+  id: string;
+  kind: CfgBlockKind;
+  label: string;
+  line: number | null;
+}
+
+export type CfgBlockKind =
+  | 'Entry'
+  | 'Exit'
+  | 'Block'
+  | 'Condition'
+  | 'LoopHeader'
+  | 'LoopBody'
+  | 'SwitchArm'
+  | 'TryBlock'
+  | 'CatchBlock'
+  | 'FinallyBlock'
+  | 'AwaitPoint'
+  | 'ThrowPoint';
+
+export interface CfgEdge {
+  from_id: string;
+  to_id: string;
+  kind: CfgEdgeKind;
+  label: string | null;
+}
+
+export type CfgEdgeKind =
+  | 'Normal'
+  | 'TrueBranch'
+  | 'FalseBranch'
+  | 'LoopBack'
+  | 'ExceptionEdge'
+  | 'FinallyEdge'
+  | 'AsyncEdge';
