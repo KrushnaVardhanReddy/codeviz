@@ -19,7 +19,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[x]` **Batch 6 (Phase 6)**: Java + Kotlin Parsers (Tasks 15, 25)
 - `[x]` **Batch 7 (Phase 7)**: Config + Universal Parser (Tasks 16, 26, 40)
 - `[x]` **Batch 8 (Phase 8)**: Critical Features (Tasks 18, 19, 21)
-- `[/]` **Batch 9 (Phase 9)**: Developer UX (Tasks 20, 22, 27)
+- `[x]` **Batch 9 (Phase 9)**: Developer UX (Tasks 20, 22, 27)
 - `[ ]` **Batch 10 (Phase 10)**: Distribution (GitHub Action + npm WASM) (Tasks 23, 24)
 
 ## Phase 11-12: Web UI & CFG
@@ -29,7 +29,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 ## Phase 13-17: Enterprise, Auth & E2E
 - `[x]` **Batch 13 (Phase 13)**: `[OSS]` Auth Core (NextAuth + GitHub/Google OAuth) (Task 33A)
 - `[x]` **Batch 13.5 (Phase 13)**: `[OSS]` Auth DB Adapter & Playwright E2E (Task 33B)
-- `[/]` **Batch 13.6 (Phase 13)**: `[OSS]` SurrealDB Migration — replace Supabase, enable real DB in E2E (Task 33C)
+- `[x]` **Batch 13.6 (Phase 13)**: `[OSS]` SurrealDB Migration — replace Supabase, enable real DB in E2E (Task 33C)
 - `[ ]` **Batch 14 (Phase 14)**: `[OSS]` Basic Teams & Workspaces (≤5 members) (Task 34)
 - `[ ]` **Batch 15 (Phase 15)**: `[ENT]` Enterprise SSO (SAML) & Audit Logs (Task 35)
 - `[ ]` **Batch 16 (Phase 16)**: `[BIZ]` Enterprise Insights — Heatmap, Blast Radius, Git History (Tasks 36-39)

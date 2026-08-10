@@ -27,15 +27,9 @@ This is the golden rule of the CodeViz repository:
 - **Jules Prompts**: `scripts/jules_prompts/` contains the task directives sent to Jules.
 
 ## 4. Current State (As of Last Session)
-We have successfully validated, resolved conflicts, and merged Batch 8, T17, and T56 into the `main` branch. 
-
-We are now currently awaiting asynchronous tasks running in Jules' cloud sandboxes for the next phase of development:
-- ⏳ **Batch 9**: Developer UX (T20 Graph Diff, T22 Watch Mode, T27 JSON/DOT Export)
-- ⏳ **Task 33C (331)**: SurrealDB Migration (Replacing Supabase)
+We have successfully validated, resolved conflicts, and merged Batch 9 (T20, T22, T27) and Task 33C (SurrealDB Migration) into the `main` branch. 
 
 **Next Steps upon resuming:**
-1. Wait for and validate Jules' PRs for T20, T22, T27, and T331.
-2. Run automated tests (`npm run test:e2e` and `cargo test`) on each branch.
-3. Resolve any merge conflicts in `codeviz-cli/src/main.rs` between T22 and T27.
-4. Merge them into `main` one by one.
-5. Trigger the next batch of tasks (e.g., Batch 10 or Batch 14).
+1. Check `docs/tracker.md` for the next batch of tasks.
+2. Draft specs for the next tasks (e.g., Batch 10 for Distribution, Batch 14 for Teams & Workspaces, or T48 MCP Tool) and ingest them into the LLM Wiki.
+3. Update Jules' prompts and trigger execution for the new tasks using `python3 scripts/jules_submit.py`.
