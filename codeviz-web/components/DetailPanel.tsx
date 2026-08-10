@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import CFGViewer from './CFGViewer';
+import CfgPanel from './CfgPanel';
 
 interface DetailPanelProps {
   node: any | null;
@@ -15,7 +15,12 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ node, onClose, edges }) => {
     ? edges.filter((e) => e.source === node.id || e.target === node.id)
     : [];
 
-  // Adding the data-testid attrs that were lost when the file state was seemingly overwritten or my previous edit didn't stick
+  const kindStr = node?.data?.kind ? (typeof node.data.kind === 'string' ? node.data.kind : 'Function') : node?.type || 'Unknown';
+  const isFunction = kindStr === 'Function' || kindStr === 'Async Fn' || (typeof node?.data?.kind === 'object' && 'Function' in node.data.kind);
+
+  // Extract control_flow from node or node.data
+  const controlFlow = node?.control_flow || node?.data?.control_flow;
+
   return (
     <div
       data-testid="detail-panel"
@@ -31,7 +36,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ node, onClose, edges }) => {
                 {typeof node.data?.label === 'string' ? node.data?.label : (node.data?.label?.props?.children || node.id)}
               </h2>
               <span className="text-sm text-slate-400">
-                Kind: {node.data?.kind ? (typeof node.data.kind === 'string' ? node.data.kind : 'Function') : node.type || 'Unknown'}
+                Kind: {kindStr}
               </span>
             </div>
             <button
@@ -50,10 +55,12 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ node, onClose, edges }) => {
             </pre>
           </div>
 
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-slate-300 mb-2">Control Flow Graph</h3>
-            <CFGViewer sourceSnippet={node.data?.sourceSnippet} />
-          </div>
+          {isFunction && (
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-slate-300 mb-2">Control Flow Graph</h3>
+              <CfgPanel controlFlow={controlFlow} />
+            </div>
+          )}
 
           <div>
             <h3 className="text-sm font-semibold text-slate-300 mb-2">Connected Edges</h3>
