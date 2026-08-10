@@ -10,6 +10,7 @@ pub mod cache;
 pub mod graph;
 pub mod ir;
 pub mod parser;
+pub mod path_utils;
 pub mod render;
 
 pub use cache::*;

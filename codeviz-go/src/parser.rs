@@ -1,5 +1,6 @@
 use codeviz_core::ir::{CodeGraph, Edge, EdgeKind, GraphMeta, Node, NodeKind};
 use codeviz_core::parser::{LanguageParser, ParseError};
+use codeviz_core::path_utils::normalize_path;
 use std::path::Path;
 use tree_sitter::{Node as TsNode, Parser, Tree};
 use tree_sitter_go::language;
@@ -147,12 +148,12 @@ impl GoParser {
                                 _ => continue, // We only care about structs and interfaces based on the spec
                             };
 
-                            let id = format!("{}::{}", file_path, name);
+                            let id = format!("{}::{}", normalize_path(file_path), name);
                             graph.nodes.push(Node {
                                 id: id.clone(),
                                 label: name.to_string(),
                                 kind: kind.clone(),
-                                file_path: file_path.to_string(),
+                                file_path: normalize_path(file_path),
                                 line: Some(name_node.start_position().row as u32 + 1),
                                 is_public: name
                                     .chars()
@@ -185,7 +186,8 @@ impl GoParser {
                                                                 from_id: id.clone(),
                                                                 to_id: format!(
                                                                     "{}::{}",
-                                                                    file_path, embedded_name
+                                                                    normalize_path(file_path),
+                                                                    embedded_name
                                                                 ),
                                                                 kind: EdgeKind::Inherits,
                                                             });
@@ -214,7 +216,7 @@ impl GoParser {
     ) -> Result<(), ParseError> {
         if let Some(name_node) = node.child_by_field_name("name") {
             if let Ok(name) = name_node.utf8_text(source_bytes) {
-                let id = format!("{}::{}", file_path, name);
+                let id = format!("{}::{}", normalize_path(file_path), name);
                 let is_public = name == "main"
                     || name
                         .chars()
@@ -226,7 +228,7 @@ impl GoParser {
                     id,
                     label: name.to_string(),
                     kind: NodeKind::Function { is_async: false },
-                    file_path: file_path.to_string(),
+                    file_path: normalize_path(file_path),
                     line: Some(name_node.start_position().row as u32 + 1),
                     is_public,
                 });
@@ -271,9 +273,10 @@ impl GoParser {
                 }
 
                 let id = if receiver_name.is_empty() {
-                    format!("{}::{}", file_path, name)
+                    format!("{}::{}", normalize_path(file_path), name)
                 } else {
-                    format!("{}::{}::{}", file_path, receiver_name, name) // or just use name for label
+                    format!("{}::{}::{}", normalize_path(file_path), receiver_name, name)
+                    // or just use name for label
                 };
 
                 let is_public = name
@@ -286,7 +289,7 @@ impl GoParser {
                     id,
                     label: name.to_string(),
                     kind: NodeKind::Function { is_async: false },
-                    file_path: file_path.to_string(),
+                    file_path: normalize_path(file_path),
                     line: Some(name_node.start_position().row as u32 + 1),
                     is_public,
                 });
@@ -366,14 +369,14 @@ impl LanguageParser for GoParser {
 
         // Add the file node itself as the "module" node for this file
         graph.nodes.push(Node {
-            id: file_path.to_string(),
-            label: file_path
+            id: normalize_path(file_path),
+            label: normalize_path(file_path)
                 .split('/')
                 .next_back()
                 .unwrap_or(file_path)
                 .to_string(),
             kind: NodeKind::File,
-            file_path: file_path.to_string(),
+            file_path: normalize_path(file_path),
             line: None,
             is_public: true,
         });

@@ -61,16 +61,17 @@ impl LanguageRegistry {
     /// Dispatches parsing to the appropriate parser based on the file path's extension.
     /// Returns a `ParseError` if no suitable parser is found.
     pub fn parse_file(&self, file_path: &str, source: &str) -> Result<CodeGraph, ParseError> {
-        let extension = std::path::Path::new(file_path)
+        let normalized_path = crate::path_utils::normalize_path(file_path);
+        let extension = std::path::Path::new(&normalized_path)
             .extension()
             .and_then(|ext| ext.to_str())
             .unwrap_or("");
 
         match self.find_parser(extension) {
-            Some(parser) => parser.parse(source, file_path),
+            Some(parser) => parser.parse(source, &normalized_path),
             None => Err(ParseError {
                 message: format!("No parser for extension: {}", extension),
-                file_path: file_path.to_string(),
+                file_path: normalized_path,
                 line: None,
             }),
         }
@@ -81,6 +82,18 @@ impl LanguageRegistry {
 mod tests {
     use super::*;
     use crate::ir::{GraphMeta, Node, NodeKind};
+
+    #[test]
+    fn test_node_ids_use_forward_slashes() {
+        // Simulate a Windows-style path being passed to the parser
+        let file_path = "src\\lib\\utils.py";
+        let normalized = crate::path_utils::normalize_path(file_path);
+        assert!(
+            !normalized.contains('\\'),
+            "Node paths must not contain backslashes"
+        );
+        assert_eq!(normalized, "src/lib/utils.py");
+    }
 
     struct MockParser {
         name: &'static str,
@@ -161,5 +174,23 @@ mod tests {
 
         let graph = registry.parse_file("script.js", "source").unwrap();
         assert_eq!(graph.meta.language, "new_js");
+    }
+
+    #[test]
+    fn test_integration_path_normalization() {
+        let mut registry = LanguageRegistry::new();
+        registry.register(Box::new(MockParser {
+            name: "python",
+            extensions: vec!["py"],
+        }));
+
+        // Pass a Windows path
+        let graph = registry
+            .parse_file("src\\auth\\middleware.py", "source")
+            .unwrap();
+
+        // Assert the node file_path is normalized
+        assert_eq!(graph.nodes[0].file_path, "src/auth/middleware.py");
+        assert_eq!(graph.nodes[0].id, "src/auth/middleware.py::mock");
     }
 }

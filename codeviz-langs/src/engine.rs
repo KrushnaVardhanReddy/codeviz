@@ -2,6 +2,7 @@ use crate::config::LangConfig;
 use crate::grammar_map::get_language;
 use codeviz_core::ir::{CodeGraph, Edge, EdgeKind, GraphMeta, Node, NodeKind};
 use codeviz_core::parser::{LanguageParser, ParseError};
+use codeviz_core::path_utils::normalize_path;
 use tree_sitter::{Parser, Query, QueryCursor};
 
 /// Generic Parser that executes tree-sitter queries defined in a `LangConfig`
@@ -92,14 +93,14 @@ impl LanguageParser for GenericParser {
 
         // Add the file node
         graph.nodes.push(Node {
-            id: file_path.to_string(),
-            label: std::path::Path::new(file_path)
+            id: normalize_path(file_path),
+            label: std::path::Path::new(&normalize_path(file_path))
                 .file_name()
                 .unwrap_or_default()
                 .to_string_lossy()
                 .into_owned(),
             kind: NodeKind::File,
-            file_path: file_path.to_string(),
+            file_path: normalize_path(file_path),
             line: Some(1),
             is_public: true,
         });
@@ -137,10 +138,10 @@ impl LanguageParser for GenericParser {
 
                     if let Some(name) = name_val {
                         graph.nodes.push(Node {
-                            id: format!("{}::{}", file_path, name),
+                            id: format!("{}::{}", normalize_path(file_path), name),
                             label: name,
                             kind: NodeKind::Function { is_async: false },
-                            file_path: file_path.to_string(),
+                            file_path: normalize_path(file_path),
                             line: line_val,
                             is_public: true,
                         });
@@ -181,10 +182,10 @@ impl LanguageParser for GenericParser {
 
                     if let Some(name) = name_val {
                         graph.nodes.push(Node {
-                            id: format!("{}::{}", file_path, name),
+                            id: format!("{}::{}", normalize_path(file_path), name),
                             label: name,
                             kind: NodeKind::Class,
-                            file_path: file_path.to_string(),
+                            file_path: normalize_path(file_path),
                             line: line_val,
                             is_public: true,
                         });

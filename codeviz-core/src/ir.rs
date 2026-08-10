@@ -14,7 +14,6 @@ pub struct CodeGraph {
     pub meta: GraphMeta,
 }
 
-
 /// Statistics for a CodeGraph.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GraphStats {
@@ -70,8 +69,12 @@ impl CodeGraph {
             }
         }
 
-        let mut entry_point_labels: Vec<String> = self.nodes.iter()
-            .filter(|n| matches!(n.kind, NodeKind::Function { .. }) && !has_incoming_calls.contains(&n.id))
+        let mut entry_point_labels: Vec<String> = self
+            .nodes
+            .iter()
+            .filter(|n| {
+                matches!(n.kind, NodeKind::Function { .. }) && !has_incoming_calls.contains(&n.id)
+            })
             .map(|n| n.label.clone())
             .collect();
 
@@ -180,7 +183,16 @@ impl CodeGraph {
         for node in &self.nodes {
             let id = &node.id;
             if !indices.contains_key(id) {
-                strongconnect(id, &mut index, &mut indices, &mut lowlinks, &mut on_stack, &mut stack, &adj, &mut scc_count);
+                strongconnect(
+                    id,
+                    &mut index,
+                    &mut indices,
+                    &mut lowlinks,
+                    &mut on_stack,
+                    &mut stack,
+                    &adj,
+                    &mut scc_count,
+                );
             }
         }
 
@@ -195,8 +207,11 @@ Most-imported modules: {}.",
         );
 
         if scc_count > 0 {
-            summary.push_str(&format!("
-⚠️ {} circular dependencies detected.", scc_count));
+            summary.push_str(&format!(
+                "
+⚠️ {} circular dependencies detected.",
+                scc_count
+            ));
         }
 
         let stats = GraphStats {
@@ -291,7 +306,6 @@ pub struct GraphMeta {
     pub edge_count: usize,
 }
 
-
 /// A control flow graph for a single function.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ControlFlowGraph {
@@ -377,7 +391,6 @@ pub enum CfgEdgeKind {
     AsyncEdge,
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -447,4 +460,3 @@ mod tests {
         assert!(summary.contains("2 symbols across 2 files."));
     }
 }
-

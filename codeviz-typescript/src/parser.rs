@@ -2,6 +2,7 @@
 
 use codeviz_core::ir::{CodeGraph, Edge, EdgeKind, GraphMeta, Node, NodeKind};
 use codeviz_core::parser::{LanguageParser, ParseError};
+use codeviz_core::path_utils::normalize_path;
 use tree_sitter::{Node as TsNode, Parser, Tree};
 
 /// A parser for the TypeScript and JavaScript programming languages using tree-sitter.
@@ -94,7 +95,7 @@ impl LanguageParser for TypeScriptParser {
                     "anonymous".to_string()
                 };
 
-                let func_id = format!("{}::{}", file_path, name);
+                let func_id = format!("{}::{}", normalize_path(file_path), name);
                 if let Ok(cfg) = crate::cfg::build_cfg(node, source_bytes, &func_id) {
                     cfgs.push(cfg);
                 }
@@ -263,13 +264,13 @@ impl TypeScriptParser {
         let name_node = node.child_by_field_name("name");
         if let Some(name_node) = name_node {
             if let Ok(name) = name_node.utf8_text(source_bytes) {
-                let id = format!("{}::{}", file_path, name);
+                let id = format!("{}::{}", normalize_path(file_path), name);
 
                 graph.nodes.push(Node {
                     id: id.clone(),
                     label: name.to_string(),
                     kind: NodeKind::Class,
-                    file_path: file_path.to_string(),
+                    file_path: normalize_path(file_path),
                     line: Some(node.start_position().row as u32 + 1),
                     is_public: false, // Updated by export extraction later
                 });
@@ -291,7 +292,11 @@ impl TypeScriptParser {
                                         if let Ok(base_class) = ext_child.utf8_text(source_bytes) {
                                             graph.edges.push(Edge {
                                                 from_id: id.clone(),
-                                                to_id: format!("{}::{}", file_path, base_class),
+                                                to_id: format!(
+                                                    "{}::{}",
+                                                    normalize_path(file_path),
+                                                    base_class
+                                                ),
                                                 kind: EdgeKind::Inherits,
                                             });
                                         }
@@ -316,13 +321,13 @@ impl TypeScriptParser {
         let name_node = node.child_by_field_name("name");
         if let Some(name_node) = name_node {
             if let Ok(name) = name_node.utf8_text(source_bytes) {
-                let id = format!("{}::{}", file_path, name);
+                let id = format!("{}::{}", normalize_path(file_path), name);
 
                 graph.nodes.push(Node {
                     id: id.clone(),
                     label: name.to_string(),
                     kind: NodeKind::Interface,
-                    file_path: file_path.to_string(),
+                    file_path: normalize_path(file_path),
                     line: Some(node.start_position().row as u32 + 1),
                     is_public: false, // Updated by export extraction later
                 });
@@ -341,7 +346,11 @@ impl TypeScriptParser {
                                 if let Ok(base_class) = ext_child.utf8_text(source_bytes) {
                                     graph.edges.push(Edge {
                                         from_id: id.clone(),
-                                        to_id: format!("{}::{}", file_path, base_class),
+                                        to_id: format!(
+                                            "{}::{}",
+                                            normalize_path(file_path),
+                                            base_class
+                                        ),
                                         kind: EdgeKind::Inherits,
                                     });
                                 }
@@ -408,12 +417,12 @@ impl TypeScriptParser {
             }
         }
 
-        let id = format!("{}::{}", file_path, name);
+        let id = format!("{}::{}", normalize_path(file_path), name);
         graph.nodes.push(Node {
             id,
             label: name,
             kind: NodeKind::Function { is_async },
-            file_path: file_path.to_string(),
+            file_path: normalize_path(file_path),
             line: Some(node.start_position().row as u32 + 1),
             is_public: false, // Updated later
         });
@@ -496,7 +505,7 @@ impl TypeScriptParser {
             if let Some(val) = value {
                 if val.kind() == "identifier" {
                     if let Ok(name) = val.utf8_text(source_bytes) {
-                        let target_id = format!("{}::{}", file_path, name);
+                        let target_id = format!("{}::{}", normalize_path(file_path), name);
                         for g_node in graph.nodes.iter_mut() {
                             if g_node.id == target_id {
                                 g_node.is_public = true;
