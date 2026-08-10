@@ -382,7 +382,6 @@ impl LanguageParser for RustLangParser {
             });
         }
 
-
         let mut graph = CodeGraph::new(GraphMeta {
             language: self.language_name().to_string(),
             source_root: "".to_string(), // Caller should modify this later if needed
