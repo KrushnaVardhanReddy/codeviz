@@ -30,7 +30,10 @@ fn test_watch_mode_debounce_and_error_handling() {
 
     // 1. Debounce logic: multiple writes
     for _ in 0..5 {
-        let mut file = std::fs::OpenOptions::new().append(true).open(&file_path).unwrap();
+        let mut file = std::fs::OpenOptions::new()
+            .append(true)
+            .open(&file_path)
+            .unwrap();
         writeln!(file, "// some change").unwrap();
         std::thread::sleep(Duration::from_millis(10));
     }
@@ -56,11 +59,25 @@ fn test_watch_mode_debounce_and_error_handling() {
     // Verify debounce: there should not be 5 updates for the rapid file changes.
     // The total updates should be 1 (initial) + 1 (debounced 5 saves) + 1 (bad file) = 3 or so.
     let update_count = stdout.matches("✅ Diagram updated").count();
-    assert!(update_count <= 4, "Expected few updates due to debounce, got {}", update_count);
+    assert!(
+        update_count <= 4,
+        "Expected few updates due to debounce, got {}",
+        update_count
+    );
 
     // Verify format
-    assert!(predicate::str::is_match(r"\[\d{2}:\d{2}:\d{2}\] ✅ Diagram updated — \d+ nodes, \d+ edges").unwrap().eval(&stdout));
+    assert!(
+        predicate::str::is_match(
+            r"\[\d{2}:\d{2}:\d{2}\] ✅ Diagram updated — \d+ nodes, \d+ edges"
+        )
+        .unwrap()
+        .eval(&stdout)
+    );
 
     // Verify parse error format
-    assert!(predicate::str::is_match(r"\[\d{2}:\d{2}:\d{2}\] ❌ Parse error in .*bad\.rs.* —").unwrap().eval(&stdout));
+    assert!(
+        predicate::str::is_match(r"\[\d{2}:\d{2}:\d{2}\] ❌ Parse error in .*bad\.rs.* —")
+            .unwrap()
+            .eval(&stdout)
+    );
 }
