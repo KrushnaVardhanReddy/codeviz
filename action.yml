@@ -1,0 +1,40 @@
+name: 'CodeViz'
+description: 'Auto-generate architecture diagrams from source code'
+inputs:
+  path:
+    description: 'Source directory to scan'
+    default: '.'
+  output:
+    description: 'Markdown file to update'
+    default: 'README.md'
+  diagram:
+    description: 'Diagram type: module | call | class'
+    default: 'module'
+  commit:
+    description: 'Commit updated diagram automatically (true/false)'
+    default: 'true'
+runs:
+  using: 'composite'
+  steps:
+    - name: Download codeviz binary
+      shell: bash
+      run: |
+        LATEST=$(curl -s https://api.github.com/repos/KrushnaVardhanReddy/codeviz/releases/latest | jq -r '.tag_name')
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          curl -L "https://github.com/KrushnaVardhanReddy/codeviz/releases/download/$LATEST/codeviz-macos" -o /usr/local/bin/codeviz
+        else
+          sudo curl -L "https://github.com/KrushnaVardhanReddy/codeviz/releases/download/$LATEST/codeviz-linux" -o /usr/local/bin/codeviz
+        fi
+        sudo chmod +x /usr/local/bin/codeviz
+    - name: Run codeviz
+      shell: bash
+      run: codeviz run --path "${{ inputs.path }}" --output "${{ inputs.output }}" --diagram "${{ inputs.diagram }}"
+    - name: Commit updated diagram
+      if: inputs.commit == 'true'
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add "${{ inputs.output }}"
+        git diff --staged --quiet || git commit -m "docs: update architecture diagram [skip ci]"
+        git push
