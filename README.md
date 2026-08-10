@@ -129,9 +129,9 @@ CodeViz adds languages incrementally, prioritizing depth of support over breadth
 | **V0.1** | Python 🐍 | ✅ Done | Imports, classes, async functions |
 | **V0.2** | TypeScript / JavaScript 🟦 | ✅ Done | ESM + CJS, interfaces, arrow functions + WASM build |
 | **V0.3** | MCP Server 🤖 | ✅ Done | 6 graph query tools over stdio JSON-RPC |
-| **V0.4** | Go 🐹 & Rust 🦀 | 📋 Planned | Imports, struct embedding, traits, crate graph |
-| **V0.5** | Java / Kotlin ☕ | 📋 Planned | Enterprise codebases, annotations |
-| **V1.0** | Universal Parser 🌐 | 📋 Planned | Query-Based parsing via TOML files for 40+ languages |
+| **V0.4** | Go 🐹 & Rust 🦀 | ✅ Done | Imports, struct embedding, traits, crate graph |
+| **V0.5** | Java / Kotlin ☕ | ✅ Done | Enterprise codebases, annotations |
+| **V1.0** | Universal Parser 🌐 | ✅ Done | Query-Based parsing via TOML files for 40+ languages |
 | **V2.0** | Advanced Code Analysis 🧠 | 📋 Planned | Circular Deps, Unused Modules, PageRank, Health Scores |
 
 Each language phase ships with: a test suite against real-world repos, documented edge cases, and a changelog entry.
@@ -174,22 +174,27 @@ enabled = ["python", "typescript"]
 
 ---
 
-## Development Roadmap
+## Product Roadmap
 
-- [x] Project definition & architecture design
-- [x] Initialize Rust workspace (`codeviz-core`, `codeviz-cli`, `codeviz-wasm`, `codeviz-mcp`)
-- [x] Define `CodeGraph` IR structs (Nodes, Edges, Metadata)
-- [x] Define `LanguageParser` trait (interface all language adapters implement)
-- [x] Build Mermaid renderer from `CodeGraph`
-- [x] Implement safe Markdown injection (sentinel-tag based)
-- [x] **V0.1:** Python parser (Tree-sitter) — imports + classes
-- [x] Set up GitHub Actions CI + binary releases
-- [x] **V0.2:** TypeScript/JavaScript parser + `wasm-pack` WASM build pipeline
-- [x] **V0.3:** MCP server adapter — 6 core graph query tools (stdio JSON-RPC)
-- [ ] **V0.4:** Go and Rust parsers
-- [ ] **V0.5:** Java and Kotlin parsers
-- [ ] **V1.0:** Universal TOML-based parser (Ruby, PHP, Swift, C#, Dart, Lua)
-- [ ] **V2.0:** Advanced Analysis (Circular Dependencies, Unused Modules, PageRank, Code Health Score)
+We are currently building out the CodeViz SaaS application (Next.js + SurrealDB) and expanding our ecosystem.
+
+### MVP v1 — "Make It Viral" (Core OSS)
+- [x] **Core Parsers**: Python, TS, Go, Rust, Java, Kotlin.
+- [x] **Interactive Code Playground**: Live WASM parser sandbox on the web UI.
+- [x] **SurrealDB Backend**: Real-time graph storage and authentication.
+- [ ] **VS Code Extension**: Sidebar graph panel, status bar, auto-refresh on save.
+- [ ] **MCP Debugging Tools**: `summarize_architecture`, `trace_call_path`, etc.
+- [ ] **Interactive Call Path Explorer**: Animated BFS graph traversal in the Web UI.
+
+### MVP v2 — "Make It Sticky" (Team Features)
+- [ ] **Architecture Drift Alerts**: PR comments + Slack when architecture regresses.
+- [ ] **"Onboard Me"**: Auto-generated architecture walkthrough documents.
+- [ ] **Team Workspaces**: RBAC and multi-user graph sharing.
+
+### MVP v3 — "Make It Pay" (Enterprise Features)
+- [ ] **OpenTelemetry Trace Overlay**: Import OTEL traces to see live execution paths.
+- [ ] **Multi-Repo Cross-Service Graph**: Visualize microservice dependencies.
+- [ ] **SBOM Export (CycloneDX / SPDX)**: Compliance requirement for regulated industries.
 
 ---
 
