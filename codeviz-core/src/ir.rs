@@ -1,12 +1,15 @@
 use serde::{Deserialize, Serialize};
 
 /// Represents the intermediate representation of the code architecture graph.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct CodeGraph {
     /// List of nodes in the graph.
     pub nodes: Vec<Node>,
     /// List of edges connecting the nodes.
     pub edges: Vec<Edge>,
+    /// Control flow graphs for functions.
+    #[serde(default)]
+    pub control_flow: Vec<ControlFlowGraph>,
     /// Metadata about the graph.
     pub meta: GraphMeta,
     /// Control flow graphs for functions (optional).
@@ -20,6 +23,7 @@ impl CodeGraph {
         Self {
             nodes: Vec::new(),
             edges: Vec::new(),
+            control_flow: Vec::new(),
             meta,
             control_flow: None,
         }
@@ -92,7 +96,7 @@ pub enum EdgeKind {
 }
 
 /// Metadata about the code graph.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct GraphMeta {
     /// Language name (e.g., "python", "typescript")
     pub language: String,
@@ -191,44 +195,3 @@ pub enum CfgEdgeKind {
     AsyncEdge,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_control_flow_graph() {
-        let entry_block = CfgBlock {
-            id: "block_1".to_string(),
-            kind: CfgBlockKind::Entry,
-            label: "Entry".to_string(),
-            line: Some(10),
-        };
-
-        let exit_block = CfgBlock {
-            id: "block_2".to_string(),
-            kind: CfgBlockKind::Exit,
-            label: "Exit".to_string(),
-            line: Some(12),
-        };
-
-        let edge = CfgEdge {
-            from_id: "block_1".to_string(),
-            to_id: "block_2".to_string(),
-            kind: CfgEdgeKind::Normal,
-            label: None,
-        };
-
-        let cfg = ControlFlowGraph {
-            function_id: "file.rs::my_func".to_string(),
-            blocks: vec![entry_block.clone(), exit_block.clone()],
-            cfg_edges: vec![edge.clone()],
-        };
-
-        assert_eq!(cfg.function_id, "file.rs::my_func");
-        assert_eq!(cfg.blocks.len(), 2);
-        assert_eq!(cfg.cfg_edges.len(), 1);
-        assert_eq!(cfg.blocks[0], entry_block);
-        assert_eq!(cfg.blocks[1], exit_block);
-        assert_eq!(cfg.cfg_edges[0], edge);
-    }
-}

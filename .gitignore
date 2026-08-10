@@ -24,3 +24,4 @@ docs/specs/saas/competitive_analysis.md
 playwright-report/
 test-results/
 node_modules/
+.codeviz_cache/

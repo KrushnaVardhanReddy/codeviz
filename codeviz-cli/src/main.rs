@@ -531,7 +531,9 @@ pub fn parse_export_args(args: &[String]) -> Result<ExportArgs, String> {
                 if i + 1 < args.len() {
                     let val = args[i + 1].clone();
                     if val.to_lowercase() == "json" || val.to_lowercase() == "dot" {
-                        export_args.format = val.parse().map_err(|_| format!("Failed to parse format: {}", val))?;
+                        export_args.format = val
+                            .parse()
+                            .map_err(|_| format!("Failed to parse format: {}", val))?;
                     } else {
                         return Err(format!("Unsupported export format: {}", val));
                     }
@@ -562,9 +564,15 @@ pub fn print_help() {
     println!("codeviz --help");
     println!("Usage: codeviz <COMMAND> [OPTIONS]");
     println!("Commands:");
-    println!("  run          Parses source code and injects an updated diagram into a markdown file.");
-    println!("  watch        Watches source directory and automatically re-runs parse on file save.");
-    println!("  check        Checks if the generated diagram matches the output file without modifying it.");
+    println!(
+        "  run          Parses source code and injects an updated diagram into a markdown file."
+    );
+    println!(
+        "  watch        Watches source directory and automatically re-runs parse on file save."
+    );
+    println!(
+        "  check        Checks if the generated diagram matches the output file without modifying it."
+    );
     println!("  serve        Starts the MCP tool server.");
     println!("  install-hook Installs the pre-commit hook and markdown sentinel tags.");
     println!("  cache clear  Clears the incremental cache.");
@@ -577,9 +585,9 @@ use codeviz_core::{CodeGraph, GraphMeta, LanguageRegistry, inject_mermaid};
 use codeviz_go::GoParser;
 use codeviz_java::JavaParser;
 use codeviz_kotlin::KotlinParser;
-use codeviz_python::PythonParser;
+use codeviz_python::parser::PythonParser;
 use codeviz_rust::RustLangParser;
-use codeviz_typescript::TypeScriptParser;
+use codeviz_typescript::parser::TypeScriptParser;
 use std::path::{Path, PathBuf};
 
 /// Prunes a CodeGraph up to the specified max depth using BFS.
@@ -800,7 +808,6 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         }
     }
 
-
     if args.len() > 1 && args[1] == "watch" {
         let run_args = parse_run_args(&args[2..])?;
         return run_watch(&run_args);
@@ -813,8 +820,6 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         let (success, _, _) = run_core(&run_args, is_check, false)?;
         return Ok(success);
     }
-
-
 
     // Default error for unknown subcommands
     Err("Unknown command or options. Try --help".to_string())
@@ -831,12 +836,10 @@ fn main() -> Result<(), String> {
     }
 }
 
+use chrono::Local;
+use notify::{RecursiveMode, Watcher};
 use std::sync::mpsc::channel;
 use std::time::Duration;
-use notify::{Watcher, RecursiveMode};
-use chrono::Local;
-
-
 
 /// Runs the `watch` command, recursively monitoring the target path for file modifications and automatically updating diagrams.
 pub fn run_watch(run_args: &RunArgs) -> Result<bool, String> {
@@ -847,8 +850,8 @@ pub fn run_watch(run_args: &RunArgs) -> Result<bool, String> {
     }
 
     let (tx, rx) = channel();
-    let mut watcher = notify::recommended_watcher(tx)
-        .map_err(|e| format!("Failed to create watcher: {}", e))?;
+    let mut watcher =
+        notify::recommended_watcher(tx).map_err(|e| format!("Failed to create watcher: {}", e))?;
 
     watcher
         .watch(Path::new(&run_args.path), RecursiveMode::Recursive)
@@ -903,13 +906,19 @@ pub fn run_watch(run_args: &RunArgs) -> Result<bool, String> {
                     let now = Local::now().format("%H:%M:%S").to_string();
                     match run_core(run_args, false, true) {
                         Ok((_, result, errors)) => {
-                            println!("[{}] ✅ Diagram updated — {} nodes, {} edges", now, result.nodes, result.edges);
+                            println!(
+                                "[{}] ✅ Diagram updated — {} nodes, {} edges",
+                                now, result.nodes, result.edges
+                            );
                             for err in errors {
                                 let line_str = match err.line {
                                     Some(l) => format!(":{}", l),
                                     None => "".to_string(),
                                 };
-                                println!("[{}] ❌ Parse error in {}{} — {}", now, err.file_path, line_str, err.message);
+                                println!(
+                                    "[{}] ❌ Parse error in {}{} — {}",
+                                    now, err.file_path, line_str, err.message
+                                );
                             }
                         }
                         Err(e) => {
@@ -926,8 +935,6 @@ pub fn run_watch(run_args: &RunArgs) -> Result<bool, String> {
 
     Ok(true)
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -990,10 +997,7 @@ mod tests {
         assert!(dot_content.starts_with("digraph codeviz {"));
 
         // Only run dot compilation test if dot is installed
-        if let Ok(_cmd) = std::process::Command::new("dot")
-            .arg("-V")
-            .output()
-        {
+        if let Ok(_cmd) = std::process::Command::new("dot").arg("-V").output() {
             let mut child = std::process::Command::new("dot")
                 .arg("-Tsvg")
                 .stdin(std::process::Stdio::piped())
@@ -1491,8 +1495,6 @@ diagram_type = "module"
     }
 }
 
-
-
 /// Contains the results of a successful graph generation run.
 pub struct RunResult {
     /// Number of files successfully parsed.
@@ -1596,17 +1598,13 @@ pub fn run_core(
         if let Some(ext) = file.extension().and_then(|e| e.to_str())
             && registry.find_parser(ext).is_some()
         {
-            if cache_enabled
-                && let Some(entry) = manager.get(&file)
-            {
+            if cache_enabled && let Some(entry) = manager.get(&file) {
                 merged_graph.nodes.extend(entry.nodes);
                 merged_graph.edges.extend(entry.edges);
                 continue;
             }
 
-
             if let Ok(source) = std::fs::read_to_string(&file) {
-
                 match registry.parse_file(&file.to_string_lossy(), &source) {
                     Ok(graph) => {
                         merged_graph.nodes.extend(graph.nodes.clone());
@@ -1711,7 +1709,6 @@ pub fn run_core(
                 };
 
                 if is_check {
-
                     // Actually, watch mode doesn't do `check`. So quiet is only for watch.
                     match check_diagram_up_to_date(&target.file, &markdown, &mermaid_diagram) {
                         Ok(true) => {}
