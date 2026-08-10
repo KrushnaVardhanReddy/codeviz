@@ -41,7 +41,7 @@ fn test_mcp_integration() {
     assert_eq!(res_list["id"], 1);
 
     let tools = res_list["result"]["tools"].as_array().unwrap();
-    assert_eq!(tools.len(), 6);
+    assert_eq!(tools.len(), 7);
 
     let required_tools = vec![
         "get_module_graph",

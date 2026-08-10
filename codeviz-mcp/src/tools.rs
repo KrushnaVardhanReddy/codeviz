@@ -148,9 +148,18 @@ pub fn list_tools() -> Vec<ToolDefinition> {
         },
         ToolDefinition {
             name: "find_entry_points".to_string(),
-            description:
-                "Returns all nodes with no incoming Calls edges (i.e., nothing calls them)."
-                    .to_string(),
+            description: "Returns all entry point nodes (functions with no incoming calls).".to_string(),
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "path": { "type": "string" }
+                },
+                "required": ["path"]
+            }),
+        },
+        ToolDefinition {
+            name: "summarize_architecture".to_string(),
+            description: "Returns a human-readable narrative summary of a codebase from its CodeGraph.".to_string(),
             input_schema: json!({
                 "type": "object",
                 "properties": {
@@ -354,6 +363,33 @@ pub fn handle_find_entry_points(
 
     Ok(json!({
         "nodes": entry_points
+    }))
+}
+
+/// Handles the `summarize_architecture` tool.
+pub fn handle_summarize_architecture(
+    params: Value,
+    registry: &LanguageRegistry,
+) -> Result<Value, JsonRpcError> {
+    let path = params
+        .get("path")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
+
+    let graph = build_graph_from_path(path, registry)?;
+
+    let (summary, stats) = graph.summarize();
+
+    Ok(json!({
+        "summary": summary,
+        "stats": {
+            "total_nodes": stats.total_nodes,
+            "total_edges": stats.total_edges,
+            "languages": stats.languages,
+            "entry_points": stats.entry_points,
+            "top_modules": stats.top_modules,
+            "circular_dep_count": stats.circular_dep_count
+        }
     }))
 }
 
@@ -594,7 +630,7 @@ mod tests {
     #[test]
     fn test_list_tools() {
         let tools = list_tools();
-        assert_eq!(tools.len(), 6);
+        assert_eq!(tools.len(), 7);
         assert!(tools.iter().any(|t| t.name == "get_module_graph"));
     }
 
@@ -652,5 +688,30 @@ mod tests {
         let nodes = res.get("nodes").unwrap().as_array().unwrap();
         assert_eq!(nodes.len(), 1);
         assert_eq!(nodes[0].get("label").unwrap().as_str().unwrap(), "A");
+    }
+
+    #[test]
+    fn test_handle_summarize_architecture() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.dummy");
+        fs::write(&file_path, "dummy code").unwrap();
+
+        let reg = setup_registry();
+
+        let params = json!({
+            "path": dir.path().to_str().unwrap()
+        });
+
+        let res = handle_summarize_architecture(params, &reg).unwrap();
+        let summary = res.get("summary").unwrap().as_str().unwrap();
+        let stats = res.get("stats").unwrap().as_object().unwrap();
+
+        assert_eq!(stats.get("total_nodes").unwrap().as_u64().unwrap(), 2);
+        assert_eq!(stats.get("total_edges").unwrap().as_u64().unwrap(), 1);
+
+        let languages = stats.get("languages").unwrap().as_array().unwrap();
+        assert_eq!(languages[0].as_str().unwrap(), "mixed"); // because build_graph_from_path hardcodes meta language to "mixed"
+
+        assert!(summary.contains("mixed codebase"));
     }
 }

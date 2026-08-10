@@ -47,7 +47,7 @@ fn test_tools_list() {
     assert!(res.result.is_some());
     let result = res.result.unwrap();
     let tools = result.get("tools").unwrap().as_array().unwrap();
-    assert_eq!(tools.len(), 6);
+    assert_eq!(tools.len(), 7);
 }
 
 #[test]

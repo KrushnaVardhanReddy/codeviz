@@ -82,6 +82,7 @@ pub fn handle_request(req: JsonRpcRequest, registry: &LanguageRegistry) -> JsonR
                 "get_class_hierarchy" => handle_get_class_hierarchy(tool_args, registry),
                 "find_entry_points" => handle_find_entry_points(tool_args, registry),
                 "explain_path" => handle_explain_path(tool_args, registry),
+                "summarize_architecture" => handle_summarize_architecture(tool_args, registry),
                 _ => return error_response(id, JsonRpcError::method_not_found(tool_name)),
             };
 
