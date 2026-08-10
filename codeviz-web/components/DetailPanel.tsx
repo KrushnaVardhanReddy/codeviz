@@ -12,12 +12,7 @@ interface DetailPanelProps {
 const DetailPanel: React.FC<DetailPanelProps> = ({ node, onClose, edges, onTraceStart }) => {
   const isOpen = node !== null;
 
-  // Determine if node is a Function
-  const isFunction = node && (
-    (typeof node.data?.kind === 'object' && node.data?.kind !== null && 'Function' in node.data.kind) ||
-    node.data?.kind === 'Function' ||
-    node.type === 'Function'
-  );
+
 
   const connectedEdges = node
     ? edges.filter((e) => e.source === node.id || e.target === node.id)
