@@ -1,12 +1,15 @@
 use serde::{Deserialize, Serialize};
 
 /// Represents the intermediate representation of the code architecture graph.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct CodeGraph {
     /// List of nodes in the graph.
     pub nodes: Vec<Node>,
     /// List of edges connecting the nodes.
     pub edges: Vec<Edge>,
+    /// Control flow graphs for functions.
+    #[serde(default)]
+    pub control_flow: Vec<ControlFlowGraph>,
     /// Metadata about the graph.
     pub meta: GraphMeta,
 }
@@ -17,6 +20,7 @@ impl CodeGraph {
         Self {
             nodes: Vec::new(),
             edges: Vec::new(),
+            control_flow: Vec::new(),
             meta,
         }
     }
@@ -88,7 +92,7 @@ pub enum EdgeKind {
 }
 
 /// Metadata about the code graph.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct GraphMeta {
     /// Language name (e.g., "python", "typescript")
     pub language: String,
@@ -100,4 +104,84 @@ pub struct GraphMeta {
     pub node_count: usize,
     /// Total number of edges
     pub edge_count: usize,
+}
+
+/// A control flow graph for a single function.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ControlFlowGraph {
+    /// The ID of the function node this CFG belongs to.
+    pub function_id: String,
+    /// All basic blocks / control flow nodes.
+    pub blocks: Vec<CfgBlock>,
+    /// Edges between blocks.
+    pub cfg_edges: Vec<CfgEdge>,
+}
+
+/// A single block in the control flow graph.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct CfgBlock {
+    pub id: String,
+    pub kind: CfgBlockKind,
+    /// Human-readable label (e.g., the condition expression)
+    pub label: String,
+    /// 1-indexed line number in source
+    pub line: Option<u32>,
+}
+
+/// The kind of a CFG block.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum CfgBlockKind {
+    /// Function entry point
+    Entry,
+    /// Function exit / return
+    Exit,
+    /// A plain statement block
+    Block,
+    /// An if/else condition (decision diamond)
+    Condition,
+    /// A loop header (for/while/do-while)
+    LoopHeader,
+    /// A loop body
+    LoopBody,
+    /// A match/switch arm
+    SwitchArm,
+    /// A try block
+    TryBlock,
+    /// A catch/except block
+    CatchBlock,
+    /// A finally block
+    FinallyBlock,
+    /// An async/await suspension point
+    AwaitPoint,
+    /// A throw/raise error propagation
+    ThrowPoint,
+}
+
+/// An edge between CFG blocks.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct CfgEdge {
+    pub from_id: String,
+    pub to_id: String,
+    pub kind: CfgEdgeKind,
+    /// Optional label (e.g., "true", "false", "catch TypeError")
+    pub label: Option<String>,
+}
+
+/// The kind of a CFG edge.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum CfgEdgeKind {
+    /// Normal sequential flow
+    Normal,
+    /// True branch of an if/condition
+    TrueBranch,
+    /// False branch of an if/condition
+    FalseBranch,
+    /// Loop back edge (creates cycle)
+    LoopBack,
+    /// Exception propagation to catch block
+    ExceptionEdge,
+    /// Always-runs path (finally block)
+    FinallyEdge,
+    /// Async suspension / resume
+    AsyncEdge,
 }

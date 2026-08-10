@@ -239,6 +239,7 @@ mod tests {
                     kind: EdgeKind::Instantiates,
                 },
             ],
+            control_flow: Vec::new(),
             meta: GraphMeta {
                 language: "rust".to_string(),
                 source_root: "/app".to_string(),
@@ -263,6 +264,7 @@ mod tests {
         let graph = CodeGraph {
             nodes: vec![],
             edges: vec![],
+            control_flow: Vec::new(),
             meta: GraphMeta {
                 language: "rust".to_string(),
                 source_root: "".to_string(),
@@ -306,6 +308,7 @@ mod tests {
         let graph = CodeGraph {
             nodes,
             edges: vec![],
+            control_flow: Vec::new(),
             meta: GraphMeta {
                 language: "rust".to_string(),
                 source_root: "".to_string(),
@@ -347,6 +350,7 @@ mod tests {
                 to_id: "src/config.rs".to_string(),
                 kind: EdgeKind::Imports,
             }],
+            control_flow: Vec::new(),
             meta: GraphMeta {
                 language: "rust".to_string(),
                 source_root: "/app".to_string(),
@@ -387,6 +391,7 @@ mod tests {
                 to_id: "Animal".to_string(),
                 kind: EdgeKind::Inherits,
             }],
+            control_flow: Vec::new(),
             meta: GraphMeta {
                 language: "rust".to_string(),
                 source_root: "/app".to_string(),

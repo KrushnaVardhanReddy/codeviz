@@ -426,6 +426,28 @@ impl LanguageParser for PythonParser {
         let source_bytes = source.as_bytes();
         self.traverse_tree(&tree, source_bytes, file_path, &mut graph)?;
 
+        let mut cfgs = Vec::new();
+        let mut cursor = tree.walk();
+        let mut stack = vec![tree.root_node()];
+        #[allow(clippy::collapsible_if)]
+        while let Some(node) = stack.pop() {
+            if node.kind() == "function_definition" || node.kind() == "async_function_definition" {
+                if let Some(name_node) = node.child_by_field_name("name") {
+                    if let Ok(name) = name_node.utf8_text(source_bytes) {
+                        let func_id = format!("{}::{}", file_path, name);
+                        if let Ok(cfg) = crate::cfg::build_cfg(node, source_bytes, &func_id) {
+                            cfgs.push(cfg);
+                        }
+                    }
+                }
+            }
+
+            let mut children: Vec<_> = node.children(&mut cursor).collect();
+            children.reverse();
+            stack.extend(children);
+        }
+        graph.control_flow = cfgs;
+
         graph.meta.node_count = graph.nodes.len();
         graph.meta.edge_count = graph.edges.len();
 
@@ -505,5 +527,55 @@ async def main():
 
         let bark_func = graph.nodes.iter().find(|n| n.label == "bark");
         assert!(bark_func.is_some(), "Expected function 'bark' to be found");
+    }
+}
+
+#[cfg(test)]
+mod cfg_tests {
+    use super::*;
+    use codeviz_core::ir::{CfgBlockKind, CfgEdgeKind};
+
+    #[test]
+    fn test_python_cfg_generation() {
+        let snippet = r#"
+async def process_data(data):
+    if data:
+        await fetch()
+    else:
+        while True:
+            pass
+"#;
+        let parser = PythonParser::new();
+        let graph = parser.parse(snippet, "test_cfg.py").unwrap();
+
+        assert_eq!(graph.control_flow.len(), 1, "Expected 1 CFG");
+        let cfg = &graph.control_flow[0];
+
+        let has_condition = cfg.blocks.iter().any(|b| b.kind == CfgBlockKind::Condition);
+        assert!(has_condition, "Expected a condition block");
+
+        let has_await = cfg
+            .blocks
+            .iter()
+            .any(|b| b.kind == CfgBlockKind::AwaitPoint);
+        assert!(has_await, "Expected an await point block");
+
+        let has_loop_header = cfg
+            .blocks
+            .iter()
+            .any(|b| b.kind == CfgBlockKind::LoopHeader);
+        assert!(has_loop_header, "Expected a loop header block");
+
+        let has_true_branch = cfg
+            .cfg_edges
+            .iter()
+            .any(|e| e.kind == CfgEdgeKind::TrueBranch);
+        assert!(has_true_branch, "Expected a true branch edge");
+
+        let has_false_branch = cfg
+            .cfg_edges
+            .iter()
+            .any(|e| e.kind == CfgEdgeKind::FalseBranch);
+        assert!(has_false_branch, "Expected a false branch edge");
     }
 }

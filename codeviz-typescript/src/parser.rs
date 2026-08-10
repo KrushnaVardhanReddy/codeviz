@@ -61,6 +61,51 @@ impl LanguageParser for TypeScriptParser {
 
         self.traverse_tree(&tree, source.as_bytes(), file_path, &mut graph)?;
 
+        let mut cfgs = Vec::new();
+        let mut cursor = tree.walk();
+        let mut stack = vec![tree.root_node()];
+        let source_bytes = source.as_bytes();
+        #[allow(clippy::collapsible_if)]
+        while let Some(node) = stack.pop() {
+            if node.kind() == "function_declaration"
+                || node.kind() == "method_definition"
+                || node.kind() == "arrow_function"
+                || node.kind() == "function"
+            {
+                // Name extraction for typescript functions
+                let name = if let Some(n) = node.child_by_field_name("name") {
+                    n.utf8_text(source_bytes).unwrap_or("anonymous").to_string()
+                } else if node.kind() == "arrow_function" {
+                    // Try to get name from parent variable_declarator
+                    if let Some(parent) = node.parent() {
+                        if parent.kind() == "variable_declarator" {
+                            if let Some(n) = parent.child_by_field_name("name") {
+                                n.utf8_text(source_bytes).unwrap_or("arrow").to_string()
+                            } else {
+                                "arrow".to_string()
+                            }
+                        } else {
+                            "arrow".to_string()
+                        }
+                    } else {
+                        "arrow".to_string()
+                    }
+                } else {
+                    "anonymous".to_string()
+                };
+
+                let func_id = format!("{}::{}", file_path, name);
+                if let Ok(cfg) = crate::cfg::build_cfg(node, source_bytes, &func_id) {
+                    cfgs.push(cfg);
+                }
+            }
+
+            let mut children: Vec<_> = node.children(&mut cursor).collect();
+            children.reverse();
+            stack.extend(children);
+        }
+        graph.control_flow = cfgs;
+
         graph.meta.node_count = graph.nodes.len();
         graph.meta.edge_count = graph.edges.len();
 
@@ -618,5 +663,62 @@ mod tests {
             .find(|n| n.label == "ExportedClass")
             .unwrap();
         assert!(exported_class.is_public);
+    }
+}
+
+#[cfg(test)]
+mod cfg_tests {
+    use super::*;
+    use codeviz_core::ir::{CfgBlockKind, CfgEdgeKind};
+
+    #[test]
+    fn test_ts_cfg_generation() {
+        let snippet = r#"
+async function process(data: any) {
+    if (data) {
+        await fetch();
+    } else {
+        while (true) {
+            break;
+        }
+    }
+}
+"#;
+        let parser = TypeScriptParser::new();
+        let graph = parser.parse(snippet, "test_cfg.ts").unwrap();
+
+        assert!(!graph.control_flow.is_empty(), "Expected at least 1 CFG");
+        let cfg = graph
+            .control_flow
+            .iter()
+            .find(|c| c.function_id.contains("process"))
+            .expect("Should have process function CFG");
+
+        let has_condition = cfg.blocks.iter().any(|b| b.kind == CfgBlockKind::Condition);
+        assert!(has_condition, "Expected a condition block");
+
+        let has_await = cfg
+            .blocks
+            .iter()
+            .any(|b| b.kind == CfgBlockKind::AwaitPoint);
+        assert!(has_await, "Expected an await point block");
+
+        let has_loop_header = cfg
+            .blocks
+            .iter()
+            .any(|b| b.kind == CfgBlockKind::LoopHeader);
+        assert!(has_loop_header, "Expected a loop header block");
+
+        let has_true_branch = cfg
+            .cfg_edges
+            .iter()
+            .any(|e| e.kind == CfgEdgeKind::TrueBranch);
+        assert!(has_true_branch, "Expected a true branch edge");
+
+        let has_false_branch = cfg
+            .cfg_edges
+            .iter()
+            .any(|e| e.kind == CfgEdgeKind::FalseBranch);
+        assert!(has_false_branch, "Expected a false branch edge");
     }
 }

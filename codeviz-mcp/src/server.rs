@@ -2,8 +2,8 @@ use crate::tools::*;
 use codeviz_core::LanguageRegistry;
 use codeviz_go::GoParser;
 use codeviz_java::JavaParser;
-use codeviz_python::PythonParser;
-use codeviz_typescript::TypeScriptParser;
+use codeviz_python::parser::PythonParser;
+use codeviz_typescript::parser::TypeScriptParser;
 use serde_json::{Value, json};
 use std::io::{self, BufRead, Write};
 
