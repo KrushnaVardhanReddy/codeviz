@@ -31,11 +31,11 @@ We have successfully validated, resolved conflicts, and merged the following int
 - **Batch 9** (T20, T22, T27) and **Task 33C** (SurrealDB Migration).
 - **Batch 10** (T23: GitHub Action, T24: npm WASM).
 - **Batch 12** (T30: CFG IR, T31: CFG Parsers, T32: CFG UI).
-- **Batch 20 (Partial)** (T48: MCP Summarize, T53: Call Path Explorer).
+- **Batch 20** (T47: VS Code Extension, T48: MCP Summarize, T53: Call Path Explorer).
 
-We are now currently awaiting asynchronous tasks running in Jules' cloud sandboxes for the remainder of Batch 20:
-- ⏳ **Batch 20**: T47 (VS Code Extension) is still pending.
+We are now currently awaiting asynchronous tasks running in Jules' cloud sandboxes for the next phase of development:
+- ⏳ **Batch 21**: MVP v1 Full E2E (Tasks 57, 60, 61)
 
 **Next Steps upon resuming:**
-1. Wait for and validate Jules' PR for T47 (VS Code Extension).
-2. Trigger the next batch of tasks (e.g., Batch 21 for Full E2E).
+1. Wait for and validate Jules' PRs for Batch 21.
+2. Trigger the next batch of tasks.
