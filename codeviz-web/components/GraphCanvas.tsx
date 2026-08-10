@@ -11,6 +11,8 @@ import {
 import '@xyflow/react/dist/style.css';
 import { CodeGraph, NodeKind, EdgeKind } from '../lib/graphTypes';
 import DetailPanel from './DetailPanel';
+import { usePathAnimation } from '../hooks/usePathAnimation';
+import { CallPathExplorer } from './CallPathExplorer';
 
 interface GraphCanvasProps {
   graph: CodeGraph;
@@ -47,7 +49,18 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
     setSelectedNode(null);
   };
 
-  const nodes: ReactFlowNode[] = useMemo(() => {
+  const rawEdges = useMemo(() => {
+    return graph.edges.map((edge, index) => ({
+      id: `e${index}-${edge.from_id}-${edge.to_id}`,
+      source: edge.from_id,
+      target: edge.to_id,
+      style: getEdgeStyle(edge.kind),
+      animated: edge.kind === 'Calls',
+      data: { kind: edge.kind }
+    }));
+  }, [graph.edges]);
+
+  const rawNodes = useMemo(() => {
     return graph.nodes.map((node, index) => {
       const col = index % 3;
       const row = Math.floor(index / 3);
@@ -59,35 +72,87 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
           ...getNodeStyle(node.kind),
           padding: '10px',
           width: 150,
-          textAlign: 'center',
+          textAlign: 'center' as const,
           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
         }
       };
     });
   }, [graph.nodes]);
 
-  const edges: ReactFlowEdge[] = useMemo(() => {
-    return graph.edges.map((edge, index) => ({
-      id: `e${index}-${edge.from_id}-${edge.to_id}`,
-      source: edge.from_id,
-      target: edge.to_id,
-      style: getEdgeStyle(edge.kind),
-      animated: edge.kind === 'Calls',
-      data: { kind: edge.kind }
-    }));
-  }, [graph.edges]);
+  const pathAnimation = usePathAnimation(rawNodes, rawEdges);
+
+  const nodesToRender = useMemo(() => {
+    return rawNodes.map((n) => {
+      let finalStyle: React.CSSProperties = { ...n.style };
+
+      if (pathAnimation.currentStep >= 0) {
+        if (pathAnimation.activeNodes.has(n.id)) {
+          // Highlight active node
+          finalStyle.boxShadow = '0 0 15px 5px rgba(34, 197, 94, 0.6)';
+          finalStyle.borderWidth = '2px';
+          finalStyle.borderColor = '#4ADE80';
+          finalStyle.opacity = 1;
+        } else {
+          // Dim inactive node
+          finalStyle.opacity = 0.2;
+        }
+      }
+
+      return {
+        ...n,
+        style: finalStyle,
+        data: {
+          ...n.data,
+          label: <div data-testid={`node-${n.id}`}>{String(n.data.label)}</div>
+        }
+      };
+    });
+  }, [rawNodes, pathAnimation.currentStep, pathAnimation.activeNodes]);
+
+  const edgesToRender = useMemo(() => {
+    return rawEdges.map((e) => {
+      let finalStyle: React.CSSProperties = { ...e.style };
+
+      if (pathAnimation.currentStep >= 0) {
+        if (pathAnimation.activeEdges.has(e.id)) {
+          // Highlight active edge
+          finalStyle.strokeWidth = 3;
+          finalStyle.stroke = '#4ADE80';
+          finalStyle.opacity = 1;
+        } else {
+          // Dim inactive edge
+          finalStyle.opacity = 0.2;
+        }
+      }
+
+      return {
+        ...e,
+        style: finalStyle,
+      };
+    });
+  }, [rawEdges, pathAnimation.currentStep, pathAnimation.activeEdges]);
 
   return (
     <div className="w-full h-full relative" data-testid="graph-canvas">
+      {pathAnimation.currentStep >= 0 && (
+        <CallPathExplorer
+          currentStep={pathAnimation.currentStep}
+          totalSteps={pathAnimation.totalSteps}
+          isPlaying={pathAnimation.isPlaying}
+          currentNodeId={pathAnimation.currentNodeId}
+          nodes={rawNodes}
+          onPlay={pathAnimation.play}
+          onPause={pathAnimation.pause}
+          onStepForward={pathAnimation.stepForward}
+          onStepBackward={pathAnimation.stepBackward}
+          onReset={pathAnimation.reset}
+          onClose={pathAnimation.close}
+        />
+      )}
+
       <ReactFlow
-        nodes={nodes.map(n => ({
-          ...n,
-          data: {
-            ...n.data,
-            label: <div data-testid={`node-${n.id}`}>{String(n.data.label)}</div>
-          }
-        }))}
-        edges={edges}
+        nodes={nodesToRender}
+        edges={edgesToRender}
         onNodeClick={onNodeClick}
         fitView
         className="bg-slate-900"
@@ -102,7 +167,12 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
         />
       </ReactFlow>
 
-      <DetailPanel node={selectedNode} onClose={closePanel} edges={edges} />
+      <DetailPanel
+        node={selectedNode}
+        onClose={closePanel}
+        edges={rawEdges}
+        onTraceStart={pathAnimation.start}
+      />
     </div>
   );
 };
