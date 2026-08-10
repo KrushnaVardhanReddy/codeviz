@@ -1,17 +1,19 @@
 pub mod config;
 pub use config::Config;
 
+pub mod diff;
+pub use diff::*;
 pub mod inject;
 pub use inject::{InjectError, inject_mermaid};
 
+pub mod cache;
 pub mod graph;
 pub mod ir;
 pub mod parser;
 pub mod render;
-pub mod cache;
 
-pub use ir::*;
 pub use cache::*;
+pub use ir::*;
 pub use parser::*;
 
 /// A core struct for CodeViz representing a dummy node to pass initial tests.

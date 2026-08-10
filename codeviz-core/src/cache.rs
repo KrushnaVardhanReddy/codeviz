@@ -1,8 +1,8 @@
+use crate::ir::{Edge, Node};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
-use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
-use crate::ir::{Node, Edge};
 
 /// A single cache entry corresponding to one parsed source file.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -90,8 +90,14 @@ impl CacheManager {
 
     /// Writes a new cache entry for the given file, nodes, and edges.
     /// Does nothing if the cache key cannot be computed or writing fails.
-    pub fn put<P: AsRef<Path>>(&self, file_path: P, nodes: Vec<Node>, edges: Vec<Edge>) -> Result<(), String> {
-        let cache_key = self.compute_cache_key(file_path.as_ref())
+    pub fn put<P: AsRef<Path>>(
+        &self,
+        file_path: P,
+        nodes: Vec<Node>,
+        edges: Vec<Edge>,
+    ) -> Result<(), String> {
+        let cache_key = self
+            .compute_cache_key(file_path.as_ref())
             .ok_or_else(|| "Failed to compute cache key".to_string())?;
 
         if !self.cache_dir.exists() {
@@ -130,9 +136,9 @@ impl CacheManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::NamedTempFile;
+    use crate::ir::{EdgeKind, NodeKind};
     use std::io::Write;
-    use crate::ir::{NodeKind, EdgeKind};
+    use tempfile::NamedTempFile;
 
     #[test]
     fn test_cache_roundtrip() {
@@ -159,7 +165,11 @@ mod tests {
         }];
 
         // Put to cache
-        assert!(manager.put(file.path(), nodes.clone(), edges.clone()).is_ok());
+        assert!(
+            manager
+                .put(file.path(), nodes.clone(), edges.clone())
+                .is_ok()
+        );
 
         // Get from cache
         let entry = manager.get(file.path()).expect("Should get cache entry");
@@ -179,7 +189,11 @@ mod tests {
         let nodes = vec![];
         let edges = vec![];
 
-        assert!(manager.put(file.path(), nodes.clone(), edges.clone()).is_ok());
+        assert!(
+            manager
+                .put(file.path(), nodes.clone(), edges.clone())
+                .is_ok()
+        );
 
         assert!(manager.get(file.path()).is_some());
 
@@ -188,7 +202,9 @@ mod tests {
         file.flush().unwrap();
 
         // Ensure mtime actually changes (sometimes tests run too fast for filesystem precision)
-        let _ = file.as_file().set_modified(std::time::SystemTime::now() + std::time::Duration::from_secs(1));
+        let _ = file
+            .as_file()
+            .set_modified(std::time::SystemTime::now() + std::time::Duration::from_secs(1));
 
         // Should be a cache miss
         assert!(manager.get(file.path()).is_none());
@@ -214,16 +230,16 @@ mod tests {
     }
 }
 
-    #[test]
-    fn test_no_cache_bypass() {
-        let temp_dir = tempfile::tempdir().unwrap();
-        let cache_dir = temp_dir.path().join(".codeviz_cache");
-        let manager = CacheManager::new(&cache_dir, "0.1.0");
+#[test]
+fn test_no_cache_bypass() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let cache_dir = temp_dir.path().join(".codeviz_cache");
+    let manager = CacheManager::new(&cache_dir, "0.1.0");
 
-        let mut file = tempfile::NamedTempFile::new().unwrap();
-        use std::io::Write;
-        writeln!(file, "hello world").unwrap();
+    let mut file = tempfile::NamedTempFile::new().unwrap();
+    use std::io::Write;
+    writeln!(file, "hello world").unwrap();
 
-        assert!(manager.put(file.path(), vec![], vec![]).is_ok());
-        assert!(manager.get(file.path()).is_some());
-    }
+    assert!(manager.put(file.path(), vec![], vec![]).is_ok());
+    assert!(manager.get(file.path()).is_some());
+}

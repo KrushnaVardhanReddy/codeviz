@@ -47,8 +47,13 @@ pub struct Position {
 
 /// A simplified AST to CodeGraph generator using JSON AST created by web-tree-sitter.
 #[wasm_bindgen]
-pub fn parse_and_build_graph(language: &str, file_path: &str, ast_json: &str) -> Result<String, String> {
-    let root_node: TsNode = serde_json::from_str(ast_json).map_err(|e| format!("Failed to parse AST JSON: {}", e))?;
+pub fn parse_and_build_graph(
+    language: &str,
+    file_path: &str,
+    ast_json: &str,
+) -> Result<String, String> {
+    let root_node: TsNode =
+        serde_json::from_str(ast_json).map_err(|e| format!("Failed to parse AST JSON: {}", e))?;
 
     let mut graph = CodeGraph::new(GraphMeta {
         language: language.to_string(),
@@ -60,7 +65,11 @@ pub fn parse_and_build_graph(language: &str, file_path: &str, ast_json: &str) ->
 
     graph.nodes.push(Node {
         id: file_path.to_string(),
-        label: file_path.split('/').next_back().unwrap_or(file_path).to_string(),
+        label: file_path
+            .split('/')
+            .next_back()
+            .unwrap_or(file_path)
+            .to_string(),
         kind: NodeKind::File,
         file_path: file_path.to_string(),
         line: None,
@@ -77,12 +86,19 @@ pub fn parse_and_build_graph(language: &str, file_path: &str, ast_json: &str) ->
 }
 
 fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph) {
-    let is_function = node.node_type == "function_definition" || node.node_type == "function_declaration" || node.node_type == "method_definition" || node.node_type == "arrow_function";
+    let is_function = node.node_type == "function_definition"
+        || node.node_type == "function_declaration"
+        || node.node_type == "method_definition"
+        || node.node_type == "arrow_function";
     let is_class = node.node_type == "class_definition" || node.node_type == "class_declaration";
 
     if is_function || is_class {
         // Try to find identifier child
-        let identifier = node.children.iter().find(|c| c.node_type == "identifier" || c.node_type == "property_identifier" || c.node_type == "type_identifier");
+        let identifier = node.children.iter().find(|c| {
+            c.node_type == "identifier"
+                || c.node_type == "property_identifier"
+                || c.node_type == "type_identifier"
+        });
         if let Some(id_node) = identifier {
             let name = &id_node.text;
             let id = format!("{}::{}", file_path, name);
@@ -90,7 +106,11 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph) {
             graph.nodes.push(Node {
                 id,
                 label: name.clone(),
-                kind: if is_function { NodeKind::Function { is_async: false } } else { NodeKind::Class },
+                kind: if is_function {
+                    NodeKind::Function { is_async: false }
+                } else {
+                    NodeKind::Class
+                },
                 file_path: file_path.to_string(),
                 line: Some(node.start_position.row + 1),
                 is_public: true,

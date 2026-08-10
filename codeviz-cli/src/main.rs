@@ -133,10 +133,14 @@ fn extract_mermaid_from_markdown(markdown: &str) -> Result<String, String> {
     let start_tag = "<!-- CODEVIZ_START -->";
     let end_tag = "<!-- CODEVIZ_END -->";
 
-    let start_idx = markdown.find(start_tag).ok_or_else(|| "Missing CODEVIZ_START tag".to_string())?;
+    let start_idx = markdown
+        .find(start_tag)
+        .ok_or_else(|| "Missing CODEVIZ_START tag".to_string())?;
 
     let search_slice = &markdown[start_idx + start_tag.len()..];
-    let relative_end_idx = search_slice.find(end_tag).ok_or_else(|| "Missing CODEVIZ_END tag".to_string())?;
+    let relative_end_idx = search_slice
+        .find(end_tag)
+        .ok_or_else(|| "Missing CODEVIZ_END tag".to_string())?;
 
     let inner = &search_slice[..relative_end_idx];
 
@@ -497,8 +501,12 @@ pub fn print_help() {
     println!("codeviz --help");
     println!("Usage: codeviz <COMMAND> [OPTIONS]");
     println!("Commands:");
-    println!("  run          Parses source code and injects an updated diagram into a markdown file.");
-    println!("  check        Checks if the generated diagram matches the output file without modifying it.");
+    println!(
+        "  run          Parses source code and injects an updated diagram into a markdown file."
+    );
+    println!(
+        "  check        Checks if the generated diagram matches the output file without modifying it."
+    );
     println!("  serve        Starts the MCP tool server.");
     println!("  install-hook Installs the pre-commit hook and markdown sentinel tags.");
     println!("  cache clear  Clears the incremental cache.");
@@ -639,7 +647,18 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         } else if args.len() > 2 && args[2] == "stats" {
             if cache_dir.exists() {
                 let count = std::fs::read_dir(cache_dir)
-                    .map(|iter| iter.filter(|e| e.is_ok() && e.as_ref().unwrap().path().extension().is_some_and(|ext| ext == "json") && e.as_ref().unwrap().path().file_name().unwrap() != "meta.json").count())
+                    .map(|iter| {
+                        iter.filter(|e| {
+                            e.is_ok()
+                                && e.as_ref()
+                                    .unwrap()
+                                    .path()
+                                    .extension()
+                                    .is_some_and(|ext| ext == "json")
+                                && e.as_ref().unwrap().path().file_name().unwrap() != "meta.json"
+                        })
+                        .count()
+                    })
                     .unwrap_or(0);
                 println!("Cache contains {} entries.", count);
             } else {
@@ -672,14 +691,21 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         let cache_enabled = config.cache.enabled && !run_args.no_cache;
         let manager = codeviz_core::CacheManager::new(cache_dir, env!("CARGO_PKG_VERSION"));
 
-        let config_path = run_args.config_path.clone().unwrap_or_else(|| "codeviz.toml".to_string());
+        let config_path = run_args
+            .config_path
+            .clone()
+            .unwrap_or_else(|| "codeviz.toml".to_string());
 
         if cache_enabled {
             let meta_path = cache_dir.join("meta.json");
             let mut invalidate_cache = false;
 
             let config_mtime = if let Ok(metadata) = std::fs::metadata(&config_path) {
-                metadata.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_nanos())
+                metadata
+                    .modified()
+                    .ok()
+                    .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                    .map(|d| d.as_nanos())
             } else {
                 None
             };
@@ -692,7 +718,9 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
 
             if let Ok(meta_str) = std::fs::read_to_string(&meta_path) {
                 if let Ok(meta) = serde_json::from_str::<CacheMeta>(&meta_str) {
-                    if meta.version != env!("CARGO_PKG_VERSION") || meta.config_mtime != config_mtime {
+                    if meta.version != env!("CARGO_PKG_VERSION")
+                        || meta.config_mtime != config_mtime
+                    {
                         invalidate_cache = true;
                     }
                 } else {
@@ -734,9 +762,7 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
             if let Some(ext) = file.extension().and_then(|e| e.to_str())
                 && registry.find_parser(ext).is_some()
             {
-                if cache_enabled
-                    && let Some(entry) = manager.get(&file)
-                {
+                if cache_enabled && let Some(entry) = manager.get(&file) {
                     merged_graph.nodes.extend(entry.nodes);
                     merged_graph.edges.extend(entry.edges);
                     continue;
@@ -764,13 +790,19 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
         let mut architecture_violations = false;
         if is_check {
             let config = match &run_args.config_path {
-                Some(path) => codeviz_core::Config::load_from_file(std::path::Path::new(path)).unwrap_or_default(),
-                None => codeviz_core::Config::load_from_dir(&std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."))).unwrap_or_default(),
+                Some(path) => codeviz_core::Config::load_from_file(std::path::Path::new(path))
+                    .unwrap_or_default(),
+                None => codeviz_core::Config::load_from_dir(
+                    &std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")),
+                )
+                .unwrap_or_default(),
             };
             for edge in &merged_graph.edges {
                 if edge.kind == codeviz_core::EdgeKind::Imports {
                     for rule in &config.architecture.rules {
-                        if edge.from_id.contains(&rule.from) && edge.to_id.contains(&rule.cannot_import) {
+                        if edge.from_id.contains(&rule.from)
+                            && edge.to_id.contains(&rule.cannot_import)
+                        {
                             println!(
                                 "❌ Architectural violation: {} cannot import {}",
                                 edge.from_id, edge.to_id
@@ -1235,7 +1267,10 @@ diagram_type = "module"
         let _ = run_cli(args);
 
         let final_modified = std::fs::metadata(&path_str).unwrap().modified().unwrap();
-        assert_eq!(initial_modified, final_modified, "File should not be modified by check command");
+        assert_eq!(
+            initial_modified, final_modified,
+            "File should not be modified by check command"
+        );
     }
 
     #[test]

@@ -11,7 +11,8 @@ fn test_cli_e2e_dogfooding() {
         .arg("--output")
         .arg("json");
 
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("codeviz-cli/tests/e2e_test.rs").or(predicate::str::contains("e2e_test.rs")));
+    cmd.assert().success().stdout(
+        predicate::str::contains("codeviz-cli/tests/e2e_test.rs")
+            .or(predicate::str::contains("e2e_test.rs")),
+    );
 }
