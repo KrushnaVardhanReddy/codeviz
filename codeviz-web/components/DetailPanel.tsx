@@ -6,10 +6,18 @@ interface DetailPanelProps {
   node: any | null;
   onClose: () => void;
   edges: any[];
+  onTraceStart?: (nodeId: string) => void;
 }
 
-const DetailPanel: React.FC<DetailPanelProps> = ({ node, onClose, edges }) => {
+const DetailPanel: React.FC<DetailPanelProps> = ({ node, onClose, edges, onTraceStart }) => {
   const isOpen = node !== null;
+
+  // Determine if node is a Function
+  const isFunction = node && (
+    (typeof node.data?.kind === 'object' && node.data?.kind !== null && 'Function' in node.data.kind) ||
+    node.data?.kind === 'Function' ||
+    node.type === 'Function'
+  );
 
   const connectedEdges = node
     ? edges.filter((e) => e.source === node.id || e.target === node.id)
@@ -42,6 +50,19 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ node, onClose, edges }) => {
               <X size={20} />
             </button>
           </div>
+
+          {isFunction && onTraceStart && (
+            <div className="mb-4">
+              <button
+                onClick={() => onTraceStart(node.id)}
+                className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-md transition-colors shadow-lg shadow-green-900/20 flex justify-center items-center gap-2"
+                data-testid="trace-paths-btn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                Trace Paths
+              </button>
+            </div>
+          )}
 
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-slate-300 mb-2">Source Code Snippet</h3>
