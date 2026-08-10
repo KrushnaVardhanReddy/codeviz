@@ -1,14 +1,8 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { auth } from './auth'
+import NextAuth from 'next-auth';
+import { authConfig } from './auth.config';
 
-export default auth((req) => {
-  if (!req.auth && req.nextUrl.pathname.startsWith("/app")) {
-    const newUrl = new URL("/api/auth/signin", req.nextUrl.origin)
-    return NextResponse.redirect(newUrl)
-  }
-})
+export default NextAuth(authConfig).auth;
 
 export const config = {
-  matcher: '/app/:path*',
-}
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+};
