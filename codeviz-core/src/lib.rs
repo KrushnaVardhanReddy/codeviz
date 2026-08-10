@@ -13,7 +13,10 @@ pub mod parser;
 pub mod render;
 
 pub use cache::*;
-pub use ir::*;
+pub use ir::{
+    CfgBlock, CfgBlockKind, CfgEdge, CfgEdgeKind, CodeGraph, ControlFlowGraph, Edge, EdgeKind,
+    GraphMeta, Node, NodeKind,
+};
 pub use parser::*;
 
 /// A core struct for CodeViz representing a dummy node to pass initial tests.

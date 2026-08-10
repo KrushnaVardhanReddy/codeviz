@@ -246,6 +246,7 @@ mod tests {
                 node_count: 3,
                 edge_count: 2,
             },
+            control_flow: None,
         }
     }
 
@@ -270,6 +271,7 @@ mod tests {
                 node_count: 0,
                 edge_count: 0,
             },
+            control_flow: None,
         };
         let renderer = MermaidRenderer::new();
         assert_eq!(
@@ -313,6 +315,7 @@ mod tests {
                 node_count: 55,
                 edge_count: 0,
             },
+            control_flow: None,
         };
 
         let renderer = MermaidRenderer::new();
@@ -354,6 +357,7 @@ mod tests {
                 node_count: 2,
                 edge_count: 1,
             },
+            control_flow: None,
         };
         let renderer = MermaidRenderer::new();
         let out = renderer.render(&graph, DiagramKind::ModuleGraph);
@@ -394,6 +398,7 @@ mod tests {
                 node_count: 2,
                 edge_count: 1,
             },
+            control_flow: None,
         };
         let renderer = MermaidRenderer::new();
         let out = renderer.render(&graph, DiagramKind::ClassDiagram);
