@@ -3,8 +3,8 @@
 > **Zero-Drift Architecture Documentation.**
 > Parse your source code → generate a Mermaid diagram → inject it into your README. Automatically. Every commit.
 
-[![CI](https://img.shields.io/github/actions/workflow/status/you/codeviz/ci.yml?label=CI&style=flat-square)](.)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/krushna/codeviz/ci.yml?label=CI&style=flat-square)](.)
+[![License: Dual](https://img.shields.io/badge/License-MIT%20%7C%20BSL-blue.svg?style=flat-square)](LICENSE)
 [![WASM Ready](https://img.shields.io/badge/WASM-Ready-orange?style=flat-square)](.)
 [![MCP Server](https://img.shields.io/badge/MCP-Server-purple?style=flat-square)](.)
 
@@ -25,26 +25,48 @@ The diagram updates itself. Every commit. No manual effort.
 
 ---
 
+## Quickstart
+
+Get started in 30 seconds:
+
+```bash
+# 1. Install CodeViz
+cargo install codeviz
+
+# 2. Add sentinel tags to your README.md
+echo "<!-- CODEVIZ_START -->" >> README.md
+echo "<!-- CODEVIZ_END -->" >> README.md
+
+# 3. Generate the diagram!
+codeviz --path ./src --output README.md
+```
+
+### Example Output
+When CodeViz runs, it injects a live graph between your tags. It looks like this:
+
+```mermaid
+graph TD
+    src/main.rs::main[main] --> src/parser.rs::parse[parse]
+    src/parser.rs::parse --> src/ast.rs::ASTNode[ASTNode]
+    src/main.rs::main --> src/config.rs::load_config[load_config]
+```
+
+---
+
+## Why Not X? (Differentiation)
+
+How does CodeViz compare to existing architecture tools?
+- **vs. dependency-cruiser**: `dependency-cruiser` is fantastic, but it only works for JavaScript/TypeScript ecosystems. CodeViz uses a **language-agnostic IR graph**, meaning it works the exact same way for Python, Rust, Go, Java, and TS.
+- **vs. Structurizr / C4 Model**: Structurizr requires you to manually write a custom DSL to define your architecture. CodeViz **auto-parses** your actual source code. Your code is the DSL.
+
+---
+
 ## How It Works
 
 Place sentinel tags anywhere in your markdown:
 
 ```markdown
 <!-- CODEVIZ_START -->
-<!-- CODEVIZ_END -->
-```
-
-Run CodeViz (or let CI run it), and the diagram appears automatically:
-
-```markdown
-<!-- CODEVIZ_START -->
-```mermaid
-graph TD
-    main --> config
-    main --> parser
-    parser --> ast_utils
-    config --> env
-```
 <!-- CODEVIZ_END -->
 ```
 
@@ -56,7 +78,7 @@ CodeViz **only touches content between those tags** — everything else in your 
 
 CodeViz is built with a **Core + Adapter** architecture in Rust, producing three artifacts from a single codebase:
 
-```
+```text
 ┌────────────────────────────────────────────────────────┐
 │                      CodeViz Core                       │
 │     Source Code ──► AST ──► IR Graph ──► Mermaid       │
@@ -72,105 +94,24 @@ CodeViz is built with a **Core + Adapter** architecture in Rust, producing three
 ```
 
 ### CLI — For Developers & CI/CD
-
-```bash
-# Run manually
-codeviz --path ./src --output README.md
-
-# Or plug into pre-commit (auto-updates diagram on every commit)
-# .pre-commit-config.yaml:
-repos:
-  - repo: local
-    hooks:
-      - id: codeviz
-        name: Update architecture diagram
-        entry: codeviz --path ./src --output README.md
-        language: system
-        pass_filenames: false
-```
+Run manually or plug into pre-commit hooks to auto-update diagrams on every commit.
 
 ### WASM Module — For Architects & Browser Tools
-
-Drop a repository folder directly into a browser-based tool. The WASM engine generates the diagram **locally** — no code ever touches a server. Built for integration with tools like LocalMind DevTools.
+Drop a repository folder directly into our browser-based CodeViz Playground. The WASM engine generates the diagram **locally** — no code ever touches a server.
 
 ### MCP Server — For AI Assistants
+CodeViz runs as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server, exposing your codebase's graph to any MCP-compatible AI assistant (Claude, Cursor, Continue, etc.).
 
-CodeViz can run as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server, exposing your codebase's graph as structured tool calls to any MCP-compatible AI assistant (Claude, Cursor, Continue, etc.).
-
-```bash
-# Start the MCP server (stdio transport — works with any MCP client)
-codeviz serve --mcp
-
-# Or over HTTP/SSE for remote tools
-codeviz serve --mcp --port 8080
-```
-
-AI assistants get instant, structured access to your code's architecture without reading hundreds of files:
+**Why use an MCP Graph Tool?** 
+Providing an AI agent with a structured graph via MCP costs virtually zero context tokens, whereas forcing an agent to blindly read 100 source files will blow out its context window and introduce hallucination.
 
 | MCP Tool | Description | Example AI Use Case |
 |---|---|---|
 | `get_module_graph` | Full import/dependency graph | "How is this codebase structured?" |
 | `get_callers(fn)` | Who calls this function? | Impact analysis before refactoring |
 | `get_callees(fn)` | What does this function call? | Trace an execution path |
-| `get_class_hierarchy` | Full inheritance tree | Understand OOP relationships |
 | `find_entry_points` | Main entry points of the project | Onboarding to a new repo |
 | `explain_path(a, b)` | How does module A depend on B? | Debug unexpected coupling |
-
-This turns CodeViz from a **diagram generator** into an **AI-native code intelligence layer**. The Mermaid output is just one rendering — the real product is the graph.
-
----
-
-## Language Support Roadmap
-
-CodeViz adds languages incrementally, prioritizing depth of support over breadth.
-
-| Phase | Milestone | Status | Notes |
-|-------|-----------|--------|-------|
-| **V0.1** | Python 🐍 | ✅ Done | Imports, classes, async functions |
-| **V0.2** | TypeScript / JavaScript 🟦 | ✅ Done | ESM + CJS, interfaces, arrow functions + WASM build |
-| **V0.3** | MCP Server 🤖 | ✅ Done | 6 graph query tools over stdio JSON-RPC |
-| **V0.4** | Go 🐹 & Rust 🦀 | ✅ Done | Imports, struct embedding, traits, crate graph |
-| **V0.5** | Java / Kotlin ☕ | ✅ Done | Enterprise codebases, annotations |
-| **V1.0** | Universal Parser 🌐 | ✅ Done | Query-Based parsing via TOML files for 40+ languages |
-| **V2.0** | Advanced Code Analysis 🧠 | 📋 Planned | Circular Deps, Unused Modules, PageRank, Health Scores |
-
-Each language phase ships with: a test suite against real-world repos, documented edge cases, and a changelog entry.
-
----
-
-## Configuration (V1.0)
-
-```toml
-# codeviz.toml
-[graph]
-max_depth = 3
-diagram_type = "flowchart"   # flowchart | classDiagram | graph
-include = ["src/**"]
-exclude = ["**/tests/**", "**/vendor/**"]
-
-[languages]
-enabled = ["python", "typescript"]
-```
-
----
-
-## Features
-
-- **🔒 Zero-Cloud Parsing** — No proprietary code ever leaves your device (especially in WASM mode)
-- **🌳 Tree-sitter Powered** — Incremental, error-tolerant parsing across languages
-- **🔗 Language-Agnostic IR** — Single internal graph model; adding a new language is a new adapter, not a rewrite
-- **✂️ Safe Injection** — Sentinel tags protect your existing documentation
-- **⚡ CI-Native** — Single binary, no runtime dependencies, fast enough for pre-commit hooks
-- **🤖 MCP Server** — Expose your codebase's graph as structured tool calls to any AI assistant
-
----
-
-## Architecture Decision: Why Rust?
-
-- **Tree-sitter** has first-class Rust bindings (`tree-sitter` crate)
-- **`wasm-pack`** compiles Rust to WASM with minimal friction — the same binary targets both CLI and browser
-- **Performance** — parsing large codebases must be fast enough for pre-commit hooks (< 500ms target)
-- **Correctness** — the IR graph model is complex enough to benefit from Rust's type system
 
 ---
 
@@ -194,16 +135,36 @@ We are currently building out the CodeViz SaaS application (Next.js + SurrealDB)
 ### MVP v3 — "Make It Pay" (Enterprise Features)
 - [ ] **OpenTelemetry Trace Overlay**: Import OTEL traces to see live execution paths.
 - [ ] **Multi-Repo Cross-Service Graph**: Visualize microservice dependencies.
+- [ ] **Universal Parser**: (Experimental) Query-Based parsing via TOML files for 40+ languages.
 - [ ] **SBOM Export (CycloneDX / SPDX)**: Compliance requirement for regulated industries.
 
 ---
 
-## Contributing
+## Configuration (Optional)
 
-Contributions welcome — especially new language adapters. Each adapter is a self-contained Rust module implementing the `LanguageParser` trait. See `CONTRIBUTING.md` (coming soon).
+```toml
+# codeviz.toml
+[graph]
+max_depth = 3
+diagram_type = "flowchart"   # flowchart | classDiagram | graph
+include = ["src/**"]
+exclude = ["**/tests/**", "**/vendor/**"]
+```
 
 ---
 
-## License
+## Architecture Decision: Why Rust?
 
-MIT
+- **Tree-sitter** has first-class Rust bindings (`tree-sitter` crate).
+- **`wasm-pack`** compiles Rust to WASM with minimal friction — the same binary targets both CLI and browser.
+- **Performance** — parsing large codebases must be fast enough for pre-commit hooks (< 500ms target).
+- **Correctness** — the IR graph model is complex enough to benefit from Rust's type system.
+
+---
+
+## License (Dual License Model)
+
+CodeViz operates on an Open-Core model to ensure the community always has access to the parsing engine, while protecting the commercial SaaS offering:
+
+- **Core Engine & CLI** (`codeviz-core`, `codeviz-cli`, `codeviz-wasm`, `codeviz-mcp`): **MIT License**. Free forever.
+- **CodeViz Cloud SaaS** (`codeviz-web`): **Business Source License (BSL)**. You may view the source, but you may not use it to offer a competing commercial SaaS offering.

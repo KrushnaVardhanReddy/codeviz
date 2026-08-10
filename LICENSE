@@ -1,4 +1,15 @@
-MIT License
+# CodeViz Dual License
+
+CodeViz operates under an Open-Core model, utilizing two separate licenses depending on the directory/component:
+
+## 1. Core Engine & CLI (MIT License)
+
+**Applies to:**
+- `codeviz-core/`
+- `codeviz-cli/`
+- `codeviz-wasm/`
+- `codeviz-mcp/`
+- `codeviz-vscode/`
 
 Copyright (c) 2026 Krushna Vardhan Reddy Pakkiragari
 
@@ -19,3 +30,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+## 2. CodeViz Cloud SaaS (Business Source License 1.1)
+
+**Applies to:**
+- `codeviz-web/`
+
+Copyright (c) 2026 Krushna Vardhan Reddy Pakkiragari
+
+The Licensor hereby grants you the right to copy, modify, create derivative
+works, redistribute, and make non-production use of the Licensed Work. The
+Licensed Work may not be used for Production purposes, which is defined as
+operating a hosted or managed service that provides CodeViz functionality to
+third parties.
+
+This license will convert to the MIT License on January 1, 2030 (the Change Date).
