@@ -1,0 +1,10 @@
+--- codeviz-cli/src/main.rs
++++ codeviz-cli/src/main.rs
+@@ -515,6 +515,7 @@
+     println!("Options:");
+     println!("  --help       Print this help message");
+ }
+
++use std::path::Path;
+ use codeviz_core::{CodeGraph, GraphMeta, LanguageRegistry, inject_mermaid};
+ use codeviz_go::GoParser;

@@ -374,6 +374,15 @@ impl LanguageParser for RustLangParser {
             }
         };
 
+        if tree.root_node().has_error() {
+            return Err(ParseError {
+                message: "Syntax error".to_string(),
+                file_path: file_path.to_string(),
+                line: Some(tree.root_node().start_position().row as u32 + 1),
+            });
+        }
+
+
         let mut graph = CodeGraph::new(GraphMeta {
             language: self.language_name().to_string(),
             source_root: "".to_string(), // Caller should modify this later if needed
