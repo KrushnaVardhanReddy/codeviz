@@ -17,12 +17,25 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'npm run dev -- -p 3001',
-    url: 'http://localhost:3001',
-    reuseExistingServer: !process.env.CI,
-    env: {
-      E2E_TEST: 'true',
+  webServer: [
+    {
+      command: 'surreal start --username root --password root --default-namespace codeviz --default-database main --import-file ./seed.surql memory',
+      url: 'http://127.0.0.1:8000/health',
+      reuseExistingServer: false,
+      timeout: 10_000,
     },
-  },
+    {
+      command: 'npm run dev -- -p 3001',
+      url: 'http://localhost:3001',
+      reuseExistingServer: !process.env.CI,
+      env: {
+        SURREALDB_URL: 'http://127.0.0.1:8000/rpc',
+        SURREALDB_USER: 'root',
+        SURREALDB_PASS: 'root',
+        SURREALDB_NS: 'codeviz',
+        SURREALDB_DB: 'main',
+        AUTH_SECRET: 'e2e_fallback_secret',
+      },
+    },
+  ],
 });

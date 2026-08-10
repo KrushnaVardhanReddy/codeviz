@@ -1,16 +1,16 @@
 # SaaS Database Architecture
 
 ## Overview
-CodeViz utilizes a robust, real-time database architecture built on **Supabase** (PostgreSQL) for production environments, ensuring robust RBAC and team workspace capabilities (Phase 13-16). 
+CodeViz utilizes a robust, real-time database architecture built on **SurrealDB** for production environments, ensuring robust capabilities for upcoming phases.
 
-To test locally without network dependencies, E2E tests should bypass the DB adapter entirely and rely on NextAuth's mock sessions or JWT tokens.
+To test locally without network dependencies, E2E tests should utilize SurrealDB's in-memory mode, populated with seed data.
 
 ## Local E2E Testing Strategy (Playwright)
-1. **Mocked Sessions**: Tests interacting with protected routes should use a mocked NextAuth session (e.g. `CredentialsProvider` active only when `E2E_TEST=true`).
-2. **Framework**: We use **Playwright** (`npm run test:e2e`) as the end-to-end framework. 
-3. **No SDK Proxies**: Do NOT attempt to build a proxy between the Supabase JS SDK and local SQL instances (like PGLite), as this is brittle and complex.
+1. **In-Memory Mode**: Playwright spins up `surreal start memory` with a `seed.surql` file.
+2. **Framework**: We use **Playwright** (`npm run test:e2e`) as the end-to-end framework.
+3. **Official Auth.js Adapter**: We use `@auth/surrealdb-adapter` which connects to the local memory instance seamlessly during E2E.
 
 ## Implementation Requirements
-- Initialize `@supabase/supabase-js`.
-- Create `codeviz-web/playwright.config.ts` for E2E setups.
-- Use `adapter: process.env.E2E_TEST ? undefined : SupabaseAdapter(...)` in `auth.ts` to bypass DB writes during testing.
+- Initialize `@auth/surrealdb-adapter` and `surrealdb`.
+- Create `codeviz-web/playwright.config.ts` to spin up SurrealDB alongside Next.js.
+- Ensure the connection logic connects correctly based on `SURREALDB_URL` fallback `http://127.0.0.1:8000/rpc` during tests.
