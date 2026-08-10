@@ -20,3 +20,10 @@ Chronological append-only record of all wiki ingest and lint operations.
 - Created Jules prompt: `scripts/jules_prompts/task_33c_surrealdb.md`
 - Created wiki page: `pages/surrealdb_first_pattern.md`
 - Updated `wiki/index.md` with new entry.
+
+## [2026-08-10] ingest | MVP v1 Features (Batch 20)
+- Ingested existing specs for T47, T48, and T53.
+- Created `pages/vscode_extension.md`.
+- Created `pages/mcp_summarize.md`.
+- Created `pages/call_path_explorer.md`.
+- Updated `wiki/index.md`.

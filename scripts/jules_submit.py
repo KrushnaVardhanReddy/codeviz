@@ -185,6 +185,7 @@ BATCHES = {
     15: {"desc": "Phase 15: Enterprise SSO & Audit Logs",              "tasks": [35]},
     16: {"desc": "Phase 16: Enterprise Insights",                      "tasks": [36, 37, 38, 39]},
     18: {"desc": "Phase 18: Advanced Analysis (Cycles, PageRank, Health)", "tasks": [41, 42, 43, 44, 45]},
+    20: {"desc": "MVP v1: Core Tools (No Conflicts)",                    "tasks": [47, 48, 53]},
 }
 
 # ─────────────────────────────────────────────────────────────

@@ -29,7 +29,14 @@ This is the golden rule of the CodeViz repository:
 ## 4. Current State (As of Last Session)
 We have successfully validated, resolved conflicts, and merged Batch 9 (T20, T22, T27) and Task 33C (SurrealDB Migration) into the `main` branch. 
 
+We are now currently awaiting asynchronous tasks running in Jules' cloud sandboxes for the next phase of development:
+- ⏳ **Batch 10**: Distribution (GitHub Action + npm WASM)
+- ⏳ **Batch 12**: Control Flow Graph (IR, Parsers, Web UI)
+- ⏳ **Batch 20**: MVP v1 Core Tools (VS Code Extension, MCP Summarizer, Call Path Explorer)
+
 **Next Steps upon resuming:**
-1. Check `docs/tracker.md` for the next batch of tasks.
-2. Draft specs for the next tasks (e.g., Batch 10 for Distribution, Batch 14 for Teams & Workspaces, or T48 MCP Tool) and ingest them into the LLM Wiki.
-3. Update Jules' prompts and trigger execution for the new tasks using `python3 scripts/jules_submit.py`.
+1. Wait for and validate Jules' PRs for Batches 10, 12, and 20.
+2. Run automated tests (`npm run test:e2e` and `cargo test`) on each branch.
+3. Resolve any minor merge conflicts (e.g., in `DetailPanel.tsx` between Batch 12 and Batch 20).
+4. Merge them into `main` one by one.
+5. Trigger the next batch of tasks (e.g., Batch 14 for Teams).

@@ -20,7 +20,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[x]` **Batch 7 (Phase 7)**: Config + Universal Parser (Tasks 16, 26, 40)
 - `[x]` **Batch 8 (Phase 8)**: Critical Features (Tasks 18, 19, 21)
 - `[x]` **Batch 9 (Phase 9)**: Developer UX (Tasks 20, 22, 27)
-- `[ ]` **Batch 10 (Phase 10)**: Distribution (GitHub Action + npm WASM) (Tasks 23, 24)
+- `[/]` **Batch 10 (Phase 10)**: Distribution (GitHub Action + npm WASM) (Tasks 23, 24)
 
 ## Phase 11-12: Web UI & CFG
 - `[x]` **Batch 11 (Phase 11)**: Web UI Scaffolding & Graph (Tasks 28, 29)
@@ -51,11 +51,13 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 ### MVP v1 — "Make It Viral" (Core OSS — Adoption Flywheel)
 > Goal: Get developers to install CodeViz and tell their friends.
 
-- `[ ]` **T47** `[OSS]` VS Code Extension — sidebar graph panel, status bar, auto-refresh on save
-- `[ ]` **T48** `[OSS]` `summarize_architecture` MCP Tool — instant codebase overview for AI agents
 - `[ ]` **T55** `[OSS]` MCP Debugging Tools — `trace_call_path`, `get_callers_recursive`, `get_blast_radius`
 - `[x]` **T56** `[OSS]` Interactive Code Playground — live WASM parser sandbox on the web UI
-- `[ ]` **T53** `[OSS]` Interactive Call Path Explorer — animated BFS graph traversal in Web UI
+
+### `[/]` Batch 20 — MVP v1 Core Tools
+- `[/]` **T47** `[OSS]` VS Code Extension — sidebar graph panel, status bar, auto-refresh on save
+- `[/]` **T48** `[OSS]` `summarize_architecture` MCP Tool — instant codebase overview for AI agents
+- `[/]` **T53** `[OSS]` Interactive Call Path Explorer — animated BFS graph traversal in Web UI
 
 ### MVP v2 — "Make It Sticky" (Team Features — Retention & Collaboration)
 > Goal: Make teams embed CodeViz in their daily workflow.
