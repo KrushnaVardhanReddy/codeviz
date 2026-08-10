@@ -26,6 +26,6 @@ Implement a robust End-to-End (E2E) testing framework that validates the entire 
 - **Location**: `codeviz-web/tests/e2e/`.
 - **Workflow**:
   - Pre-requisite: The Rust backend must be compiled.
-  - Playwright spins up the Next.js frontend alongside the `codeviz-mcp` backend process.
+  - Playwright spins up the Next.js frontend alongside the `codeviz-mcp` backend process and an in-memory SurrealDB instance.
   - Verifies that loading the dashboard successfully fetches the graph, visualizes React Flow nodes, and opens the CFG Side Panel when a node is clicked.
-  - Validates PGLite (in-memory) integration for auth and team workspaces (Zero Mocking).
+  - Validates **SurrealDB** integration for auth and team workspaces with **Zero Mocking**. All test data is seeded dynamically via `seed.surql` at the start of the test.

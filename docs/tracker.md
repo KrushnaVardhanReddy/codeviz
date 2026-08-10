@@ -59,11 +59,17 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[/]` **T48** `[OSS]` `summarize_architecture` MCP Tool — instant codebase overview for AI agents
 - `[/]` **T53** `[OSS]` Interactive Call Path Explorer — animated BFS graph traversal in Web UI
 
+### `[ ]` Batch 21 — MVP v1 Full E2E
+- `[ ]` **T57** `[OSS]` MVP v1 Full-Stack E2E Test Suite — Playwright + SurrealDB + Rust CLI (zero mock)
+
 ### MVP v2 — "Make It Sticky" (Team Features — Retention & Collaboration)
 > Goal: Make teams embed CodeViz in their daily workflow.
 
 - `[ ]` **T49** `[TEAM]` Architecture Drift Alerts — PR comments + Slack when arch regresses
 - `[ ]` **T52** `[TEAM]` "Onboard Me" — auto-generated architecture walkthrough doc + MCP tool
+
+### `[ ]` Batch 22 — MVP v2 Full E2E
+- `[ ]` **T58** `[OSS]` MVP v2 Full-Stack E2E Test Suite — Playwright + SurrealDB + Rust CLI (zero mock)
 
 ### MVP v3 — "Make It Pay" (Enterprise Features — Revenue)
 > Goal: Close enterprise contracts.
@@ -71,4 +77,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[ ]` **T54** `[BIZ]`  OpenTelemetry Trace Overlay — import OTEL trace, see live execution path on graph
 - `[ ]` **T50** `[ENT]`  Multi-Repo Cross-Service Graph — visualize microservice dependencies
 - `[ ]` **T51** `[ENT]`  SBOM Export (CycloneDX / SPDX) — compliance requirement for regulated industries
+
+### `[ ]` Batch 23 — MVP v3 Full E2E
+- `[ ]` **T59** `[OSS]` MVP v3 Full-Stack E2E Test Suite — Playwright + SurrealDB + Rust CLI (zero mock)
 

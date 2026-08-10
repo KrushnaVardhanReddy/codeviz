@@ -11,3 +11,4 @@ This is the catalog of all concepts, entities, and synthesis pages in the CodeVi
 - [VS Code Extension](pages/vscode_extension.md) - CodeViz native editor integration.
 - [MCP Architecture Summarizer](pages/mcp_summarize.md) - Generates deterministic narrative summaries of codebase architectures.
 - [Interactive Call Path Explorer](pages/call_path_explorer.md) - Web UI BFS animation for exploring call paths.
+- [MVP Full-Stack E2E Test Suites](pages/mvp_e2e_suites.md) - Zero-mocking full-stack testing strategy for MVPs.

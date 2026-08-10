@@ -27,3 +27,8 @@ Chronological append-only record of all wiki ingest and lint operations.
 - Created `pages/mcp_summarize.md`.
 - Created `pages/call_path_explorer.md`.
 - Updated `wiki/index.md`.
+
+## [2026-08-10] ingest | MVP Full-Stack E2E Test Suites
+- Created spec: `docs/specs/features/mvp_e2e_suites.md`
+- Created wiki page: `pages/mvp_e2e_suites.md`
+- Updated `wiki/index.md` with new entry.

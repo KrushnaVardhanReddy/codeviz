@@ -161,6 +161,10 @@ TASKS = {
     54: {"name": "54 — OpenTelemetry Trace Overlay",     "phase": "MVP v3: Enterprise",          "slug": "task_54_otel_trace_overlay"},
     50: {"name": "50 — Multi-Repo Cross-Service Graph",  "phase": "MVP v3: Enterprise",          "slug": "task_50_multi_repo"},
     51: {"name": "51 — SBOM Export (CycloneDX/SPDX)",   "phase": "MVP v3: Enterprise",          "slug": "task_51_sbom_export"},
+    # E2E Tests
+    57: {"name": "57 — MVP v1 Full E2E Test Suite",      "phase": "MVP v1: E2E",                 "slug": "task_57_mvp1_e2e"},
+    58: {"name": "58 — MVP v2 Full E2E Test Suite",      "phase": "MVP v2: E2E",                 "slug": "task_58_mvp2_e2e"},
+    59: {"name": "59 — MVP v3 Full E2E Test Suite",      "phase": "MVP v3: E2E",                 "slug": "task_59_mvp3_e2e"},
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -186,6 +190,9 @@ BATCHES = {
     16: {"desc": "Phase 16: Enterprise Insights",                      "tasks": [36, 37, 38, 39]},
     18: {"desc": "Phase 18: Advanced Analysis (Cycles, PageRank, Health)", "tasks": [41, 42, 43, 44, 45]},
     20: {"desc": "MVP v1: Core Tools (No Conflicts)",                    "tasks": [47, 48, 53]},
+    21: {"desc": "MVP v1: Full E2E Test Suite",                            "tasks": [57]},
+    22: {"desc": "MVP v2: Full E2E Test Suite",                            "tasks": [58]},
+    23: {"desc": "MVP v3: Full E2E Test Suite",                            "tasks": [59]},
 }
 
 # ─────────────────────────────────────────────────────────────
