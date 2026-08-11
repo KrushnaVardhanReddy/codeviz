@@ -24,7 +24,10 @@ This is the golden rule of the CodeViz repository:
 - **Tracker**: `docs/tracker.md` is the absolute source of truth for the project timeline and task batches. Check this first.
 - **LLM Wiki**: `.agents/wiki/` is our persistent, compounding knowledge base. 
   - ALWAYS follow the **Ingest Protocol** (defined in `.agents/AGENTS.md`) when creating new specs: Read source $\rightarrow$ Create concept page in `wiki/pages/` $\rightarrow$ Update `wiki/index.md` $\rightarrow$ Log in `wiki/log.md`.
-- **Jules Prompts**: `scripts/jules_prompts/` contains the task directives sent to Jules.
+- **Jules Prompts**: `scripts/jules_prompts/` contains
+### Open Tasks
+*   T63 - Playground AST & Drag Improvements. (Assigned to Jules). 
+*   **Active Sprint**: MVP V1 E2E testing completed! V1 Launch ready after T63 completes!
 
 ## 4. Current State (As of Last Session)
 We have successfully validated, resolved conflicts, and merged the following into the `main` branch:

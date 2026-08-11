@@ -168,6 +168,7 @@ TASKS = {
     # QA & Blind Spots
     60: {"name": "60 — Cross-Platform Path Normalization", "phase": "MVP v1: QA",                "slug": "task_60_windows_paths"},
     61: {"name": "61 — VS Code Extension E2E Tests",     "phase": "MVP v1: QA",                "slug": "task_61_vscode_e2e"},
+    63: {"name": "63 — Playground AST & Drag Improvements", "phase": "MVP v1: QA",             "slug": "task_63_playground_ast_drag"},
     62: {"name": "62 — Graph Rendering Stress Test",       "phase": "MVP v2: QA",                "slug": "task_62_stress_test"},
 }
 
@@ -194,7 +195,7 @@ BATCHES = {
     16: {"desc": "Phase 16: Enterprise Insights",                      "tasks": [36, 37, 38, 39]},
     18: {"desc": "Phase 18: Advanced Analysis (Cycles, PageRank, Health)", "tasks": [41, 42, 43, 44, 45]},
     20: {"desc": "MVP v1: Core Tools (No Conflicts)",                    "tasks": [47, 48, 53]},
-    21: {"desc": "MVP v1: Full E2E Test Suite + QA",                     "tasks": [57, 60, 61]},
+    21: {"desc": "MVP v1: Full E2E Test Suite + QA",                     "tasks": [57, 60, 61, 63]},
     22: {"desc": "MVP v2: Full E2E Test Suite + QA",                     "tasks": [58, 62]},
     23: {"desc": "MVP v3: Full E2E Test Suite",                            "tasks": [59]},
 }
