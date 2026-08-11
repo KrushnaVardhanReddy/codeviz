@@ -3,10 +3,12 @@
   "displayName": "CodeViz",
   "description": "CodeViz Extension",
   "version": "1.0.0",
+  "publisher": "codeviz",
   "engines": {
     "vscode": "^1.85.0"
   },
   "activationEvents": [
+    "onStartupFinished",
     "workspaceContains:codeviz.toml"
   ],
   "main": "./out/extension.js",
@@ -58,6 +60,7 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "pretest": "cd ../codeviz-wasm && wasm-pack build --target nodejs && cd ../npm && npm install",
     "test": "node ./out/test/runTest.js"
   },
   "dependencies": {
