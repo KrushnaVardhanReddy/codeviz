@@ -154,7 +154,7 @@ export function PlaygroundLayout() {
             </div>
           )}
         </div>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden" data-testid="playground-editor">
           <PlaygroundEditor
             code={code}
             onChange={(val) => setCode(val || "")}

@@ -48,7 +48,7 @@ export const CallPathExplorer: React.FC<CallPathExplorerProps> = ({
   }
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-2xl p-4 flex flex-col items-center gap-3 z-50 min-w-[320px]">
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-2xl p-4 flex flex-col items-center gap-3 z-50 min-w-[320px]" data-testid="call-path-explorer">
       <div className="flex justify-between items-center w-full">
         <div className="text-slate-300 font-semibold text-sm">
           Call Path Explorer

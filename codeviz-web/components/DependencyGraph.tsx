@@ -58,7 +58,7 @@ const DependencyGraph: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-screen bg-[#0F172A] relative overflow-hidden">
+    <div className="w-full h-screen bg-[#0F172A] relative overflow-hidden" data-testid="graph-canvas">
       <ReactFlow
         nodes={nodes}
         edges={edges}

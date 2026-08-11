@@ -79,7 +79,7 @@ export const CfgPanel: React.FC<CfgPanelProps> = ({ controlFlow }) => {
   }
 
   return (
-    <div className="w-full h-[400px] border border-slate-700 rounded-md overflow-hidden bg-slate-900 relative">
+    <div className="w-full h-[400px] border border-slate-700 rounded-md overflow-hidden bg-slate-900 relative" data-testid="cfg-panel">
       <ReactFlow
         nodes={nodes}
         edges={edges}

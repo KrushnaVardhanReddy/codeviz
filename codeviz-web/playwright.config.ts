@@ -19,7 +19,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'surreal start --username root --password root --default-namespace codeviz --default-database main --import-file ./seed.surql memory',
+      command: 'surreal start --username root --password root --import-file ./seed.surql memory',
       url: 'http://127.0.0.1:8000/health',
       reuseExistingServer: false,
       timeout: 10_000,
