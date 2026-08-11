@@ -83,6 +83,9 @@ pub fn handle_request(req: JsonRpcRequest, registry: &LanguageRegistry) -> JsonR
                 "find_entry_points" => handle_find_entry_points(tool_args, registry),
                 "explain_path" => handle_explain_path(tool_args, registry),
                 "summarize_architecture" => handle_summarize_architecture(tool_args, registry),
+                "trace_call_path" => handle_trace_call_path(tool_args, registry),
+                "get_callers_recursive" => handle_get_callers_recursive(tool_args, registry),
+                "get_blast_radius" => handle_get_blast_radius(tool_args, registry),
                 _ => return error_response(id, JsonRpcError::method_not_found(tool_name)),
             };
 

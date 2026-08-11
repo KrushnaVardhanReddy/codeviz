@@ -172,6 +172,45 @@ pub fn list_tools() -> Vec<ToolDefinition> {
             }),
         },
         ToolDefinition {
+            name: "trace_call_path".to_string(),
+            description: "Returns ALL paths (not just shortest) from an entry point to a target function.".to_string(),
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "from": { "type": "string" },
+                    "to": { "type": "string" },
+                    "path": { "type": "string" },
+                    "max_paths": { "type": "number", "description": "Optional maximum number of paths to return (default 10, max 50)" }
+                },
+                "required": ["from", "to", "path"]
+            }),
+        },
+        ToolDefinition {
+            name: "get_callers_recursive".to_string(),
+            description: "Returns the full N-level-deep caller chain for a function.".to_string(),
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "fn_name": { "type": "string" },
+                    "path": { "type": "string" },
+                    "depth": { "type": "number", "description": "Optional max depth (default 3, max 10)" }
+                },
+                "required": ["fn_name", "path"]
+            }),
+        },
+        ToolDefinition {
+            name: "get_blast_radius".to_string(),
+            description: "Returns all functions transitively reachable FROM a given node.".to_string(),
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "fn_name": { "type": "string" },
+                    "path": { "type": "string" }
+                },
+                "required": ["fn_name", "path"]
+            }),
+        },
+        ToolDefinition {
             name: "explain_path".to_string(),
             description: "Returns the shortest dependency path between two named nodes."
                 .to_string(),
@@ -494,6 +533,137 @@ pub fn handle_explain_path(
     }
 }
 
+
+pub fn handle_trace_call_path(
+    params: Value,
+    registry: &LanguageRegistry,
+) -> Result<Value, JsonRpcError> {
+    let path_str = params
+        .get("path")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
+    let from_name = params
+        .get("from")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'from' parameter"))?;
+    let to_name = params
+        .get("to")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'to' parameter"))?;
+
+    let max_paths = params
+        .get("max_paths")
+        .and_then(|v| v.as_u64())
+        .map(|v| std::cmp::min(v, 50) as usize)
+        .unwrap_or(10);
+
+    let graph = build_graph_from_path(path_str, registry)?;
+
+    let from_node = graph
+        .nodes
+        .iter()
+        .find(|n| n.label == from_name || n.id.ends_with(from_name));
+    let to_node = graph
+        .nodes
+        .iter()
+        .find(|n| n.label == to_name || n.id.ends_with(to_name));
+
+    if from_node.is_none() || to_node.is_none() {
+        return Ok(json!({
+            "paths": [],
+            "count": 0
+        }));
+    }
+
+    let from_node = from_node.ok_or_else(|| JsonRpcError::internal_error("Node from not found after check"))?;
+    let to_node = to_node.ok_or_else(|| JsonRpcError::internal_error("Node to not found after check"))?;
+
+    let paths = graph.all_paths(&from_node.id, &to_node.id, max_paths);
+
+    Ok(json!({
+        "paths": paths,
+        "count": paths.len()
+    }))
+}
+
+pub fn handle_get_callers_recursive(
+    params: Value,
+    registry: &LanguageRegistry,
+) -> Result<Value, JsonRpcError> {
+    let path_str = params
+        .get("path")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
+    let fn_name = params
+        .get("fn_name")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'fn_name' parameter"))?;
+
+    let max_depth = params
+        .get("depth")
+        .and_then(|v| v.as_u64())
+        .map(|v| std::cmp::min(v, 10) as usize)
+        .unwrap_or(3);
+
+    let graph = build_graph_from_path(path_str, registry)?;
+
+    let target_node = graph
+        .nodes
+        .iter()
+        .find(|n| n.label == fn_name || n.id.ends_with(fn_name));
+
+    if target_node.is_none() {
+        return Ok(json!({
+            "call_tree": null
+        }));
+    }
+
+    let target_node = target_node.ok_or_else(|| JsonRpcError::internal_error("Target node not found after check"))?;
+
+    let tree = graph.callers_recursive(&target_node.id, max_depth);
+
+    Ok(json!({
+        "call_tree": tree
+    }))
+}
+
+pub fn handle_get_blast_radius(
+    params: Value,
+    registry: &LanguageRegistry,
+) -> Result<Value, JsonRpcError> {
+    let path_str = params
+        .get("path")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'path' parameter"))?;
+    let fn_name = params
+        .get("fn_name")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| JsonRpcError::invalid_params("Missing 'fn_name' parameter"))?;
+
+    let graph = build_graph_from_path(path_str, registry)?;
+
+    let target_node = graph
+        .nodes
+        .iter()
+        .find(|n| n.label == fn_name || n.id.ends_with(fn_name));
+
+    if target_node.is_none() {
+        return Ok(json!({
+            "affected_nodes": [],
+            "count": 0
+        }));
+    }
+
+    let target_node = target_node.ok_or_else(|| JsonRpcError::internal_error("Target node not found after check"))?;
+
+    let affected_nodes = graph.blast_radius(&target_node.id);
+
+    Ok(json!({
+        "affected_nodes": affected_nodes,
+        "count": affected_nodes.len()
+    }))
+}
+
 fn build_graph_from_path(
     dir_path: &str,
     registry: &LanguageRegistry,
@@ -633,7 +803,7 @@ mod tests {
     #[test]
     fn test_list_tools() {
         let tools = list_tools();
-        assert_eq!(tools.len(), 7);
+        assert_eq!(tools.len(), 10);
         assert!(tools.iter().any(|t| t.name == "get_module_graph"));
     }
 
@@ -717,4 +887,69 @@ mod tests {
 
         assert!(summary.contains("mixed codebase"));
     }
+
+    #[test]
+    fn test_handle_trace_call_path() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.dummy");
+        fs::write(&file_path, "dummy code").unwrap();
+
+        let reg = setup_registry();
+
+        let params = json!({
+            "path": dir.path().to_str().unwrap(),
+            "from": "A",
+            "to": "B",
+            "max_paths": 10
+        });
+
+        let res = handle_trace_call_path(params, &reg).unwrap();
+        assert_eq!(res.get("count").unwrap().as_u64().unwrap(), 1);
+        let paths = res.get("paths").unwrap().as_array().unwrap();
+        assert_eq!(paths.len(), 1);
+    }
+
+    #[test]
+    fn test_handle_get_callers_recursive() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.dummy");
+        fs::write(&file_path, "dummy code").unwrap();
+
+        let reg = setup_registry();
+
+        let params = json!({
+            "path": dir.path().to_str().unwrap(),
+            "fn_name": "B",
+            "depth": 3
+        });
+
+        let res = handle_get_callers_recursive(params, &reg).unwrap();
+        let tree = res.get("call_tree").unwrap().as_object().unwrap();
+        assert_eq!(tree.get("node").unwrap().as_str().unwrap().ends_with("B"), true);
+        let callers = tree.get("callers").unwrap().as_array().unwrap();
+        assert_eq!(callers.len(), 1);
+        let caller_a = callers[0].as_object().unwrap();
+        assert_eq!(caller_a.get("node").unwrap().as_str().unwrap().ends_with("A"), true);
+    }
+
+    #[test]
+    fn test_handle_get_blast_radius() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.dummy");
+        fs::write(&file_path, "dummy code").unwrap();
+
+        let reg = setup_registry();
+
+        let params = json!({
+            "path": dir.path().to_str().unwrap(),
+            "fn_name": "A"
+        });
+
+        let res = handle_get_blast_radius(params, &reg).unwrap();
+        assert_eq!(res.get("count").unwrap().as_u64().unwrap(), 1);
+        let affected = res.get("affected_nodes").unwrap().as_array().unwrap();
+        assert_eq!(affected.len(), 1);
+        assert_eq!(affected[0].as_str().unwrap().ends_with("B"), true);
+    }
 }
+

@@ -97,6 +97,17 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
     });
   }, []);
 
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+
+  const onNodeDoubleClick = useCallback((event: React.MouseEvent, node: any) => {
+    setExpandedNodes(prev => {
+      const next = new Set(prev);
+      if (next.has(node.id)) next.delete(node.id);
+      else next.add(node.id);
+      return next;
+    });
+  }, []);
+
   const onNodeClick = useCallback((event: React.MouseEvent, node: any) => {
     setSelectedNode(node);
   }, []);
@@ -246,10 +257,35 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
 
   const pathAnimation = usePathAnimation(rawNodes, rawEdges);
 
+  const getVisibleAncestor = useCallback((nodeId: string): string | null => {
+    let curr = nodes.find(n => n.id === nodeId);
+    if (!curr) return null;
+    
+    let trace = [];
+    let temp: ReactFlowNode | undefined = curr;
+    while (temp) {
+        trace.push(temp);
+        const pid = temp.parentId;
+        temp = pid ? nodes.find(n => n.id === pid) : undefined;
+    }
+    
+    let visibleId = trace[trace.length - 1].id; 
+    for (let i = trace.length - 1; i >= 0; i--) {
+        const n = trace[i];
+        if (n.parentId && !expandedNodes.has(n.parentId)) {
+            break; 
+        }
+        visibleId = n.id;
+    }
+    return visibleId;
+  }, [nodes, expandedNodes]);
+
   const nodesToRender = useMemo(() => {
     return nodes.filter(n => {
       const kindStr = kindToString(n.data?.kind as NodeKind);
-      return !hiddenNodeKinds.has(kindStr as string);
+      if (hiddenNodeKinds.has(kindStr as string)) return false;
+      const visibleAncestor = getVisibleAncestor(n.id);
+      return visibleAncestor === n.id;
     }).map((n) => {
       let finalStyle: React.CSSProperties = { ...n.style };
 
@@ -266,24 +302,51 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
         }
       }
 
+      const isExpanded = expandedNodes.has(n.id);
+      const isExpandable = kindStr === 'Module' || kindStr === 'Class' || kindStr === 'File';
+
       return {
         ...n,
         style: finalStyle,
         data: {
           ...n.data,
-          label: <div data-testid={`node-${n.id}`}>{String(n.data.label)}</div>
+          label: (
+            <div data-testid={`node-${n.id}`}>
+              {isExpandable && (
+                <span className="opacity-50 mr-1 font-mono">{isExpanded ? '[-]' : '[+]'}</span>
+              )}
+              {String(n.data.label)}
+            </div>
+          )
         }
       };
     });
-  }, [nodes, pathAnimation.currentStep, pathAnimation.activeNodes, hiddenNodeKinds]);
+  }, [nodes, pathAnimation.currentStep, pathAnimation.activeNodes, hiddenNodeKinds, getVisibleAncestor]);
 
   const edgesToRender = useMemo(() => {
-    const visibleNodeIds = new Set(nodesToRender.map(n => n.id));
-    return edges.filter(e => {
-      if (hiddenEdgeKinds.has(e.data?.kind as string)) return false;
-      if (!visibleNodeIds.has(e.source) || !visibleNodeIds.has(e.target)) return false;
-      return true;
-    }).map((e) => {
+    const rolledUpEdges = new Map<string, ReactFlowEdge>();
+
+    edges.forEach(e => {
+      if (hiddenEdgeKinds.has(e.data?.kind as string)) return;
+      
+      const visibleSource = getVisibleAncestor(e.source);
+      const visibleTarget = getVisibleAncestor(e.target);
+      
+      if (!visibleSource || !visibleTarget) return;
+      if (visibleSource === visibleTarget) return; // Avoid self-edges
+      
+      const edgeId = `${visibleSource}->${visibleTarget}-${e.data?.kind}`;
+      if (!rolledUpEdges.has(edgeId)) {
+          rolledUpEdges.set(edgeId, {
+              ...e,
+              id: edgeId,
+              source: visibleSource,
+              target: visibleTarget,
+          });
+      }
+    });
+
+    return Array.from(rolledUpEdges.values()).map((e) => {
       let finalStyle: React.CSSProperties = { ...e.style };
 
       if (pathAnimation.currentStep >= 0) {
@@ -329,6 +392,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
+        onNodeDoubleClick={onNodeDoubleClick}
         fitView
         className="bg-slate-900"
         colorMode="dark"
