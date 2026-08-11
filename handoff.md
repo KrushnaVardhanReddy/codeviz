@@ -33,12 +33,15 @@ We have successfully validated, resolved conflicts, and merged the following int
 - **Batch 12** (T30: CFG IR, T31: CFG Parsers, T32: CFG UI).
 - **Batch 20** (T47: VS Code Extension, T48: MCP Summarize, T53: Call Path Explorer).
 
-We are currently awaiting asynchronous tasks running in Jules' cloud sandboxes for the next phase of development:
-- ⏳ **Batch 21**: MVP v1 Full E2E (T57: E2E Test Suite, T60: Path Normalization, T61: VS Code E2E)
+We have successfully validated and merged the following from Batch 21 into the `main` branch:
+- **T60**: Cross-Platform Path Normalization
+- **T61**: VS Code Extension E2E Tests
+
+We are currently awaiting the final asynchronous task from Batch 21 running in Jules' cloud sandbox:
+- ⏳ **T57**: MVP v1 Full-Stack E2E Test Suite — Playwright + SurrealDB + Rust CLI
 
 **Next Steps upon resuming:**
-1. Wait for and validate Jules' PRs for Batch 21.
-2. Resolve any minor merge conflicts (e.g. in `.github/workflows/ci.yml` between T57 and T60).
-3. Merge them into `main`.
-4. Run final automated tests (`npm run test:e2e` and `cargo test`) to confirm MVP v1 completion.
-5. Trigger the next batch of tasks for MVP v2.
+1. Wait for and validate Jules' PR for T57.
+2. Merge T57 into `main`.
+3. Run final automated tests (`npm run test:e2e` and `cargo test`) to confirm MVP v1 completion.
+4. Trigger the next batch of tasks for MVP v2.
