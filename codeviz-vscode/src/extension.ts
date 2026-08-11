@@ -4,7 +4,6 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { GraphPanelProvider } from './graphPanel';
 import { CodeVizStatusBar } from './statusBar';
-import * as codevizWasm from 'codeviz';
 
 let outputChannel: vscode.OutputChannel;
 let statusBar: CodeVizStatusBar;
@@ -14,18 +13,7 @@ export async function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel('CodeViz');
     statusBar = new CodeVizStatusBar();
 
-    // Check for codeviz.toml
-    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-        return;
-    }
-
-    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    const configPath = path.join(workspaceRoot, 'codeviz.toml');
-
-    if (!fs.existsSync(configPath)) {
-        return;
-    }
-
+    // 1. ALWAYS register commands first (synchronously)
     graphPanelProvider = new GraphPanelProvider(context.extensionUri);
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(GraphPanelProvider.viewType, graphPanelProvider)
@@ -59,6 +47,19 @@ export async function activate(context: vscode.ExtensionContext) {
         })
     );
 
+    // 2. NOW do the workspace checks
+    // Check for codeviz.toml
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        return;
+    }
+
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    const configPath = path.join(workspaceRoot, 'codeviz.toml');
+
+    if (!fs.existsSync(configPath)) {
+        return;
+    }
+
     // Initial update
     if (vscode.window.activeTextEditor) {
         updateGraphForCurrentFile();
@@ -73,11 +74,13 @@ async function updateGraphForCurrentFile() {
     if (document.isUntitled) return;
 
     const useWasm = vscode.workspace.getConfiguration('codeviz').get('useWasm', false);
+    const forceCli = process.env.CODEVIZ_FORCE_CLI === '1';
 
     statusBar.setParsing();
 
-    if (useWasm) {
+    if (useWasm && !forceCli) {
         try {
+            const codevizWasm = await import('codeviz');
             await codevizWasm.init();
             const ext = path.extname(document.fileName).substring(1);
             let lang = ext;
