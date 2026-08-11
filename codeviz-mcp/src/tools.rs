@@ -148,7 +148,8 @@ pub fn list_tools() -> Vec<ToolDefinition> {
         },
         ToolDefinition {
             name: "find_entry_points".to_string(),
-            description: "Returns all entry point nodes (functions with no incoming calls).".to_string(),
+            description: "Returns all entry point nodes (functions with no incoming calls)."
+                .to_string(),
             input_schema: json!({
                 "type": "object",
                 "properties": {
@@ -159,7 +160,9 @@ pub fn list_tools() -> Vec<ToolDefinition> {
         },
         ToolDefinition {
             name: "summarize_architecture".to_string(),
-            description: "Returns a human-readable narrative summary of a codebase from its CodeGraph.".to_string(),
+            description:
+                "Returns a human-readable narrative summary of a codebase from its CodeGraph."
+                    .to_string(),
             input_schema: json!({
                 "type": "object",
                 "properties": {

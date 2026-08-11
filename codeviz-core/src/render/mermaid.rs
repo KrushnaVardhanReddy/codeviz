@@ -316,7 +316,6 @@ mod tests {
                 node_count: 55,
                 edge_count: 0,
             },
-
         };
 
         let renderer = MermaidRenderer::new();
@@ -359,7 +358,6 @@ mod tests {
                 node_count: 2,
                 edge_count: 1,
             },
-
         };
         let renderer = MermaidRenderer::new();
         let out = renderer.render(&graph, DiagramKind::ModuleGraph);
@@ -401,7 +399,6 @@ mod tests {
                 node_count: 2,
                 edge_count: 1,
             },
-
         };
         let renderer = MermaidRenderer::new();
         let out = renderer.render(&graph, DiagramKind::ClassDiagram);

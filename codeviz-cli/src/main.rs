@@ -673,7 +673,9 @@ fn walk_dir(dir: &Path) -> Result<Vec<PathBuf>, String> {
                     files.extend(walk_dir(&path)?);
                 }
             } else {
-                files.push(path);
+                let normalized_path_str =
+                    codeviz_core::path_utils::normalize_path(&path.to_string_lossy());
+                files.push(PathBuf::from(normalized_path_str));
             }
         }
     }

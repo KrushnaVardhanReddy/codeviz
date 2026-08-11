@@ -1,5 +1,6 @@
 use codeviz_core::ir::{CodeGraph, Edge, EdgeKind, GraphMeta, Node, NodeKind};
 use codeviz_core::parser::{LanguageParser, ParseError};
+use codeviz_core::path_utils::normalize_path;
 use tree_sitter::{Node as TsNode, Parser, Tree};
 use tree_sitter_python::language;
 
@@ -171,12 +172,12 @@ impl PythonParser {
                 label.push_str(&decorators.join(","));
             }
 
-            let id = format!("{}::{}", file_path, name);
+            let id = format!("{}::{}", normalize_path(file_path), name);
             graph.nodes.push(Node {
                 id: id.clone(),
                 label,
                 kind: NodeKind::Class,
-                file_path: file_path.to_string(),
+                file_path: normalize_path(file_path),
                 line: Some(name_node.start_position().row as u32 + 1),
                 is_public: true, // simplified for python
             });
@@ -187,7 +188,7 @@ impl PythonParser {
                     if (child.kind() == "identifier" || child.kind() == "attribute")
                         && let Ok(base_name) = child.utf8_text(source_bytes)
                     {
-                        let to_id = format!("{}::{}", file_path, base_name); // Assuming intra-file or external
+                        let to_id = format!("{}::{}", normalize_path(file_path), base_name); // Assuming intra-file or external
                         graph.edges.push(Edge {
                             from_id: id.clone(),
                             to_id,
@@ -234,12 +235,12 @@ impl PythonParser {
                 label.push_str(&decorators.join(","));
             }
 
-            let id = format!("{}::{}", file_path, name);
+            let id = format!("{}::{}", normalize_path(file_path), name);
             graph.nodes.push(Node {
                 id,
                 label,
                 kind: NodeKind::Function { is_async },
-                file_path: file_path.to_string(),
+                file_path: normalize_path(file_path),
                 line: Some(name_node.start_position().row as u32 + 1),
                 is_public: true, // simplified
             });
@@ -411,14 +412,14 @@ impl LanguageParser for PythonParser {
 
         // Add the file node itself as the "module" node for this file
         graph.nodes.push(Node {
-            id: file_path.to_string(),
-            label: file_path
+            id: normalize_path(file_path),
+            label: normalize_path(file_path)
                 .split('/')
                 .next_back()
                 .unwrap_or(file_path)
                 .to_string(),
             kind: NodeKind::File,
-            file_path: file_path.to_string(),
+            file_path: normalize_path(file_path),
             line: None,
             is_public: true,
         });

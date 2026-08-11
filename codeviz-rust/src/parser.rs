@@ -1,5 +1,6 @@
 use codeviz_core::ir::{CodeGraph, Edge, EdgeKind, GraphMeta, Node, NodeKind};
 use codeviz_core::parser::{LanguageParser, ParseError};
+use codeviz_core::path_utils::normalize_path;
 use tree_sitter::{Node as TsNode, Parser, Tree};
 use tree_sitter_rust::language;
 
@@ -146,7 +147,7 @@ impl RustLangParser {
             };
 
             graph.edges.push(Edge {
-                from_id: file_path.to_string(),
+                from_id: normalize_path(file_path),
                 to_id: base_module,
                 kind: EdgeKind::Imports,
             });
@@ -158,7 +159,7 @@ impl RustLangParser {
                 format!("{}::{}", prefix, path_str)
             };
             graph.edges.push(Edge {
-                from_id: file_path.to_string(),
+                from_id: normalize_path(file_path),
                 to_id: target,
                 kind: EdgeKind::Imports,
             });
@@ -184,7 +185,7 @@ impl RustLangParser {
         if let Some(name_node) = node.child_by_field_name("name") {
             let name = self.get_text(name_node, source_bytes);
             graph.edges.push(Edge {
-                from_id: file_path.to_string(),
+                from_id: normalize_path(file_path),
                 to_id: name,
                 kind: EdgeKind::Imports,
             });
@@ -202,7 +203,7 @@ impl RustLangParser {
         if let Some(name_node) = node.child_by_field_name("name") {
             let name = self.get_text(name_node, source_bytes);
             graph.edges.push(Edge {
-                from_id: file_path.to_string(),
+                from_id: normalize_path(file_path),
                 to_id: name,
                 kind: EdgeKind::Imports,
             });
@@ -222,10 +223,10 @@ impl RustLangParser {
             let label = self.sanitize_label(&name);
 
             graph.nodes.push(Node {
-                id: format!("{}::{}", file_path, label),
+                id: format!("{}::{}", normalize_path(file_path), label),
                 label: label.clone(),
                 kind: NodeKind::Class,
-                file_path: file_path.to_string(),
+                file_path: normalize_path(file_path),
                 line: Some(node.start_position().row as u32 + 1),
                 is_public: self.is_public(node),
             });
@@ -243,13 +244,13 @@ impl RustLangParser {
         if let Some(name_node) = node.child_by_field_name("name") {
             let name = self.get_text(name_node, source_bytes);
             let label = self.sanitize_label(&name);
-            let id = format!("{}::{}", file_path, label);
+            let id = format!("{}::{}", normalize_path(file_path), label);
 
             graph.nodes.push(Node {
                 id: id.clone(),
                 label: label.clone(),
                 kind: NodeKind::Interface,
-                file_path: file_path.to_string(),
+                file_path: normalize_path(file_path),
                 line: Some(node.start_position().row as u32 + 1),
                 is_public: self.is_public(node),
             });
@@ -332,10 +333,10 @@ impl RustLangParser {
             }
 
             graph.nodes.push(Node {
-                id: format!("{}::{}", file_path, label),
+                id: format!("{}::{}", normalize_path(file_path), label),
                 label: label.clone(),
                 kind: NodeKind::Function { is_async },
-                file_path: file_path.to_string(),
+                file_path: normalize_path(file_path),
                 line: Some(node.start_position().row as u32 + 1),
                 is_public: self.is_public(node),
             });
@@ -391,14 +392,14 @@ impl LanguageParser for RustLangParser {
         });
 
         graph.nodes.push(Node {
-            id: file_path.to_string(),
-            label: file_path
+            id: normalize_path(file_path),
+            label: normalize_path(file_path)
                 .split('/')
                 .next_back()
                 .unwrap_or(file_path)
                 .to_string(),
             kind: NodeKind::File,
-            file_path: file_path.to_string(),
+            file_path: normalize_path(file_path),
             line: None,
             is_public: true,
         });

@@ -1,5 +1,6 @@
 use codeviz_core::ir::{CodeGraph, Edge, EdgeKind, GraphMeta, Node, NodeKind};
 use codeviz_core::parser::{LanguageParser, ParseError};
+use codeviz_core::path_utils::normalize_path;
 use tree_sitter::{Node as TsNode, Parser, Tree};
 use tree_sitter_java::language;
 
@@ -78,7 +79,7 @@ impl JavaParser {
     ) -> Result<(), ParseError> {
         if let Some(name_node) = node.child_by_field_name("name") {
             if let Ok(name) = name_node.utf8_text(source_bytes) {
-                let id = format!("{}::{}", file_path, name);
+                let id = format!("{}::{}", normalize_path(file_path), name);
 
                 let mut modifiers = Vec::new();
                 if let Some(mods_node) = node.child_by_field_name("modifiers") {
@@ -102,7 +103,7 @@ impl JavaParser {
                     id: id.clone(),
                     label,
                     kind: NodeKind::Class,
-                    file_path: file_path.to_string(),
+                    file_path: normalize_path(file_path),
                     line: Some(name_node.start_position().row as u32 + 1),
                     is_public: true,
                 });
@@ -114,7 +115,7 @@ impl JavaParser {
                             if let Ok(super_name) = child.utf8_text(source_bytes) {
                                 graph.edges.push(Edge {
                                     from_id: id.clone(),
-                                    to_id: format!("{}::{}", file_path, super_name),
+                                    to_id: format!("{}::{}", normalize_path(file_path), super_name),
                                     kind: EdgeKind::Inherits,
                                 });
                             }
@@ -132,7 +133,11 @@ impl JavaParser {
                                     if let Ok(iface_name) = tchild.utf8_text(source_bytes) {
                                         graph.edges.push(Edge {
                                             from_id: id.clone(),
-                                            to_id: format!("{}::{}", file_path, iface_name),
+                                            to_id: format!(
+                                                "{}::{}",
+                                                normalize_path(file_path),
+                                                iface_name
+                                            ),
                                             kind: EdgeKind::Implements,
                                         });
                                     }
@@ -155,7 +160,7 @@ impl JavaParser {
     ) -> Result<(), ParseError> {
         if let Some(name_node) = node.child_by_field_name("name") {
             if let Ok(name) = name_node.utf8_text(source_bytes) {
-                let id = format!("{}::{}", file_path, name);
+                let id = format!("{}::{}", normalize_path(file_path), name);
 
                 let mut modifiers = Vec::new();
                 if let Some(mods_node) = node.child_by_field_name("modifiers") {
@@ -179,7 +184,7 @@ impl JavaParser {
                     id: id.clone(),
                     label,
                     kind: NodeKind::Interface,
-                    file_path: file_path.to_string(),
+                    file_path: normalize_path(file_path),
                     line: Some(name_node.start_position().row as u32 + 1),
                     is_public: true,
                 });
@@ -194,7 +199,11 @@ impl JavaParser {
                                     if let Ok(iface_name) = tchild.utf8_text(source_bytes) {
                                         graph.edges.push(Edge {
                                             from_id: id.clone(),
-                                            to_id: format!("{}::{}", file_path, iface_name),
+                                            to_id: format!(
+                                                "{}::{}",
+                                                normalize_path(file_path),
+                                                iface_name
+                                            ),
                                             kind: EdgeKind::Inherits, // For interfaces, extends is Inherits
                                         });
                                     }
@@ -236,7 +245,7 @@ impl JavaParser {
 
         if let Some(name_node) = node.child_by_field_name("name") {
             if let Ok(name) = name_node.utf8_text(source_bytes) {
-                let id = format!("{}::{}", file_path, name);
+                let id = format!("{}::{}", normalize_path(file_path), name);
 
                 let mut modifiers = Vec::new();
                 let mut is_public = false;
@@ -267,7 +276,7 @@ impl JavaParser {
                     id,
                     label,
                     kind: NodeKind::Function { is_async: false },
-                    file_path: file_path.to_string(),
+                    file_path: normalize_path(file_path),
                     line: Some(name_node.start_position().row as u32 + 1),
                     is_public,
                 });
@@ -323,14 +332,14 @@ impl LanguageParser for JavaParser {
 
         // Add the file node itself as the "module" node for this file
         graph.nodes.push(Node {
-            id: file_path.to_string(),
-            label: file_path
+            id: normalize_path(file_path),
+            label: normalize_path(file_path)
                 .split('/')
                 .next_back()
                 .unwrap_or(file_path)
                 .to_string(),
             kind: NodeKind::File,
-            file_path: file_path.to_string(),
+            file_path: normalize_path(file_path),
             line: None,
             is_public: true,
         });

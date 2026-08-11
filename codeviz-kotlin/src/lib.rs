@@ -1,3 +1,4 @@
+use codeviz_core::path_utils::normalize_path;
 use codeviz_core::{
     CodeGraph, Edge, EdgeKind, GraphMeta, LanguageParser, Node, NodeKind, ParseError,
 };
@@ -28,7 +29,7 @@ impl KotlinParser {
                     id: "companion_object".to_string(),
                     label: "Companion[object]".to_string(),
                     kind: NodeKind::Class,
-                    file_path: file_path.to_string(),
+                    file_path: normalize_path(file_path),
                     line: Some(line),
                     is_public: true,
                 });
@@ -134,7 +135,7 @@ impl KotlinParser {
             id: class_name.clone(),
             label,
             kind,
-            file_path: file_path.to_string(),
+            file_path: normalize_path(file_path),
             line: Some(line),
             is_public: true,
         });
@@ -213,7 +214,7 @@ impl KotlinParser {
                 id: object_name.clone(),
                 label: format!("{}[object]", object_name),
                 kind: NodeKind::Class,
-                file_path: file_path.to_string(),
+                file_path: normalize_path(file_path),
                 line: Some(line),
                 is_public: true,
             });
@@ -269,7 +270,7 @@ impl KotlinParser {
             id: func_name.clone(),
             label: func_name.clone(),
             kind: NodeKind::Function { is_async },
-            file_path: file_path.to_string(),
+            file_path: normalize_path(file_path),
             line: Some(line),
             is_public: true,
         });
