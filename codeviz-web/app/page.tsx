@@ -40,6 +40,10 @@ const sampleGraph: CodeGraph = {
       file_path: 'Dashboard.tsx',
       line: 10,
       is_public: true,
+      control_flow: {
+        blocks: [{ id: "start", kind: "Start", label: "Start" }],
+        cfg_edges: []
+      }
     }
   ],
   edges: [

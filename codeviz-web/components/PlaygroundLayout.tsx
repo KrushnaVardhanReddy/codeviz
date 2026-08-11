@@ -61,9 +61,18 @@ export function PlaygroundLayout() {
 
           // dynamic import to avoid next.js build errors for server components
           const Parser = await import('web-tree-sitter');
-          const ParserMod = (Parser as any).default || Parser;
-          ParserModuleRef.current = ParserMod;
-
+          let ParserMod = Parser;
+          if (Parser.default && typeof Parser.default.init === 'function') {
+            ParserMod = Parser.default;
+          } else if (Parser.Parser && typeof Parser.Parser.init === 'function') {
+            ParserMod = Parser.Parser;
+          } else if (Parser.default && Parser.default.default && typeof Parser.default.default.init === 'function') {
+            ParserMod = Parser.default.default;
+          } else if (typeof (Parser as any).init !== 'function' && typeof (Parser as any).default === 'function') {
+            // Sometimes the default export IS the class itself (a function)
+            ParserMod = (Parser as any).default;
+          }
+          ParserModuleRef.current = ParserMod as any;
           await ParserMod.init({
             locateFile(scriptName: string, scriptDirectory: string) {
               return `/tree-sitter-wasms/${scriptName}`;
@@ -85,11 +94,14 @@ export function PlaygroundLayout() {
 
     try {
       const ParserMod = ParserModuleRef.current;
-      const langUrl = `/tree-sitter-wasms/tree-sitter-${currentLang}.wasm`;
-      const Lang = await ParserMod.Language.load(langUrl);
-      parserRef.current.setLanguage(Lang);
+      const LanguageMod = (ParserMod as any).Language;
+      if (!ParserMod || !LanguageMod) throw new Error("Parser or Language module not loaded");
+      
+      const parser = new (ParserMod as any)();
+      const LangMod = await LanguageMod.load(`/tree-sitter-wasms/tree-sitter-${currentLang}.wasm`);
+      parser.setLanguage(LangMod);
 
-      const tree = parserRef.current.parse(currentCode);
+      const tree = parser.parse(currentCode);
 
       // Basic recursive function to extract JSON AST
       const extractNode = (node: any): any => {

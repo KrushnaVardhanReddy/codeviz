@@ -67,7 +67,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
       return {
         id: node.id,
         position: { x: 100 + col * 250, y: 100 + row * 150 },
-        data: { label: node.label, kind: node.kind, testId: `node-${node.id}` },
+        data: { label: node.label, kind: node.kind, testId: `node-${node.id}`, control_flow: node.control_flow },
         style: {
           ...getNodeStyle(node.kind),
           padding: '10px',

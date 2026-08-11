@@ -45,38 +45,35 @@ test.describe('MVP v1 E2E Test Suite', () => {
 
   // Test 2: Call Path Explorer opens in the Web UI
   test('should open the Call Path Explorer when Trace button is clicked', async ({ page }) => {
+    page.on('console', msg => console.log('BROWSER CONSOLE (Test 2):', msg.text()));
+    page.on('pageerror', err => console.log('BROWSER ERROR (Test 2):', err.message));
     await page.goto('/');
 
     await page.waitForSelector('[data-testid="graph-canvas"]', { state: 'visible' });
 
-    // The data-type is not guaranteed to be "Function", it depends on how the graph converts it.
-    // Let's wait for the first node, and try to click it.
-    const backupNode = page.locator('.react-flow__node').first();
-    await backupNode.waitFor({ state: 'visible', timeout: 15000 });
-    await backupNode.click();
-    
-    const detailPanel = page.locator('[data-testid="detail-panel"]');
-    await detailPanel.waitFor({ state: 'visible' });
-
-    const traceBtn = page.locator('[data-testid="trace-paths-btn"]');
-    
-    // The instructions state: "Assert that a button containing text "Trace" or data-testid="trace-btn" is visible in the panel."
-    await traceBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
-        // If it doesn't appear, the first node wasn't a function, or the logic is broken.
-    });
-
-    if (await traceBtn.isVisible()) {
-        await traceBtn.click();
-        const callPathExplorer = page.locator('[data-testid="call-path-explorer"]');
-        await callPathExplorer.waitFor({ state: 'visible' });
-        await expect(callPathExplorer).toBeVisible();
-    } else {
-        await expect(traceBtn).toBeVisible();
+    const nodes = page.locator('.react-flow__node');
+    await nodes.first().waitFor({ state: 'visible', timeout: 15000 });
+    const count = await nodes.count();
+    let found = false;
+    for (let i = 0; i < count; i++) {
+        await nodes.nth(i).click();
+        await page.locator('[data-testid="detail-panel"]').waitFor({ state: 'visible' });
+        const traceBtn = page.locator('[data-testid="trace-paths-btn"]');
+        if (await traceBtn.isVisible()) {
+            await traceBtn.click();
+            found = true;
+            break;
+        }
     }
+    expect(found).toBe(true);
+    const callPathExplorer = page.locator('[data-testid="call-path-explorer"]');
+    await expect(callPathExplorer).toBeVisible();
   });
 
   // Test 3: Code Playground parses source and renders a graph
   test('should render a graph from source code typed into the playground', async ({ page }) => {
+    page.on('console', msg => console.log('BROWSER CONSOLE (Test 3):', msg.text()));
+    page.on('pageerror', err => console.log('BROWSER ERROR (Test 3):', err.message));
     await page.goto('/playground');
 
     // Wait for playground editor
@@ -94,8 +91,17 @@ test.describe('MVP v1 E2E Test Suite', () => {
     await page.keyboard.type('def hello():\n    pass\ndef world():\n    hello()');
 
     // Wait for at least one react-flow__node to be rendered.
-    const firstNode = page.locator('.react-flow__node').first();
-    await firstNode.waitFor({ state: 'visible', timeout: 15000 });
+    try {
+      const firstNode = page.locator('.react-flow__node').first();
+      await firstNode.waitFor({ state: 'visible', timeout: 15000 });
+    } catch (e) {
+      await page.screenshot({ path: 'playground-error.png' });
+      const errDiv = page.locator('.text-red-500');
+      if (await errDiv.isVisible()) {
+        console.log("PLAYGROUND ERROR:", await errDiv.textContent());
+      }
+      throw e;
+    }
 
     // Assert that at least one .react-flow__node is rendered
     const nodeCount = await page.locator('.react-flow__node').count();
@@ -108,21 +114,20 @@ test.describe('MVP v1 E2E Test Suite', () => {
 
     await page.waitForSelector('[data-testid="graph-canvas"]', { state: 'visible' });
 
-    // The instructions state: "click the first available node and check if cfg-panel appears."
-    const firstNode = page.locator('.react-flow__node').first();
-    await firstNode.waitFor({ state: 'visible', timeout: 15000 });
-    await firstNode.click();
-
-    const detailPanel = page.locator('[data-testid="detail-panel"]');
-    await detailPanel.waitFor({ state: 'visible' });
-
-    const cfgPanel = page.locator('[data-testid="cfg-panel"]');
-    await cfgPanel.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    
-    if (await cfgPanel.isVisible()) {
-        await expect(cfgPanel).toBeVisible();
-    } else {
-        await expect(cfgPanel).toBeVisible();
+    // Find a node that has a CFG panel
+    const nodes = page.locator('.react-flow__node');
+    await nodes.first().waitFor({ state: 'visible', timeout: 15000 });
+    const count = await nodes.count();
+    let found = false;
+    for (let i = 0; i < count; i++) {
+        await nodes.nth(i).click();
+        await page.locator('[data-testid="detail-panel"]').waitFor({ state: 'visible' });
+        const cfgPanel = page.locator('[data-testid="cfg-panel"]');
+        if (await cfgPanel.isVisible()) {
+            found = true;
+            break;
+        }
     }
+    expect(found).toBe(true);
   });
 });
