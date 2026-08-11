@@ -59,8 +59,8 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[x]` **T48** `[OSS]` `summarize_architecture` MCP Tool — instant codebase overview for AI agents
 - `[x]` **T53** `[OSS]` Interactive Call Path Explorer — animated BFS graph traversal in Web UI
 
-### `[/]` Batch 21 — MVP v1 Full E2E
-- `[/]` **T57** `[OSS]` MVP v1 Full-Stack E2E Test Suite — Playwright + SurrealDB + Rust CLI
+### `[x]` Batch 21 — MVP v1 Full E2E
+- `[x]` **T57** `[OSS]` MVP v1 Full-Stack E2E Test Suite — Playwright + SurrealDB + Rust CLI
 - `[x]` **T60** `[OSS]` Cross-Platform Path Normalization — ensure CLI works natively on Windows
 - `[x]` **T61** `[OSS]` VS Code Extension E2E Tests — test webview in headless VS Code
 
