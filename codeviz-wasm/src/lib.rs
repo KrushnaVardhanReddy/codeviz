@@ -77,7 +77,7 @@ pub fn parse_and_build_graph(
     });
 
     // Very basic extraction of functions and classes based on tree structure.
-    extract_from_ast(&root_node, file_path, &mut graph);
+    extract_from_ast(&root_node, file_path, &mut graph, Some(file_path));
 
     graph.meta.node_count = graph.nodes.len();
     graph.meta.edge_count = graph.edges.len();
@@ -85,12 +85,15 @@ pub fn parse_and_build_graph(
     serde_json::to_string(&graph).map_err(|e| e.to_string())
 }
 
-fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph) {
+fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, current_scope_id: Option<&str>) {
     let is_function = node.node_type == "function_definition"
         || node.node_type == "function_declaration"
         || node.node_type == "method_definition"
         || node.node_type == "arrow_function";
     let is_class = node.node_type == "class_definition" || node.node_type == "class_declaration";
+    let is_call = node.node_type == "call_expression" || node.node_type == "call";
+
+    let mut next_scope_id = current_scope_id.map(|s| s.to_string());
 
     if is_function || is_class {
         // Try to find identifier child
@@ -102,6 +105,7 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph) {
         if let Some(id_node) = identifier {
             let name = &id_node.text;
             let id = format!("{}::{}", file_path, name);
+            next_scope_id = Some(id.clone());
 
             graph.nodes.push(Node {
                 id,
@@ -116,10 +120,28 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph) {
                 is_public: true,
             });
         }
+    } else if is_call {
+        if let Some(scope_id) = current_scope_id {
+            // Try to find identifier child for the call
+            let identifier = node.children.iter().find(|c| {
+                c.node_type == "identifier"
+                    || c.node_type == "property_identifier"
+            });
+            if let Some(id_node) = identifier {
+                let name = &id_node.text;
+                let target_id = format!("{}::{}", file_path, name);
+                
+                graph.edges.push(codeviz_core::ir::Edge {
+                    from_id: scope_id.to_string(),
+                    to_id: target_id,
+                    kind: codeviz_core::ir::EdgeKind::Calls,
+                });
+            }
+        }
     }
 
     for child in &node.children {
-        extract_from_ast(child, file_path, graph);
+        extract_from_ast(child, file_path, graph, next_scope_id.as_deref());
     }
 }
 
