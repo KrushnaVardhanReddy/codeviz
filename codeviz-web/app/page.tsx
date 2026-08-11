@@ -4,7 +4,6 @@ import React from 'react';
 import { TopNav } from '../components/TopNav';
 import { Sidebar } from '../components/Sidebar';
 import { GraphCanvas } from '../components/GraphCanvas';
-import { Legend } from '../components/Legend';
 import { CodeGraph } from '../lib/graphTypes';
 import { Network } from 'lucide-react';
 
@@ -77,8 +76,6 @@ export default function Home() {
             <div className="flex-1 w-full relative">
               <GraphCanvas graph={sampleGraph} />
             </div>
-
-            <Legend />
           </div>
         </main>
       </div>

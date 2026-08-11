@@ -15,6 +15,8 @@ import { CodeGraph, NodeKind, EdgeKind } from '../lib/graphTypes';
 import DetailPanel from './DetailPanel';
 import { usePathAnimation } from '../hooks/usePathAnimation';
 import { CallPathExplorer } from './CallPathExplorer';
+import * as dagre from 'dagre';
+import { Legend } from './Legend';
 
 interface GraphCanvasProps {
   graph: CodeGraph;
@@ -43,6 +45,27 @@ const getEdgeStyle = (kind: EdgeKind) => {
 export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
   const [selectedNode, setSelectedNode] = useState<any>(null);
 
+  const [hiddenNodeKinds, setHiddenNodeKinds] = useState<Set<string>>(new Set());
+  const [hiddenEdgeKinds, setHiddenEdgeKinds] = useState<Set<string>>(new Set());
+
+  const onToggleNodeKind = useCallback((kind: string) => {
+    setHiddenNodeKinds(prev => {
+      const next = new Set(prev);
+      if (next.has(kind)) next.delete(kind);
+      else next.add(kind);
+      return next;
+    });
+  }, []);
+
+  const onToggleEdgeKind = useCallback((kind: string) => {
+    setHiddenEdgeKinds(prev => {
+      const next = new Set(prev);
+      if (next.has(kind)) next.delete(kind);
+      else next.add(kind);
+      return next;
+    });
+  }, []);
+
   const onNodeClick = useCallback((event: React.MouseEvent, node: any) => {
     setSelectedNode(node);
   }, []);
@@ -55,13 +78,30 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState<ReactFlowEdge>([]);
 
   useEffect(() => {
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    dagreGraph.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 100 });
+
+    graph.nodes.forEach((n) => {
+      dagreGraph.setNode(n.id, { width: 170, height: 70 });
+    });
+
+    graph.edges.forEach((e) => {
+      dagreGraph.setEdge(e.from_id, e.to_id);
+    });
+
+    dagre.layout(dagreGraph);
+
     setNodes((currentNodes) => {
       const nodePositionMap = new Map(currentNodes.map(n => [n.id, n.position]));
 
-      return graph.nodes.map((node, index) => {
-        const col = index % 3;
-        const row = Math.floor(index / 3);
-        const position = nodePositionMap.get(node.id) || { x: 100 + col * 250, y: 100 + row * 150 };
+      return graph.nodes.map((node) => {
+        const dNode = dagreGraph.node(node.id);
+        const defaultPosition = dNode 
+          ? { x: dNode.x - 170 / 2, y: dNode.y - 70 / 2 }
+          : { x: 0, y: 0 };
+          
+        const position = nodePositionMap.get(node.id) || defaultPosition;
 
         return {
           id: node.id,
@@ -105,7 +145,11 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
   const pathAnimation = usePathAnimation(rawNodes, rawEdges);
 
   const nodesToRender = useMemo(() => {
-    return nodes.map((n) => {
+    return nodes.filter(n => {
+      const kindRaw = n.data?.kind as any;
+      const kindStr = typeof kindRaw === 'object' && kindRaw !== null ? Object.keys(kindRaw)[0] : kindRaw;
+      return !hiddenNodeKinds.has(kindStr as string);
+    }).map((n) => {
       let finalStyle: React.CSSProperties = { ...n.style };
 
       if (pathAnimation.currentStep >= 0) {
@@ -130,10 +174,15 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
         }
       };
     });
-  }, [nodes, pathAnimation.currentStep, pathAnimation.activeNodes]);
+  }, [nodes, pathAnimation.currentStep, pathAnimation.activeNodes, hiddenNodeKinds]);
 
   const edgesToRender = useMemo(() => {
-    return edges.map((e) => {
+    const visibleNodeIds = new Set(nodesToRender.map(n => n.id));
+    return edges.filter(e => {
+      if (hiddenEdgeKinds.has(e.data?.kind as string)) return false;
+      if (!visibleNodeIds.has(e.source) || !visibleNodeIds.has(e.target)) return false;
+      return true;
+    }).map((e) => {
       let finalStyle: React.CSSProperties = { ...e.style };
 
       if (pathAnimation.currentStep >= 0) {
@@ -153,7 +202,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
         style: finalStyle,
       };
     });
-  }, [edges, pathAnimation.currentStep, pathAnimation.activeEdges]);
+  }, [edges, pathAnimation.currentStep, pathAnimation.activeEdges, hiddenEdgeKinds, nodesToRender]);
 
   return (
     <div className="w-full h-full relative" data-testid="graph-canvas">
@@ -191,6 +240,13 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
           className="bg-slate-800 border-slate-700"
         />
       </ReactFlow>
+
+      <Legend 
+        hiddenNodeKinds={hiddenNodeKinds} 
+        hiddenEdgeKinds={hiddenEdgeKinds} 
+        onToggleNodeKind={onToggleNodeKind} 
+        onToggleEdgeKind={onToggleEdgeKind} 
+      />
 
       <DetailPanel
         node={selectedNode}

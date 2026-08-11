@@ -19,3 +19,6 @@ wasm:
 
 clean:
 	cargo clean
+
+dev: wasm
+	cd codeviz-web && npm run dev
