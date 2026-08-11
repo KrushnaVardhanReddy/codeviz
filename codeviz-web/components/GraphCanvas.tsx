@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -6,7 +6,9 @@ import {
   MiniMap,
   Node as ReactFlowNode,
   Edge as ReactFlowEdge,
-  BackgroundVariant
+  BackgroundVariant,
+  useNodesState,
+  useEdgesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { CodeGraph, NodeKind, EdgeKind } from '../lib/graphTypes';
@@ -49,40 +51,61 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
     setSelectedNode(null);
   };
 
-  const rawEdges = useMemo(() => {
-    return graph.edges.map((edge, index) => ({
+  const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowNode>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<ReactFlowEdge>([]);
+
+  useEffect(() => {
+    setNodes((currentNodes) => {
+      const nodePositionMap = new Map(currentNodes.map(n => [n.id, n.position]));
+
+      return graph.nodes.map((node, index) => {
+        const col = index % 3;
+        const row = Math.floor(index / 3);
+        const position = nodePositionMap.get(node.id) || { x: 100 + col * 250, y: 100 + row * 150 };
+
+        return {
+          id: node.id,
+          position,
+          data: { label: node.label, kind: node.kind, testId: `node-${node.id}`, control_flow: node.control_flow },
+          style: {
+            ...getNodeStyle(node.kind),
+            padding: '10px',
+            width: 150,
+            textAlign: 'center' as const,
+            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
+          }
+        };
+      });
+    });
+
+    setEdges(
+      graph.edges.map((edge, index) => ({
+        id: `e${index}-${edge.from_id}-${edge.to_id}`,
+        source: edge.from_id,
+        target: edge.to_id,
+        style: getEdgeStyle(edge.kind),
+        animated: edge.kind === 'Calls',
+        data: { kind: edge.kind }
+      }))
+    );
+  }, [graph, setNodes, setEdges]);
+
+  // For usePathAnimation, we need stable references to current raw graph structures.
+  const rawEdges = useMemo(() => graph.edges.map((edge, index) => ({
       id: `e${index}-${edge.from_id}-${edge.to_id}`,
       source: edge.from_id,
       target: edge.to_id,
       style: getEdgeStyle(edge.kind),
       animated: edge.kind === 'Calls',
       data: { kind: edge.kind }
-    }));
-  }, [graph.edges]);
+  })), [graph.edges]);
 
-  const rawNodes = useMemo(() => {
-    return graph.nodes.map((node, index) => {
-      const col = index % 3;
-      const row = Math.floor(index / 3);
-      return {
-        id: node.id,
-        position: { x: 100 + col * 250, y: 100 + row * 150 },
-        data: { label: node.label, kind: node.kind, testId: `node-${node.id}`, control_flow: node.control_flow },
-        style: {
-          ...getNodeStyle(node.kind),
-          padding: '10px',
-          width: 150,
-          textAlign: 'center' as const,
-          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
-        }
-      };
-    });
-  }, [graph.nodes]);
+  const rawNodes = useMemo(() => nodes, [nodes]); // Use internal state nodes
 
   const pathAnimation = usePathAnimation(rawNodes, rawEdges);
 
   const nodesToRender = useMemo(() => {
-    return rawNodes.map((n) => {
+    return nodes.map((n) => {
       let finalStyle: React.CSSProperties = { ...n.style };
 
       if (pathAnimation.currentStep >= 0) {
@@ -107,10 +130,10 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
         }
       };
     });
-  }, [rawNodes, pathAnimation.currentStep, pathAnimation.activeNodes]);
+  }, [nodes, pathAnimation.currentStep, pathAnimation.activeNodes]);
 
   const edgesToRender = useMemo(() => {
-    return rawEdges.map((e) => {
+    return edges.map((e) => {
       let finalStyle: React.CSSProperties = { ...e.style };
 
       if (pathAnimation.currentStep >= 0) {
@@ -130,7 +153,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
         style: finalStyle,
       };
     });
-  }, [rawEdges, pathAnimation.currentStep, pathAnimation.activeEdges]);
+  }, [edges, pathAnimation.currentStep, pathAnimation.activeEdges]);
 
   return (
     <div className="w-full h-full relative" data-testid="graph-canvas">
@@ -153,6 +176,8 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
       <ReactFlow
         nodes={nodesToRender}
         edges={edgesToRender}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
         fitView
         className="bg-slate-900"

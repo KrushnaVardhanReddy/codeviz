@@ -1,0 +1,20 @@
+
+> codeviz-web@0.1.0 dev
+> next dev
+
+  ▲ Next.js 15.0.0
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 1809ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1519ms (216 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 6s (984 modules)
+ GET / 200 in 6450ms
+ ○ Compiling /playground ...
+ ✓ Compiled /playground in 1142ms (1008 modules)
+ GET /playground 200 in 1341ms
+ ✓ Compiled /_not-found in 385ms (997 modules)
+ GET /tree-sitter-wasms/tree-sitter.wasm 404 in 471ms
+ GET /tree-sitter-wasms/tree-sitter.wasm 404 in 27ms

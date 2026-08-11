@@ -61,16 +61,16 @@ export function PlaygroundLayout() {
 
           // dynamic import to avoid next.js build errors for server components
           const Parser = await import('web-tree-sitter');
-          let ParserMod = Parser;
-          if (Parser.default && typeof Parser.default.init === 'function') {
-            ParserMod = Parser.default;
-          } else if (Parser.Parser && typeof Parser.Parser.init === 'function') {
-            ParserMod = Parser.Parser;
-          } else if (Parser.default && Parser.default.default && typeof Parser.default.default.init === 'function') {
-            ParserMod = Parser.default.default;
-          } else if (typeof (Parser as any).init !== 'function' && typeof (Parser as any).default === 'function') {
+          let ParserMod: any = Parser;
+          if (ParserMod.default && typeof ParserMod.default.init === 'function') {
+            ParserMod = ParserMod.default;
+          } else if (ParserMod.Parser && typeof ParserMod.Parser.init === 'function') {
+            ParserMod = ParserMod.Parser;
+          } else if (ParserMod.default && ParserMod.default.default && typeof ParserMod.default.default.init === 'function') {
+            ParserMod = ParserMod.default.default;
+          } else if (typeof ParserMod.init !== 'function' && typeof ParserMod.default === 'function') {
             // Sometimes the default export IS the class itself (a function)
-            ParserMod = (Parser as any).default;
+            ParserMod = ParserMod.default;
           }
           ParserModuleRef.current = ParserMod as any;
           await ParserMod.init({

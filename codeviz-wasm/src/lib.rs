@@ -108,7 +108,7 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, curre
             next_scope_id = Some(id.clone());
 
             graph.nodes.push(Node {
-                id,
+                id: id.clone(),
                 label: name.clone(),
                 kind: if is_function {
                     NodeKind::Function { is_async: false }
@@ -119,16 +119,43 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, curre
                 line: Some(node.start_position.row + 1),
                 is_public: true,
             });
+
+            if is_class {
+                for child in &node.children {
+                    if child.node_type == "argument_list" || child.node_type == "class_heritage" {
+                        let mut base_names = Vec::new();
+                        find_identifiers(child, &mut base_names);
+                        for base_name in base_names {
+                            graph.edges.push(codeviz_core::ir::Edge {
+                                from_id: id.clone(),
+                                to_id: format!("{}::{}", file_path, base_name),
+                                kind: codeviz_core::ir::EdgeKind::Inherits,
+                            });
+                        }
+                    }
+                }
+            }
         }
     } else if is_call {
         if let Some(scope_id) = current_scope_id {
-            // Try to find identifier child for the call
-            let identifier = node.children.iter().find(|c| {
-                c.node_type == "identifier"
-                    || c.node_type == "property_identifier"
-            });
-            if let Some(id_node) = identifier {
-                let name = &id_node.text;
+            // Find target identifier for the call. If there is an attribute or member expression,
+            // we want the rightmost identifier.
+            let mut target_name = None;
+            for child in &node.children {
+                if child.node_type == "attribute" || child.node_type == "member_expression" {
+                    let mut identifiers = Vec::new();
+                    find_identifiers(child, &mut identifiers);
+                    if let Some(last_id) = identifiers.last() {
+                        target_name = Some(last_id.clone());
+                    }
+                } else if child.node_type == "identifier" || child.node_type == "property_identifier" {
+                    if target_name.is_none() {
+                        target_name = Some(child.text.clone());
+                    }
+                }
+            }
+
+            if let Some(name) = target_name {
                 let target_id = format!("{}::{}", file_path, name);
                 
                 graph.edges.push(codeviz_core::ir::Edge {
@@ -142,6 +169,18 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, curre
 
     for child in &node.children {
         extract_from_ast(child, file_path, graph, next_scope_id.as_deref());
+    }
+}
+
+fn find_identifiers(node: &TsNode, identifiers: &mut Vec<String>) {
+    if node.node_type == "identifier"
+        || node.node_type == "property_identifier"
+        || node.node_type == "type_identifier"
+    {
+        identifiers.push(node.text.clone());
+    }
+    for child in &node.children {
+        find_identifiers(child, identifiers);
     }
 }
 
@@ -234,5 +273,124 @@ mod tests {
         assert!(res.is_ok());
         let json = res.unwrap();
         assert!(json.contains("test.py::test"));
+    }
+
+    #[test]
+    fn test_parse_and_build_graph_inheritance() {
+        let ast = r#"{
+            "type": "program",
+            "text": "",
+            "start_position": {"row": 0, "column": 0},
+            "end_position": {"row": 10, "column": 0},
+            "children": [
+                {
+                    "type": "class_definition",
+                    "text": "class Dog(Animal): pass",
+                    "start_position": {"row": 0, "column": 0},
+                    "end_position": {"row": 1, "column": 0},
+                    "children": [
+                        {
+                            "type": "identifier",
+                            "text": "Dog",
+                            "start_position": {"row": 0, "column": 6},
+                            "end_position": {"row": 0, "column": 9},
+                            "children": []
+                        },
+                        {
+                            "type": "argument_list",
+                            "text": "(Animal)",
+                            "start_position": {"row": 0, "column": 9},
+                            "end_position": {"row": 0, "column": 17},
+                            "children": [
+                                {
+                                    "type": "identifier",
+                                    "text": "Animal",
+                                    "start_position": {"row": 0, "column": 10},
+                                    "end_position": {"row": 0, "column": 16},
+                                    "children": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }"#;
+        let res = parse_and_build_graph("python", "test.py", ast);
+        assert!(res.is_ok());
+        let json = res.unwrap();
+        let graph: CodeGraph = serde_json::from_str(&json).unwrap();
+
+        let inherits_edge = graph.edges.iter().find(|e| e.kind == codeviz_core::ir::EdgeKind::Inherits);
+        assert!(inherits_edge.is_some());
+        let edge = inherits_edge.unwrap();
+        assert_eq!(edge.from_id, "test.py::Dog");
+        assert_eq!(edge.to_id, "test.py::Animal");
+    }
+
+    #[test]
+    fn test_parse_and_build_graph_method_call() {
+        let ast = r#"{
+            "type": "program",
+            "text": "",
+            "start_position": {"row": 0, "column": 0},
+            "end_position": {"row": 10, "column": 0},
+            "children": [
+                {
+                    "type": "function_definition",
+                    "text": "def test(): d.bark()",
+                    "start_position": {"row": 0, "column": 0},
+                    "end_position": {"row": 1, "column": 0},
+                    "children": [
+                        {
+                            "type": "identifier",
+                            "text": "test",
+                            "start_position": {"row": 0, "column": 4},
+                            "end_position": {"row": 0, "column": 8},
+                            "children": []
+                        },
+                        {
+                            "type": "call",
+                            "text": "d.bark()",
+                            "start_position": {"row": 0, "column": 12},
+                            "end_position": {"row": 0, "column": 20},
+                            "children": [
+                                {
+                                    "type": "attribute",
+                                    "text": "d.bark",
+                                    "start_position": {"row": 0, "column": 12},
+                                    "end_position": {"row": 0, "column": 18},
+                                    "children": [
+                                        {
+                                            "type": "identifier",
+                                            "text": "d",
+                                            "start_position": {"row": 0, "column": 12},
+                                            "end_position": {"row": 0, "column": 13},
+                                            "children": []
+                                        },
+                                        {
+                                            "type": "identifier",
+                                            "text": "bark",
+                                            "start_position": {"row": 0, "column": 14},
+                                            "end_position": {"row": 0, "column": 18},
+                                            "children": []
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }"#;
+        let res = parse_and_build_graph("python", "test.py", ast);
+        assert!(res.is_ok());
+        let json = res.unwrap();
+        let graph: CodeGraph = serde_json::from_str(&json).unwrap();
+
+        let calls_edge = graph.edges.iter().find(|e| e.kind == codeviz_core::ir::EdgeKind::Calls);
+        assert!(calls_edge.is_some());
+        let edge = calls_edge.unwrap();
+        assert_eq!(edge.from_id, "test.py::test");
+        assert_eq!(edge.to_id, "test.py::bark");
     }
 }

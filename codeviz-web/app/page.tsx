@@ -41,7 +41,8 @@ const sampleGraph: CodeGraph = {
       line: 10,
       is_public: true,
       control_flow: {
-        blocks: [{ id: "start", kind: "Start", label: "Start" }],
+        function_id: "example.ts::helloWorld",
+        blocks: [{ id: "start", kind: "Entry", label: "Start", line: null }],
         cfg_edges: []
       }
     }
