@@ -241,6 +241,9 @@ pub struct Node {
     pub line: Option<u32>,
     /// true if exported/pub
     pub is_public: bool,
+    /// Parent ID for nested visualization (e.g. methods inside classes)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<String>,
 }
 
 /// The kind of a code graph node.
@@ -289,6 +292,8 @@ pub enum EdgeKind {
     Returns,
     /// Function creates instance of class
     Instantiates,
+    /// Scope contains member (File→Class, File→Function, Class→Method)
+    Contains,
 }
 
 /// Metadata about the code graph.
@@ -412,6 +417,7 @@ mod tests {
             file_path: "src/main.rs".to_string(),
             line: Some(1),
             is_public: true,
+            parent_id: None,
         });
 
         graph.nodes.push(Node {
@@ -421,6 +427,7 @@ mod tests {
             file_path: "src/lib.rs".to_string(),
             line: Some(1),
             is_public: true,
+            parent_id: None,
         });
 
         // Add a circular dependency

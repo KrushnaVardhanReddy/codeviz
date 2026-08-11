@@ -34,7 +34,8 @@ export type EdgeKind =
   | 'Inherits'
   | 'Implements'
   | 'Returns'
-  | 'Instantiates';
+  | 'Instantiates'
+  | 'Contains';
 
 export interface GraphMeta {
   language: string;

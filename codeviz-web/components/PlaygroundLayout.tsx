@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import PlaygroundEditor from "./PlaygroundEditor";
 import { GraphCanvas } from "./GraphCanvas";
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from "react-resizable-panels";
 import initWasm, { parse_and_build_graph } from "../../codeviz-wasm/pkg/codeviz_wasm";
 
 const EXAMPLES = {
@@ -98,7 +99,8 @@ export function PlaygroundLayout() {
       if (!ParserMod || !LanguageMod) throw new Error("Parser or Language module not loaded");
       
       const parser = new (ParserMod as any)();
-      const LangMod = await LanguageMod.load(`/tree-sitter-wasms/tree-sitter-${currentLang}.wasm`);
+      const wasmFile = currentLang === 'typescript' ? 'tsx' : currentLang;
+      const LangMod = await LanguageMod.load(`/tree-sitter-wasms/tree-sitter-${wasmFile}.wasm`);
       parser.setLanguage(LangMod);
 
       const tree = parser.parse(currentCode);
@@ -147,47 +149,55 @@ export function PlaygroundLayout() {
 
   return (
     <div className="flex h-full w-full bg-gray-50 overflow-hidden">
-      <div className="w-1/2 flex flex-col border-r border-gray-200 h-full">
-        <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <span className="font-semibold text-gray-700">Language:</span>
-            <select
-              value={language}
-              onChange={handleLanguageChange}
-              className="border border-gray-300 rounded px-2 py-1 text-sm bg-white"
-            >
-              <option value="python">Python</option>
-              <option value="typescript">TypeScript</option>
-            </select>
+      <PanelGroup orientation="horizontal">
+        <Panel defaultSize={50} minSize={20}>
+          <div className="flex flex-col border-r border-gray-200 h-full">
+            <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-gray-700">Language:</span>
+                <select
+                  value={language}
+                  onChange={handleLanguageChange}
+                  className="border border-gray-300 rounded px-2 py-1 text-sm bg-white text-slate-900"
+                >
+                  <option value="python">Python</option>
+                  <option value="typescript">TypeScript</option>
+                </select>
+              </div>
+              {error && (
+                <div className="text-red-500 text-xs truncate max-w-xs" title={error}>
+                  {error}
+                </div>
+              )}
+            </div>
+            <div className="flex-1 overflow-hidden" data-testid="playground-editor">
+              <PlaygroundEditor
+                code={code}
+                onChange={(val) => setCode(val || "")}
+                language={language}
+              />
+            </div>
           </div>
-          {error && (
-            <div className="text-red-500 text-xs truncate max-w-xs" title={error}>
-              {error}
-            </div>
-          )}
-        </div>
-        <div className="flex-1 overflow-hidden" data-testid="playground-editor">
-          <PlaygroundEditor
-            code={code}
-            onChange={(val) => setCode(val || "")}
-            language={language}
-          />
-        </div>
-      </div>
+        </Panel>
 
-      <div className="w-1/2 h-full flex flex-col">
-        <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center h-[60px]">
-          <span className="font-semibold text-gray-700">Graph Preview</span>
-        </div>
-        <div className="flex-1 bg-white relative">
-          {!wasmLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
-              Loading WASM engines...
+        <PanelResizeHandle className="w-1 bg-gray-300 hover:bg-blue-500 transition-colors cursor-col-resize z-10 relative" />
+
+        <Panel defaultSize={50} minSize={20}>
+          <div className="h-full flex flex-col">
+            <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center h-[60px]">
+              <span className="font-semibold text-gray-700">Graph Preview</span>
             </div>
-          )}
-          {graphData && <GraphCanvas graph={graphData} />}
-        </div>
-      </div>
+            <div className="flex-1 bg-white relative">
+              {!wasmLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
+                  Loading WASM engines...
+                </div>
+              )}
+              {graphData && <GraphCanvas graph={graphData} />}
+            </div>
+          </div>
+        </Panel>
+      </PanelGroup>
     </div>
   );
 }

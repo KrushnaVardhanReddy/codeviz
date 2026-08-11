@@ -28,6 +28,7 @@ export const Legend: React.FC<LegendProps> = ({
     { kind: 'Implements', icon: <span className="w-4 border-t border-dashed border-yellow-500"></span>, label: 'Implements' },
     { kind: 'Returns', icon: <span className="w-4 border-t border-dotted border-gray-500"></span>, label: 'Returns' },
     { kind: 'Instantiates', icon: <span className="w-4 h-0.5 bg-purple-500"></span>, label: 'Instantiates' },
+    { kind: 'Contains', icon: <span className="w-4 border-t border-dashed border-gray-400"></span>, label: 'Contains' },
   ];
 
   const renderItem = (kind: string, icon: React.ReactNode, label: string, isHidden: boolean, onToggle?: (k: string) => void) => (

@@ -74,6 +74,7 @@ pub fn parse_and_build_graph(
         file_path: file_path.to_string(),
         line: None,
         is_public: true,
+        parent_id: None,
     });
 
     // Very basic extraction of functions and classes based on tree structure.
@@ -86,12 +87,19 @@ pub fn parse_and_build_graph(
 }
 
 fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, current_scope_id: Option<&str>) {
-    let is_function = node.node_type == "function_definition"
+    let mut is_function = node.node_type == "function_definition"
         || node.node_type == "function_declaration"
         || node.node_type == "method_definition"
         || node.node_type == "arrow_function";
     let is_class = node.node_type == "class_definition" || node.node_type == "class_declaration";
-    let is_call = node.node_type == "call_expression" || node.node_type == "call";
+    let is_call = node.node_type == "call_expression" || node.node_type == "call"
+        || node.node_type == "jsx_self_closing_element" || node.node_type == "jsx_opening_element";
+
+    if node.node_type == "variable_declarator" {
+        if node.children.iter().any(|c| c.node_type == "arrow_function") {
+            is_function = true;
+        }
+    }
 
     let mut next_scope_id = current_scope_id.map(|s| s.to_string());
 
@@ -118,7 +126,17 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, curre
                 file_path: file_path.to_string(),
                 line: Some(node.start_position.row + 1),
                 is_public: true,
+                parent_id: current_scope_id.map(|s| s.to_string()),
             });
+
+            // Emit a Contains edge from the parent scope (file or class) to this node
+            if let Some(parent_scope) = current_scope_id {
+                graph.edges.push(codeviz_core::ir::Edge {
+                    from_id: parent_scope.to_string(),
+                    to_id: id.clone(),
+                    kind: codeviz_core::ir::EdgeKind::Contains,
+                });
+            }
 
             if is_class {
                 for child in &node.children {
@@ -138,30 +156,39 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, curre
         }
     } else if is_call {
         if let Some(scope_id) = current_scope_id {
-            // Find target identifier for the call. If there is an attribute or member expression,
-            // we want the rightmost identifier.
             let mut target_name = None;
-            for child in &node.children {
-                if child.node_type == "attribute" || child.node_type == "member_expression" {
-                    let mut identifiers = Vec::new();
-                    find_identifiers(child, &mut identifiers);
-                    if let Some(last_id) = identifiers.last() {
-                        target_name = Some(last_id.clone());
-                    }
-                } else if child.node_type == "identifier" || child.node_type == "property_identifier" {
-                    if target_name.is_none() {
-                        target_name = Some(child.text.clone());
+            let is_jsx = node.node_type.starts_with("jsx");
+
+            if is_jsx {
+                let mut identifiers = Vec::new();
+                find_identifiers(node, &mut identifiers);
+                if let Some(first_id) = identifiers.first() {
+                    target_name = Some(first_id.clone());
+                }
+            } else {
+                for child in &node.children {
+                    if child.node_type == "attribute" || child.node_type == "member_expression" {
+                        let mut identifiers = Vec::new();
+                        find_identifiers(child, &mut identifiers);
+                        if let Some(last_id) = identifiers.last() {
+                            target_name = Some(last_id.clone());
+                        }
+                    } else if child.node_type == "identifier" || child.node_type == "property_identifier" {
+                        if target_name.is_none() {
+                            target_name = Some(child.text.clone());
+                        }
                     }
                 }
             }
 
             if let Some(name) = target_name {
                 let target_id = format!("{}::{}", file_path, name);
+                let edge_kind = if is_jsx { codeviz_core::ir::EdgeKind::Instantiates } else { codeviz_core::ir::EdgeKind::Calls };
                 
                 graph.edges.push(codeviz_core::ir::Edge {
                     from_id: scope_id.to_string(),
                     to_id: target_id,
-                    kind: codeviz_core::ir::EdgeKind::Calls,
+                    kind: edge_kind,
                 });
             }
         }

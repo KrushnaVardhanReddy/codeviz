@@ -43,6 +43,7 @@ pub fn render_dot(graph: &CodeGraph) -> String {
             crate::ir::EdgeKind::Implements => "Implements",
             crate::ir::EdgeKind::Returns => "Returns",
             crate::ir::EdgeKind::Instantiates => "Instantiates",
+            crate::ir::EdgeKind::Contains => "Contains",
         };
 
         output.push_str(&format!(
