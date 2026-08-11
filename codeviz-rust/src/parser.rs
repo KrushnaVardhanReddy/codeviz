@@ -222,7 +222,7 @@ impl RustLangParser {
             let name = self.get_text(name_node, source_bytes);
             let label = self.sanitize_label(&name);
 
-            graph.nodes.push(Node {
+            graph.nodes.push(Node { parent_id: None, 
                 id: format!("{}::{}", normalize_path(file_path), label),
                 label: label.clone(),
                 kind: NodeKind::Class,
@@ -253,6 +253,7 @@ impl RustLangParser {
                 file_path: normalize_path(file_path),
                 line: Some(node.start_position().row as u32 + 1),
                 is_public: self.is_public(node),
+                parent_id: None,
             });
 
             if let Some(bounds_node) = node.child_by_field_name("bounds") {
@@ -332,7 +333,7 @@ impl RustLangParser {
                 }
             }
 
-            graph.nodes.push(Node {
+            graph.nodes.push(Node { parent_id: None, 
                 id: format!("{}::{}", normalize_path(file_path), label),
                 label: label.clone(),
                 kind: NodeKind::Function { is_async },
@@ -402,6 +403,7 @@ impl LanguageParser for RustLangParser {
             file_path: normalize_path(file_path),
             line: None,
             is_public: true,
+                parent_id: None,
         });
 
         let source_bytes = source.as_bytes();

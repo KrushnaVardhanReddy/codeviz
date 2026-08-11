@@ -173,7 +173,7 @@ impl PythonParser {
             }
 
             let id = format!("{}::{}", normalize_path(file_path), name);
-            graph.nodes.push(Node {
+            graph.nodes.push(Node { parent_id: None, 
                 id: id.clone(),
                 label,
                 kind: NodeKind::Class,
@@ -236,7 +236,7 @@ impl PythonParser {
             }
 
             let id = format!("{}::{}", normalize_path(file_path), name);
-            graph.nodes.push(Node {
+            graph.nodes.push(Node { parent_id: None, 
                 id,
                 label,
                 kind: NodeKind::Function { is_async },
@@ -422,6 +422,7 @@ impl LanguageParser for PythonParser {
             file_path: normalize_path(file_path),
             line: None,
             is_public: true,
+                parent_id: None,
         });
 
         let source_bytes = source.as_bytes();

@@ -106,6 +106,7 @@ impl JavaParser {
                     file_path: normalize_path(file_path),
                     line: Some(name_node.start_position().row as u32 + 1),
                     is_public: true,
+                parent_id: None,
                 });
 
                 if let Some(super_node) = node.child_by_field_name("superclass") {
@@ -187,6 +188,7 @@ impl JavaParser {
                     file_path: normalize_path(file_path),
                     line: Some(name_node.start_position().row as u32 + 1),
                     is_public: true,
+                parent_id: None,
                 });
 
                 if let Some(extends_node) = node.child_by_field_name("interfaces") {
@@ -272,7 +274,7 @@ impl JavaParser {
                     format!("{} {}", name, modifiers.join(" "))
                 };
 
-                graph.nodes.push(Node {
+                graph.nodes.push(Node { parent_id: None, 
                     id,
                     label,
                     kind: NodeKind::Function { is_async: false },
@@ -342,6 +344,7 @@ impl LanguageParser for JavaParser {
             file_path: normalize_path(file_path),
             line: None,
             is_public: true,
+                parent_id: None,
         });
 
         let source_bytes = source.as_bytes();

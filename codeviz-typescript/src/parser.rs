@@ -272,7 +272,7 @@ impl TypeScriptParser {
                     kind: NodeKind::Class,
                     file_path: normalize_path(file_path),
                     line: Some(node.start_position().row as u32 + 1),
-                    is_public: false, // Updated by export extraction later
+                    is_public: false, parent_id: None, // Updated by export extraction later
                 });
 
                 // Check for inheritance
@@ -329,7 +329,7 @@ impl TypeScriptParser {
                     kind: NodeKind::Interface,
                     file_path: normalize_path(file_path),
                     line: Some(node.start_position().row as u32 + 1),
-                    is_public: false, // Updated by export extraction later
+                    is_public: false, parent_id: None, // Updated by export extraction later
                 });
 
                 // Check for inheritance
@@ -424,7 +424,7 @@ impl TypeScriptParser {
             kind: NodeKind::Function { is_async },
             file_path: normalize_path(file_path),
             line: Some(node.start_position().row as u32 + 1),
-            is_public: false, // Updated later
+            is_public: false, parent_id: None, // Updated later
         });
 
         Ok(())

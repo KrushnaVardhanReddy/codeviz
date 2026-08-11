@@ -156,6 +156,7 @@ mod tests {
             file_path: "test".to_string(),
             line: None,
             is_public: true,
+                parent_id: None,
         }];
 
         let edges = vec![Edge {

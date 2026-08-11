@@ -601,7 +601,7 @@ mod tests {
                 kind: NodeKind::Function { is_async: false },
                 file_path: file_path.to_string(),
                 line: None,
-                is_public: true,
+                is_public: true, parent_id: None,
             });
             graph.nodes.push(Node {
                 id: format!("{}::B", file_path),
@@ -609,7 +609,7 @@ mod tests {
                 kind: NodeKind::Function { is_async: false },
                 file_path: file_path.to_string(),
                 line: None,
-                is_public: true,
+                is_public: true, parent_id: None,
             });
             graph.edges.push(Edge {
                 from_id: format!("{}::A", file_path),

@@ -160,6 +160,7 @@ impl GoParser {
                                     .next()
                                     .map(|c| c.is_uppercase())
                                     .unwrap_or(false),
+                parent_id: None,
                             });
 
                             if kind == NodeKind::Class {
@@ -224,7 +225,7 @@ impl GoParser {
                         .map(|c| c.is_uppercase())
                         .unwrap_or(false);
 
-                graph.nodes.push(Node {
+                graph.nodes.push(Node { parent_id: None, 
                     id,
                     label: name.to_string(),
                     kind: NodeKind::Function { is_async: false },
@@ -285,7 +286,7 @@ impl GoParser {
                     .map(|c| c.is_uppercase())
                     .unwrap_or(false);
 
-                graph.nodes.push(Node {
+                graph.nodes.push(Node { parent_id: None, 
                     id,
                     label: name.to_string(),
                     kind: NodeKind::Function { is_async: false },
@@ -379,6 +380,7 @@ impl LanguageParser for GoParser {
             file_path: normalize_path(file_path),
             line: None,
             is_public: true,
+                parent_id: None,
         });
 
         let source_bytes = source.as_bytes();

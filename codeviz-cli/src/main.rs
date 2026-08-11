@@ -1451,6 +1451,7 @@ diagram_type = "module"
             file_path: "A".to_string(),
             line: None,
             is_public: true,
+                parent_id: None,
         });
         graph.nodes.push(Node {
             id: "B".to_string(),
@@ -1459,6 +1460,7 @@ diagram_type = "module"
             file_path: "B".to_string(),
             line: None,
             is_public: true,
+                parent_id: None,
         });
         graph.nodes.push(Node {
             id: "C".to_string(),
@@ -1467,6 +1469,7 @@ diagram_type = "module"
             file_path: "C".to_string(),
             line: None,
             is_public: true,
+                parent_id: None,
         });
 
         graph.edges.push(Edge {

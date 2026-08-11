@@ -136,7 +136,7 @@ mod tests {
                     file_path: "src/foo.rs".to_string(),
                     line: Some(5),
                     is_public: false,
-                },
+                                },
             ],
             edges: vec![Edge {
                 from_id: "src/main.rs::main".to_string(),

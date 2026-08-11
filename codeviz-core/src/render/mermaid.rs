@@ -208,7 +208,7 @@ mod tests {
                     kind: NodeKind::Function { is_async: false },
                     file_path: "src/main.rs".to_string(),
                     line: Some(1),
-                    is_public: true,
+                    is_public: true, parent_id: None,
                 },
                 Node {
                     id: "src/parser.rs::parse".to_string(),
@@ -216,7 +216,7 @@ mod tests {
                     kind: NodeKind::Function { is_async: false },
                     file_path: "src/parser.rs".to_string(),
                     line: Some(10),
-                    is_public: true,
+                    is_public: true, parent_id: None,
                 },
                 Node {
                     id: "src/config.rs::Config".to_string(),
@@ -224,7 +224,7 @@ mod tests {
                     kind: NodeKind::Class,
                     file_path: "src/config.rs".to_string(),
                     line: Some(5),
-                    is_public: true,
+                    is_public: true, parent_id: None,
                 },
             ],
             edges: vec![
@@ -302,7 +302,7 @@ mod tests {
                 kind: NodeKind::File,
                 file_path: "path".to_string(),
                 line: None,
-                is_public: true,
+                is_public: true, parent_id: None,
             });
         }
         let graph = CodeGraph {
@@ -334,7 +334,7 @@ mod tests {
                     kind: NodeKind::File,
                     file_path: "src/main.rs".to_string(),
                     line: None,
-                    is_public: true,
+                    is_public: true, parent_id: None,
                 },
                 Node {
                     id: "src/config.rs".to_string(),
@@ -342,7 +342,7 @@ mod tests {
                     kind: NodeKind::File,
                     file_path: "src/config.rs".to_string(),
                     line: None,
-                    is_public: true,
+                    is_public: true, parent_id: None,
                 },
             ],
             edges: vec![Edge {
@@ -375,7 +375,7 @@ mod tests {
                     kind: NodeKind::Class,
                     file_path: "src/main.rs".to_string(),
                     line: None,
-                    is_public: true,
+                    is_public: true, parent_id: None,
                 },
                 Node {
                     id: "Animal".to_string(),
@@ -383,7 +383,7 @@ mod tests {
                     kind: NodeKind::Class,
                     file_path: "src/main.rs".to_string(),
                     line: None,
-                    is_public: true,
+                    is_public: true, parent_id: None,
                 },
             ],
             edges: vec![Edge {
@@ -421,7 +421,7 @@ mod tests {
             kind: crate::NodeKind::File,
             file_path: "src/new.rs".to_string(),
             line: None,
-            is_public: true,
+            is_public: true, parent_id: None,
         };
         diff.added_nodes.push(node_added);
 

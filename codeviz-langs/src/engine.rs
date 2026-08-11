@@ -103,6 +103,7 @@ impl LanguageParser for GenericParser {
             file_path: normalize_path(file_path),
             line: Some(1),
             is_public: true,
+                parent_id: None,
         });
 
         let source_bytes = source.as_bytes();
@@ -137,7 +138,7 @@ impl LanguageParser for GenericParser {
                     }
 
                     if let Some(name) = name_val {
-                        graph.nodes.push(Node {
+                        graph.nodes.push(Node { parent_id: None, 
                             id: format!("{}::{}", normalize_path(file_path), name),
                             label: name,
                             kind: NodeKind::Function { is_async: false },
@@ -181,7 +182,7 @@ impl LanguageParser for GenericParser {
                     }
 
                     if let Some(name) = name_val {
-                        graph.nodes.push(Node {
+                        graph.nodes.push(Node { parent_id: None, 
                             id: format!("{}::{}", normalize_path(file_path), name),
                             label: name,
                             kind: NodeKind::Class,

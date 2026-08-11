@@ -99,6 +99,7 @@ mod tests {
             file_path: "node1.rs".to_string(),
             line: None,
             is_public: true,
+                parent_id: None,
         });
 
         let diff_result = diff(&graph, &graph);
@@ -120,6 +121,7 @@ mod tests {
             file_path: "node1.rs".to_string(),
             line: None,
             is_public: true,
+                parent_id: None,
         };
         head.nodes.push(node.clone());
 
@@ -141,6 +143,7 @@ mod tests {
             file_path: "node1.rs".to_string(),
             line: None,
             is_public: true,
+                parent_id: None,
         };
         base.nodes.push(node.clone());
 

@@ -102,6 +102,7 @@ mod tests {
                 file_path: "A".to_string(),
                 line: None,
                 is_public: true,
+                parent_id: None,
             }],
             removed_nodes: vec![],
             added_edges: vec![Edge {

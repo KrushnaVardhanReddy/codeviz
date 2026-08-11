@@ -32,6 +32,7 @@ impl KotlinParser {
                     file_path: normalize_path(file_path),
                     line: Some(line),
                     is_public: true,
+                parent_id: None,
                 });
                 let mut c = node.walk();
                 for child in node.children(&mut c) {
@@ -138,6 +139,7 @@ impl KotlinParser {
             file_path: normalize_path(file_path),
             line: Some(line),
             is_public: true,
+                parent_id: None,
         });
 
         // Handle delegation_specifier (inheritance/implements)
@@ -210,7 +212,7 @@ impl KotlinParser {
         }
 
         if !object_name.is_empty() {
-            graph.nodes.push(Node {
+            graph.nodes.push(Node { parent_id: None, 
                 id: object_name.clone(),
                 label: format!("{}[object]", object_name),
                 kind: NodeKind::Class,
@@ -266,7 +268,7 @@ impl KotlinParser {
             return;
         }
 
-        graph.nodes.push(Node {
+        graph.nodes.push(Node { parent_id: None, 
             id: func_name.clone(),
             label: func_name.clone(),
             kind: NodeKind::Function { is_async },

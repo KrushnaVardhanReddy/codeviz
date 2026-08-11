@@ -124,7 +124,7 @@ mod tests {
                 kind: NodeKind::File,
                 file_path: file_path.to_string(),
                 line: None,
-                is_public: true,
+                is_public: true, parent_id: None,
             });
             Ok(graph)
         }
