@@ -169,6 +169,7 @@ TASKS = {
     60: {"name": "60 — Cross-Platform Path Normalization", "phase": "MVP v1: QA",                "slug": "task_60_windows_paths"},
     61: {"name": "61 — VS Code Extension E2E Tests",     "phase": "MVP v1: QA",                "slug": "task_61_vscode_e2e"},
     63: {"name": "63 — Playground AST & Drag Improvements", "phase": "MVP v1: QA",             "slug": "task_63_playground_ast_drag"},
+    64: {"name": "64 — Playground Additional Languages", "phase": "MVP v1: QA",             "slug": "task_64_playground_languages"},
     62: {"name": "62 — Graph Rendering Stress Test",       "phase": "MVP v2: QA",                "slug": "task_62_stress_test"},
 }
 
