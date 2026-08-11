@@ -63,8 +63,8 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[x]` **T57** `[OSS]` MVP v1 Full-Stack E2E Test Suite — Playwright + SurrealDB + Rust CLI
 - `[x]` **T60**: **Cross-Platform Path Normalization**. Ensure all `CodeGraph` node IDs and paths strictly use forward slashes `/`, even when parsed on Windows machines, preventing URI mismatch errors.
 - `[x]` **T61**: **VS Code Extension E2E Tests**. Configure `@vscode/test-electron` to run properly against the local CLI.
-- `[x]` **T63**: **Playground AST & Drag Improvements**. Extract object-oriented AST edges (inheritance, methods) and refactor React Flow canvas to use draggable state. **[Assigned to Jules]**
-- `[ ]` **T64** `[OSS]` **Playground Additional Languages**. Support Go, Rust, Java, and Kotlin natively in the browser playground. **[Assigned to Jules]**
+- `[x]` **T63**: **Playground AST & Drag Improvements**. Extract object-oriented AST edges (inheritance, methods) and refactor React Flow canvas to use draggable state.
+- `[ ]` **T64** `[OSS]` **Playground Additional Languages**. Support Go, Rust, Java, and Kotlin natively in the browser playground.
 
 ### MVP v2 — "Make It Sticky" (Team Features — Retention & Collaboration)
 > Goal: Make teams embed CodeViz in their daily workflow.

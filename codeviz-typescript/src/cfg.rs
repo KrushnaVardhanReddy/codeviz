@@ -671,7 +671,8 @@ fn traverse_statements(
 
             let text = node.utf8_text(source_bytes).unwrap_or("");
             let label = if text.len() > 30 {
-                format!("{}...", &text[0..27])
+                let truncated: String = text.chars().take(27).collect();
+                format!("{}...", truncated)
             } else {
                 text.to_string()
             };

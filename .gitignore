@@ -28,3 +28,4 @@ node_modules/
 codeviz-vscode/.vscode-test/
 codeviz-vscode/node_modules/
 codeviz-vscode/out/
+temp_repos/

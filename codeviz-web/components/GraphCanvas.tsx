@@ -51,7 +51,29 @@ const getEdgeStyle = (kind: EdgeKind) => {
   return { stroke: '#999' };
 };
 
-export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph }) => {
+export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => {
+  const graph = useMemo(() => {
+    const uniqueNodesMap = new Map();
+    rawGraph.nodes.forEach(n => uniqueNodesMap.set(n.id, n));
+    
+    const uniqueEdgesMap = new Map();
+    rawGraph.edges.forEach(e => {
+        uniqueEdgesMap.set(`${e.from_id}->${e.to_id}`, e);
+        // Synthesize missing external nodes
+        if (!uniqueNodesMap.has(e.from_id)) {
+            uniqueNodesMap.set(e.from_id, { id: e.from_id, label: e.from_id, kind: 'Constant', is_public: true, line: 0 });
+        }
+        if (!uniqueNodesMap.has(e.to_id)) {
+            uniqueNodesMap.set(e.to_id, { id: e.to_id, label: e.to_id, kind: 'Constant', is_public: true, line: 0 });
+        }
+    });
+
+    return {
+      ...rawGraph,
+      nodes: Array.from(uniqueNodesMap.values()),
+      edges: Array.from(uniqueEdgesMap.values())
+    };
+  }, [rawGraph]);
   const [selectedNode, setSelectedNode] = useState<any>(null);
 
   const [hiddenNodeKinds, setHiddenNodeKinds] = useState<Set<string>>(new Set());

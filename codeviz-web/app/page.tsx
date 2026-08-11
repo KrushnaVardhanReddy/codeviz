@@ -61,6 +61,15 @@ const sampleGraph: CodeGraph = {
 };
 
 export default function Home() {
+  const [graph, setGraph] = React.useState<CodeGraph | null>(null);
+
+  React.useEffect(() => {
+    fetch('/flask.json')
+      .then(res => res.json())
+      .then(data => setGraph(data))
+      .catch(err => console.error("Failed to load flask.json:", err));
+  }, []);
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-slate-900 text-slate-100">
       <TopNav />
@@ -70,11 +79,11 @@ export default function Home() {
           <div className="w-full h-full bg-slate-800/50 rounded-xl border border-slate-700/50 shadow-2xl relative overflow-hidden flex flex-col">
             <div className="absolute top-4 left-4 z-10 flex items-center gap-2 pointer-events-none">
               <Network className="text-blue-500 w-5 h-5" />
-              <h2 className="font-semibold text-lg text-slate-200">CodeViz Architecture Graph</h2>
+              <h2 className="font-semibold text-lg text-slate-200">CodeViz Architecture Graph (Flask)</h2>
             </div>
 
             <div className="flex-1 w-full relative">
-              <GraphCanvas graph={sampleGraph} />
+              {graph ? <GraphCanvas graph={graph} /> : <div className="flex items-center justify-center h-full text-slate-400">Loading huge graph...</div>}
             </div>
           </div>
         </main>
