@@ -171,6 +171,7 @@ TASKS = {
     63: {"name": "63 — Playground AST & Drag Improvements", "phase": "MVP v1: QA",             "slug": "task_63_playground_ast_drag"},
     64: {"name": "64 — Playground Additional Languages", "phase": "MVP v1: QA",             "slug": "task_64_playground_languages"},
     62: {"name": "62 — Graph Rendering Stress Test",       "phase": "MVP v2: QA",                "slug": "task_62_stress_test"},
+    65: {"name": "65 — Execution Flow Visualization",      "phase": "MVP v1: QA",                "slug": "task_65_execution_flow"},
 }
 
 # ─────────────────────────────────────────────────────────────
