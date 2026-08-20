@@ -95,11 +95,10 @@ impl PythonParser {
         graph: &mut CodeGraph,
         parent_id: &Option<String>,
     ) -> Result<Option<String>, ParseError> {
-        if let Some(parent) = node.parent() {
-            if parent.kind() == "decorated_definition" {
+        if let Some(parent) = node.parent()
+            && parent.kind() == "decorated_definition" {
                 return Ok(None);
             }
-        }
         self.extract_class_with_decorators(node, source_bytes, file_path, graph, parent_id, &[])
     }
 
@@ -112,8 +111,8 @@ impl PythonParser {
         parent_id: &Option<String>,
         decorators: &[String],
     ) -> Result<Option<String>, ParseError> {
-        if let Some(name_node) = node.child_by_field_name("name") {
-            if let Ok(name) = name_node.utf8_text(source_bytes) {
+        if let Some(name_node) = node.child_by_field_name("name")
+            && let Ok(name) = name_node.utf8_text(source_bytes) {
                 let mut label = name.to_string();
                 if !decorators.is_empty() {
                     label.push('@');
@@ -164,7 +163,6 @@ impl PythonParser {
 
                 return Ok(Some(id));
             }
-        }
         Ok(None)
     }
 
@@ -177,11 +175,10 @@ impl PythonParser {
         is_async: bool,
         parent_id: &Option<String>,
     ) -> Result<Option<String>, ParseError> {
-        if let Some(parent) = node.parent() {
-            if parent.kind() == "decorated_definition" {
+        if let Some(parent) = node.parent()
+            && parent.kind() == "decorated_definition" {
                 return Ok(None);
             }
-        }
         self.extract_function_with_decorators(
             node,
             source_bytes,
@@ -193,6 +190,7 @@ impl PythonParser {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn extract_function_with_decorators(
         &self,
         node: TsNode,
@@ -203,8 +201,8 @@ impl PythonParser {
         parent_id: &Option<String>,
         decorators: &[String],
     ) -> Result<Option<String>, ParseError> {
-        if let Some(name_node) = node.child_by_field_name("name") {
-            if let Ok(name) = name_node.utf8_text(source_bytes) {
+        if let Some(name_node) = node.child_by_field_name("name")
+            && let Ok(name) = name_node.utf8_text(source_bytes) {
                 let mut label = name.to_string();
                 if !decorators.is_empty() {
                     label.push('@');
@@ -240,7 +238,6 @@ impl PythonParser {
 
                 return Ok(Some(id));
             }
-        }
         Ok(None)
     }
 
@@ -262,14 +259,12 @@ impl PythonParser {
                 "decorator" => {
                     let mut id_cursor = child.walk();
                     for id_child in child.children(&mut id_cursor) {
-                        if id_child.kind() == "identifier"
+                        if (id_child.kind() == "identifier"
                             || id_child.kind() == "call"
-                            || id_child.kind() == "dotted_name"
-                        {
-                            if let Ok(text) = id_child.utf8_text(source_bytes) {
+                            || id_child.kind() == "dotted_name")
+                            && let Ok(text) = id_child.utf8_text(source_bytes) {
                                 decorators.push(text.split('(').next().unwrap_or(text).to_string());
                             }
-                        }
                     }
                 }
                 "class_definition" => {
@@ -328,17 +323,15 @@ impl PythonParser {
                         kind: EdgeKind::Imports,
                     });
                 }
-            } else if child.kind() == "aliased_import" {
-                if let Some(name_node) = child.child_by_field_name("name") {
-                    if let Ok(module_name) = name_node.utf8_text(source_bytes) {
+            } else if child.kind() == "aliased_import"
+                && let Some(name_node) = child.child_by_field_name("name")
+                    && let Ok(module_name) = name_node.utf8_text(source_bytes) {
                         graph.edges.push(Edge {
                             from_id: file_path.to_string(),
                             to_id: module_name.to_string(),
                             kind: EdgeKind::Imports,
                         });
                     }
-                }
-            }
         }
         Ok(())
     }
@@ -364,8 +357,8 @@ impl PythonParser {
                 || child.kind() == "identifier"
             {
                 let name = child.child_by_field_name("name").unwrap_or(child);
-                if let Ok(name_str) = name.utf8_text(source_bytes) {
-                    if name_str != module_name && name_str != "." {
+                if let Ok(name_str) = name.utf8_text(source_bytes)
+                    && name_str != module_name && name_str != "." {
                         let to_id = if module_name.is_empty() {
                             name_str.to_string()
                         } else {
@@ -378,7 +371,6 @@ impl PythonParser {
                         });
                         scope_map.insert(name_str.to_string(), to_id);
                     }
-                }
             }
         }
         Ok(())
@@ -393,10 +385,9 @@ impl PythonParser {
         caller_id: &str,
         scope_map: &HashMap<String, String>,
     ) -> Result<(), ParseError> {
-        if let Some(func_node) = node.child_by_field_name("function") {
-            if let Ok(func_name) = func_node.utf8_text(source_bytes) {
-                let to_id = if func_name.starts_with("self.") {
-                    let method_name = &func_name[5..];
+        if let Some(func_node) = node.child_by_field_name("function")
+            && let Ok(func_name) = func_node.utf8_text(source_bytes) {
+                let to_id = if let Some(method_name) = func_name.strip_prefix("self.") {
                     if let Some(idx) = caller_id.rfind("::") {
                         format!("{}::{}", &caller_id[..idx], method_name)
                     } else {
@@ -414,7 +405,6 @@ impl PythonParser {
                     kind: EdgeKind::Calls,
                 });
             }
-        }
         Ok(())
     }
 }
