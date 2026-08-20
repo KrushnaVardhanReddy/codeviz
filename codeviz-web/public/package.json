@@ -1,0 +1,15 @@
+{
+  "name": "codeviz-wasm",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "codeviz_wasm_bg.wasm",
+    "codeviz_wasm.js",
+    "codeviz_wasm.d.ts"
+  ],
+  "main": "codeviz_wasm.js",
+  "types": "codeviz_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

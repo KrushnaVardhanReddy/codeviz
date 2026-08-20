@@ -77,6 +77,7 @@ function runDagre(
   return pos;
 }
 
+type PrimaryMode = 'structural' | 'execution';
 type ViewMode = 'classes' | 'expanded' | 'focus';
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -178,6 +179,34 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
     return [...new Set(result)];
   }, [graph.edges, resolveId]);
 
+  // ─── Entry Points (Execution Mode) ──────────────────────────────────────────
+  const entryPoints = useMemo(() => {
+    const fns = graph.nodes.filter(n => kindToString(n.kind) === 'Function');
+    const inDegreeMap = new Map<string, number>();
+    fns.forEach(f => inDegreeMap.set(f.id, 0));
+
+    graph.edges.forEach(e => {
+      if (e.kind === 'Calls') {
+        const resolvedTo = resolveId(e.to_id);
+        if (resolvedTo && inDegreeMap.has(resolvedTo)) {
+          inDegreeMap.set(resolvedTo, (inDegreeMap.get(resolvedTo) || 0) + 1);
+        }
+      }
+    });
+
+    const candidates = fns.map(f => {
+      const isMain = f.label.toLowerCase().includes('main');
+      const inDegree = inDegreeMap.get(f.id) || 0;
+      let score = 0;
+      if (isMain) score += 10;
+      if (inDegree === 0) score += 5;
+      return { node: f, inDegree, isMain, score };
+    });
+
+    candidates.sort((a, b) => b.score - a.score || a.node.label.localeCompare(b.node.label));
+    return candidates;
+  }, [graph.nodes, graph.edges, resolveId]);
+
   // ─── Core Classes (src/flask only, no tests) ─────────────────────────────────
   const coreClasses = useMemo(() => {
     return graph.nodes.filter(n => {
@@ -189,6 +218,18 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
   }, [graph.nodes]);
 
   // ─── State ────────────────────────────────────────────────────────────────────
+  const [primaryMode, setPrimaryMode] = useState<PrimaryMode>('structural');
+  const [selectedEntryPoint, setSelectedEntryPoint] = useState<string | null>(null);
+  const [expandedTreeNodes, setExpandedTreeNodes] = useState<Set<string>>(new Set());
+
+  // Set default entry point when first opening execution mode
+  useEffect(() => {
+    if (primaryMode === 'execution' && !selectedEntryPoint && entryPoints.length > 0) {
+      setSelectedEntryPoint(entryPoints[0].node.id);
+      setExpandedTreeNodes(new Set([entryPoints[0].node.id]));
+    }
+  }, [primaryMode, selectedEntryPoint, entryPoints]);
+
   const [viewMode, setViewMode] = useState<ViewMode>('classes');
   const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
   const [focusedFnId, setFocusedFnId] = useState<string | null>(null);
@@ -213,8 +254,42 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
     let visibleEdges: { from: string; to: string; kind: EdgeKind }[] = [];
     let focusedId: string | null = null;
 
+    // ── Mode: execution flow (BFS) ──────────────────────────────────────────────
+    if (primaryMode === 'execution') {
+      if (selectedEntryPoint) {
+        focusedId = selectedEntryPoint;
+
+        // BFS traversal
+        const queue: string[] = [selectedEntryPoint];
+        const visitedNodes = new Set<string>();
+        const seenEdges = new Set<string>();
+
+        while (queue.length > 0) {
+          const currentId = queue.shift()!;
+          if (!visitedNodes.has(currentId)) {
+            visitedNodes.add(currentId);
+
+            // Only traverse children if this node has been clicked/expanded
+            if (expandedTreeNodes.has(currentId)) {
+              const callees = getCallees(currentId);
+              callees.forEach(calleeId => {
+                if (!visitedNodes.has(calleeId)) {
+                  queue.push(calleeId);
+                }
+                const key = `${currentId}->${calleeId}-Calls`;
+                if (!seenEdges.has(key)) {
+                  seenEdges.add(key);
+                  visibleEdges.push({ from: currentId, to: calleeId, kind: 'Calls' });
+                }
+              });
+            }
+          }
+        }
+        visibleNodeIds = Array.from(visitedNodes);
+      }
+    }
     // ── Mode: all core classes ──────────────────────────────────────────────────
-    if (viewMode === 'classes') {
+    else if (viewMode === 'classes') {
       const filtered = coreClasses.filter(n => !hiddenNodeKinds.has(kindToString(n.kind)));
       visibleNodeIds = filtered.map(n => n.id);
       const visibleSet = new Set(visibleNodeIds);
@@ -298,11 +373,17 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
     }
 
     // ── Layout ───────────────────────────────────────────────────────────────────
-    const layoutOpts = viewMode === 'focus'
-      ? { rankdir: 'TB', nodesep: 80, ranksep: 120 }
-      : viewMode === 'expanded'
-      ? { rankdir: 'LR', nodesep: 50, ranksep: 100 }
-      : { rankdir: 'TB', nodesep: 80, ranksep: 140, nodeW: 180, nodeH: 50 };
+    let layoutOpts: { rankdir: string; nodesep: number; ranksep: number; nodeW?: number; nodeH?: number };
+
+    if (primaryMode === 'execution') {
+      layoutOpts = { rankdir: 'TB', nodesep: 80, ranksep: 140, nodeW: 180, nodeH: 50 };
+    } else {
+      layoutOpts = viewMode === 'focus'
+        ? { rankdir: 'TB', nodesep: 80, ranksep: 120 }
+        : viewMode === 'expanded'
+        ? { rankdir: 'LR', nodesep: 50, ranksep: 100 }
+        : { rankdir: 'TB', nodesep: 80, ranksep: 140, nodeW: 180, nodeH: 50 };
+    }
 
     const posMap = runDagre(
       visibleNodeIds,
@@ -346,12 +427,26 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
         data: { kind: e.kind },
       }))
     );
-  }, [viewMode, expandedClassId, focusedFnId, graph, coreClasses, nodeById, resolveId,
+  }, [primaryMode, selectedEntryPoint, expandedTreeNodes, viewMode, expandedClassId, focusedFnId, graph, coreClasses, nodeById, resolveId,
       fnToClass, getAllFnsOfClass, getCallees, hiddenNodeKinds, hiddenEdgeKinds, setNodes, setEdges]);
 
   // ─── Click handlers ───────────────────────────────────────────────────────────
   const onNodeClick = useCallback((_event: React.MouseEvent, node: any) => {
     setSelectedNode(node);
+
+    if (primaryMode === 'execution') {
+      setExpandedTreeNodes(prev => {
+        const next = new Set(prev);
+        if (next.has(node.id)) {
+          next.delete(node.id); // collapse
+        } else {
+          next.add(node.id); // expand
+        }
+        return next;
+      });
+      return;
+    }
+
     const raw = nodeById.get(node.id);
     if (!raw) return;
     const k = kindToString(raw.kind);
@@ -378,7 +473,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
         return [fnEntry];
       });
     }
-  }, [nodeById, getAllFnsOfClass, getCallees]);
+  }, [primaryMode, nodeById, getAllFnsOfClass, getCallees]);
 
   const onBreadcrumbNavigate = useCallback((index: number) => {
     if (index === -1) {
@@ -431,7 +526,48 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
 
   return (
     <div className="w-full h-full relative" data-testid="graph-canvas">
-      <DrillBreadcrumb crumbs={breadcrumb} onNavigate={onBreadcrumbNavigate} />
+      {/* ─── Mode Toggle & Entry Point Selector ─── */}
+      <div className="absolute top-3 left-3 z-30 flex flex-col gap-2">
+        <div className="flex bg-slate-800 rounded p-1 border border-slate-700 w-fit">
+          <button
+            className={`px-3 py-1 text-xs font-medium rounded transition-colors ${primaryMode === 'structural' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+            onClick={() => setPrimaryMode('structural')}
+          >
+            Structural
+          </button>
+          <button
+            className={`px-3 py-1 text-xs font-medium rounded transition-colors ${primaryMode === 'execution' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+            onClick={() => setPrimaryMode('execution')}
+          >
+            Execution Flow
+          </button>
+        </div>
+
+        {primaryMode === 'execution' && (
+          <div className="bg-slate-800 border border-slate-700 rounded p-2 flex flex-col gap-1 w-64">
+            <label className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Entry Point</label>
+            <select
+              className="bg-slate-900 text-slate-200 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+              value={selectedEntryPoint || ''}
+              onChange={(e) => {
+                const newId = e.target.value;
+                setSelectedEntryPoint(newId);
+                setExpandedTreeNodes(new Set([newId]));
+              }}
+            >
+              {entryPoints.map((ep) => (
+                <option key={ep.node.id} value={ep.node.id}>
+                  {ep.node.label} {ep.isMain ? '(Main)' : ep.inDegree === 0 ? '(Root)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {primaryMode === 'structural' && (
+        <DrillBreadcrumb crumbs={breadcrumb} onNavigate={onBreadcrumbNavigate} />
+      )}
 
       <div className="absolute top-3 right-16 z-20 bg-slate-900/80 border border-slate-700 rounded-full px-3 py-1 text-xs text-slate-400 backdrop-blur-sm select-none">
         {statusLabel}
