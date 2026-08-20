@@ -31,6 +31,7 @@ pub struct GraphConfig {
     pub diagram_type: String,
     pub include: Vec<String>,
     pub exclude: Vec<String>,
+    pub entry_points: Vec<String>,
 }
 
 impl Default for GraphConfig {
@@ -46,6 +47,7 @@ impl Default for GraphConfig {
                 "**/.git/**".to_string(),
                 "**/vendor/**".to_string(),
             ],
+            entry_points: vec![],
         }
     }
 }

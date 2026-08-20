@@ -5,6 +5,21 @@ use codeviz_core::render::mermaid::DiagramKind;
 use codeviz_core::render::mermaid::MermaidRenderer;
 use std::env;
 
+fn apply_entry_points(graph: &mut codeviz_core::CodeGraph, config_path: Option<&String>) {
+    let config = match config_path {
+        Some(path) => codeviz_core::Config::load_from_file(std::path::Path::new(path)).unwrap_or_default(),
+        None => codeviz_core::Config::load_from_dir(&std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."))).unwrap_or_default(),
+    };
+    if config.graph.entry_points.is_empty() {
+        return;
+    }
+    for node in &mut graph.nodes {
+        if config.graph.entry_points.iter().any(|ep| node.id.ends_with(ep)) {
+            node.is_public = true;
+        }
+    }
+}
+
 /// Arguments for the `install-hook` command.
 #[derive(Debug, PartialEq)]
 pub struct InstallHookArgs {
@@ -740,6 +755,7 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
             }
         }
 
+        apply_entry_points(&mut merged_graph, None);
         merged_graph.meta.node_count = merged_graph.nodes.len();
         merged_graph.meta.edge_count = merged_graph.edges.len();
 
@@ -1628,6 +1644,7 @@ pub fn run_core(
         }
     }
 
+    apply_entry_points(&mut merged_graph, run_args.config_path.as_ref());
     merged_graph.meta.node_count = merged_graph.nodes.len();
     merged_graph.meta.edge_count = merged_graph.edges.len();
 

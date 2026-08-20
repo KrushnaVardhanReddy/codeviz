@@ -65,7 +65,7 @@ Tasks are executed concurrently across different AI agents (Jules for backend/pa
 - `[x]` **T61**: **VS Code Extension E2E Tests**. Configure `@vscode/test-electron` to run properly against the local CLI.
 - `[x]` **T63**: **Playground AST & Drag Improvements**. Extract object-oriented AST edges (inheritance, methods) and refactor React Flow canvas to use draggable state.
 - `[ ]` **T64** `[OSS]` **Playground Additional Languages**. Support Go, Rust, Java, and Kotlin natively in the browser playground.
-- `[ ]` **T65** `[OSS]` **Execution Flow (Entry Point) Visualization**. Implementation of the entry point call tree mode.
+- `[x]` **T65** `[OSS]` **Execution Flow (Entry Point) Visualization**. Implementation of the entry point call tree mode.
 
 ### MVP v2 — "Make It Sticky" (Team Features — Retention & Collaboration)
 > Goal: Make teams embed CodeViz in their daily workflow.
