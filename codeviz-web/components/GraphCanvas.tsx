@@ -110,14 +110,44 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
     return m;
   }, [graph.nodes]);
 
-  // Resolve an edge target id — try exact match, then label match
+  // Resolve an edge target id — try multiple strategies
   const resolveId = useCallback((id: string): string | null => {
+    // 1. Exact match
     if (nodeById.has(id)) return id;
+
+    // 2. Label match (e.g. to_id is a bare function name like 'main')
     const byLabel = labelToId.get(id);
     if (byLabel) return byLabel;
-    // try matching the last segment after ::
-    const shortName = id.split('::').pop() || id;
-    return labelToId.get(shortName) ?? null;
+
+    // 3. Last segment after '::' (e.g. 'path/to/file.py::ClassName::method' → 'method')
+    if (id.includes('::')) {
+      const shortName = id.split('::').pop() || id;
+      const byShort = labelToId.get(shortName);
+      if (byShort) return byShort;
+    }
+
+    // 4. Dot-notation (e.g. 'cli.main', 'flask.Flask', 'app.Flask.run')
+    // Split on dots, take the last one or two segments and try to find matching node
+    if (id.includes('.')) {
+      const parts = id.split('.');
+      // Try last segment: 'main' from 'cli.main'
+      const last = parts[parts.length - 1];
+      // Try last two: 'Flask.run' → look for node with id ending '::Flask::run'
+      const lastTwo = parts.slice(-2).join('::');
+
+      // Try suffix match against all node IDs for last two segments
+      for (const [nid] of nodeById) {
+        if (nid.endsWith(`::${lastTwo}`) || nid.endsWith(`::${last}`)) {
+          return nid;
+        }
+      }
+
+      // Fallback to label lookup with last segment
+      const byLastLabel = labelToId.get(last);
+      if (byLastLabel) return byLastLabel;
+    }
+
+    return null;
   }, [nodeById, labelToId]);
 
   // Map: parentId → Set<childId>
@@ -197,14 +227,25 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
     const candidates = fns.map(f => {
       const isMain = f.label.toLowerCase().includes('main');
       const inDegree = inDegreeMap.get(f.id) || 0;
+      const isPublic = (f as any).is_public === true;
       let score = 0;
+      if (isPublic) score += 1000;
       if (isMain) score += 10;
       if (inDegree === 0) score += 5;
-      return { node: f, inDegree, isMain, score };
+      return { node: f, inDegree, isMain, isPublic, score };
     });
 
     candidates.sort((a, b) => b.score - a.score || a.node.label.localeCompare(b.node.label));
-    return candidates;
+
+    // If there are explicitly configured entry points (is_public from codeviz.toml),
+    // only show those to avoid flooding the dropdown with hundreds of zero-in-degree nodes.
+    const configuredEntries = candidates.filter(c => c.isPublic);
+    if (configuredEntries.length > 0) {
+      return configuredEntries;
+    }
+
+    // Otherwise fall back to the top 20 heuristic candidates (main + low in-degree).
+    return candidates.filter(c => c.isMain || c.inDegree === 0).slice(0, 20);
   }, [graph.nodes, graph.edges, resolveId]);
 
   // ─── Core Classes (src/flask only, no tests) ─────────────────────────────────
@@ -259,33 +300,42 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
       if (selectedEntryPoint) {
         focusedId = selectedEntryPoint;
 
-        // BFS traversal
+        // BFS: traverse all reachable callees from the entry point
         const queue: string[] = [selectedEntryPoint];
         const visitedNodes = new Set<string>();
         const seenEdges = new Set<string>();
+        const MAX_NODES = 200; // cap to avoid overwhelming the graph
 
-        while (queue.length > 0) {
+        while (queue.length > 0 && visitedNodes.size < MAX_NODES) {
           const currentId = queue.shift()!;
-          if (!visitedNodes.has(currentId)) {
-            visitedNodes.add(currentId);
+          if (visitedNodes.has(currentId)) continue;
+          visitedNodes.add(currentId);
 
-            // Only traverse children if this node has been clicked/expanded
-            if (expandedTreeNodes.has(currentId)) {
-              const callees = getCallees(currentId);
-              callees.forEach(calleeId => {
-                if (!visitedNodes.has(calleeId)) {
-                  queue.push(calleeId);
-                }
-                const key = `${currentId}->${calleeId}-Calls`;
-                if (!seenEdges.has(key)) {
-                  seenEdges.add(key);
-                  visibleEdges.push({ from: currentId, to: calleeId, kind: 'Calls' });
-                }
-              });
+          const callees = getCallees(currentId);
+          callees.forEach(calleeId => {
+            const key = `${currentId}->${calleeId}-Calls`;
+            if (!seenEdges.has(key)) {
+              seenEdges.add(key);
+              visibleEdges.push({ from: currentId, to: calleeId, kind: 'Calls' });
             }
-          }
+            if (!visitedNodes.has(calleeId) && visitedNodes.size < MAX_NODES) {
+              queue.push(calleeId);
+            }
+          });
         }
-        visibleNodeIds = Array.from(visitedNodes);
+        // Apply node kind filter (e.g. hide Functions if toggled off)
+        visibleNodeIds = Array.from(visitedNodes).filter(id => {
+          const raw = nodeById.get(id);
+          if (!raw) return true;
+          const k = kindToString(raw.kind);
+          return !hiddenNodeKinds.has(k);
+        });
+
+        // Apply edge kind filter (e.g. hide Calls if toggled off)
+        const visibleSet = new Set(visibleNodeIds);
+        visibleEdges = visibleEdges.filter(e =>
+          !hiddenEdgeKinds.has(e.kind) && visibleSet.has(e.from) && visibleSet.has(e.to)
+        );
       }
     }
     // ── Mode: all core classes ──────────────────────────────────────────────────
@@ -557,7 +607,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
             >
               {entryPoints.map((ep) => (
                 <option key={ep.node.id} value={ep.node.id}>
-                  {ep.node.label} {ep.isMain ? '(Main)' : ep.inDegree === 0 ? '(Root)' : ''}
+                  {ep.node.label} {ep.isPublic ? '(Configured Entry)' : ep.isMain ? '(Main)' : ep.inDegree === 0 ? '(Root)' : ''}
                 </option>
               ))}
             </select>
@@ -614,6 +664,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({ graph: rawGraph }) => 
         hiddenEdgeKinds={hiddenEdgeKinds}
         onToggleNodeKind={onToggleNodeKind}
         onToggleEdgeKind={onToggleEdgeKind}
+        primaryMode={primaryMode}
       />
 
       <DetailPanel

@@ -62,13 +62,17 @@ const sampleGraph: CodeGraph = {
 
 export default function Home() {
   const [graph, setGraph] = React.useState<CodeGraph | null>(null);
+  const [repo, setRepo] = React.useState<'httpie' | 'flask'>('httpie');
 
   React.useEffect(() => {
-    fetch('/flask.json')
+    setGraph(null);
+    fetch(`/${repo}.json`)
       .then(res => res.json())
       .then(data => setGraph(data))
-      .catch(err => console.error("Failed to load flask.json:", err));
-  }, []);
+      .catch(err => console.error(`Failed to load ${repo}.json:`, err));
+  }, [repo]);
+
+  const repoLabel = repo === 'httpie' ? 'HTTPie CLI' : 'Flask';
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-slate-900 text-slate-100">
@@ -77,13 +81,28 @@ export default function Home() {
         <Sidebar />
         <main className="flex-1 ml-0 md:ml-64 p-4 md:p-6 h-full relative">
           <div className="w-full h-full bg-slate-800/50 rounded-xl border border-slate-700/50 shadow-2xl relative overflow-hidden flex flex-col">
-            <div className="absolute top-4 left-4 z-10 flex items-center gap-2 pointer-events-none">
+            <div className="absolute top-4 left-4 z-10 flex items-center gap-3 pointer-events-none">
               <Network className="text-blue-500 w-5 h-5" />
-              <h2 className="font-semibold text-lg text-slate-200">CodeViz Architecture Graph (Flask)</h2>
+              <h2 className="font-semibold text-lg text-slate-200">CodeViz Architecture Graph ({repoLabel})</h2>
+            </div>
+
+            {/* Repo switcher */}
+            <div className="absolute top-3 right-4 z-20 pointer-events-auto">
+              <select
+                className="bg-slate-800 border border-slate-600 text-slate-200 text-xs rounded px-2 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
+                value={repo}
+                onChange={e => setRepo(e.target.value as 'httpie' | 'flask')}
+              >
+                <option value="httpie">📦 HTTPie CLI</option>
+                <option value="flask">🌶️ Flask</option>
+              </select>
             </div>
 
             <div className="flex-1 w-full relative">
-              {graph ? <GraphCanvas graph={graph} /> : <div className="flex items-center justify-center h-full text-slate-400">Loading huge graph...</div>}
+              {graph
+                ? <GraphCanvas graph={graph} />
+                : <div className="flex items-center justify-center h-full text-slate-400">Loading {repoLabel} graph…</div>
+              }
             </div>
           </div>
         </main>

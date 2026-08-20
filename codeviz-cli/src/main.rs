@@ -5,10 +5,13 @@ use codeviz_core::render::mermaid::DiagramKind;
 use codeviz_core::render::mermaid::MermaidRenderer;
 use std::env;
 
-fn apply_entry_points(graph: &mut codeviz_core::CodeGraph, config_path: Option<&String>) {
+fn apply_entry_points(graph: &mut codeviz_core::CodeGraph, config_path: Option<&String>, dir_path: &str) {
     let config = match config_path {
         Some(path) => codeviz_core::Config::load_from_file(std::path::Path::new(path)).unwrap_or_default(),
-        None => codeviz_core::Config::load_from_dir(&std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."))).unwrap_or_default(),
+        None => codeviz_core::Config::load_from_dir(&std::path::PathBuf::from(dir_path)).unwrap_or_else(|e| {
+            println!("DEBUG ERROR loading config: {}", e);
+            Default::default()
+        }),
     };
     if config.graph.entry_points.is_empty() {
         return;
@@ -16,8 +19,11 @@ fn apply_entry_points(graph: &mut codeviz_core::CodeGraph, config_path: Option<&
     for node in &mut graph.nodes {
         if config.graph.entry_points.iter().any(|ep| node.id.ends_with(ep)) {
             node.is_public = true;
+        } else {
+            node.is_public = false;
         }
     }
+    let _ = ();
 }
 
 /// Arguments for the `install-hook` command.
@@ -566,7 +572,9 @@ pub fn parse_export_args(args: &[String]) -> Result<ExportArgs, String> {
                 }
             }
             _ => {
-                // Ignore unknown args or print error? Let's ignore for now.
+                if !args[i].starts_with("--") && export_args.path == "." {
+                    export_args.path = args[i].clone();
+                }
                 i += 1;
             }
         }
@@ -755,7 +763,7 @@ pub fn run_cli(args: Vec<String>) -> Result<bool, String> {
             }
         }
 
-        apply_entry_points(&mut merged_graph, None);
+        apply_entry_points(&mut merged_graph, None, &export_args.path);
         merged_graph.meta.node_count = merged_graph.nodes.len();
         merged_graph.meta.edge_count = merged_graph.edges.len();
 
@@ -1644,7 +1652,7 @@ pub fn run_core(
         }
     }
 
-    apply_entry_points(&mut merged_graph, run_args.config_path.as_ref());
+    apply_entry_points(&mut merged_graph, run_args.config_path.as_ref(), &run_args.path);
     merged_graph.meta.node_count = merged_graph.nodes.len();
     merged_graph.meta.edge_count = merged_graph.edges.len();
 
