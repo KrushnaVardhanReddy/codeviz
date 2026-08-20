@@ -95,11 +95,10 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, curre
     let is_call = node.node_type == "call_expression" || node.node_type == "call"
         || node.node_type == "jsx_self_closing_element" || node.node_type == "jsx_opening_element";
 
-    if node.node_type == "variable_declarator" {
-        if node.children.iter().any(|c| c.node_type == "arrow_function") {
+    if node.node_type == "variable_declarator"
+        && node.children.iter().any(|c| c.node_type == "arrow_function") {
             is_function = true;
         }
-    }
 
     let mut next_scope_id = current_scope_id.map(|s| s.to_string());
 
@@ -154,8 +153,8 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, curre
                 }
             }
         }
-    } else if is_call {
-        if let Some(scope_id) = current_scope_id {
+    } else if is_call
+        && let Some(scope_id) = current_scope_id {
             let mut target_name = None;
             let is_jsx = node.node_type.starts_with("jsx");
 
@@ -173,11 +172,10 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, curre
                         if let Some(last_id) = identifiers.last() {
                             target_name = Some(last_id.clone());
                         }
-                    } else if child.node_type == "identifier" || child.node_type == "property_identifier" {
-                        if target_name.is_none() {
+                    } else if (child.node_type == "identifier" || child.node_type == "property_identifier")
+                        && target_name.is_none() {
                             target_name = Some(child.text.clone());
                         }
-                    }
                 }
             }
 
@@ -192,7 +190,6 @@ fn extract_from_ast(node: &TsNode, file_path: &str, graph: &mut CodeGraph, curre
                 });
             }
         }
-    }
 
     for child in &node.children {
         extract_from_ast(child, file_path, graph, next_scope_id.as_deref());
